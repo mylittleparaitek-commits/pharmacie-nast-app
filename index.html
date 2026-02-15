@@ -347,7 +347,7 @@
             margin-top: 3px;
         }
 
-        #photoInput, #scanInput { display: none; }
+        #photoInput { display: none; }
 
         /* Photo grid */
         .photos-grid {
@@ -1096,7 +1096,6 @@
         function setupSettings() {
             document.getElementById('btnSaveSettings').addEventListener('click', () => {
                 setVal('mlp_webhook_url', document.getElementById('webhookUrlInput').value.trim());
-                setVal('mlp_webhook_email_url', document.getElementById('webhookEmailInput').value.trim());
                 updateWebhookStatus();
                 showToast('Paramètres sauvegardés', 'success');
             });
@@ -1110,7 +1109,6 @@
 
         function loadSettings() {
             document.getElementById('webhookUrlInput').value = getVal('mlp_webhook_url') || '';
-            document.getElementById('webhookEmailInput').value = getVal('mlp_webhook_email_url') || '';
             updateWebhookStatus();
         }
 
