@@ -151,7 +151,7 @@
             display: flex;
             background: var(--bg-primary);
             border-top: 1px solid var(--border);
-            padding: 6px 8px calc(6px + var(--safe-bottom));
+            padding: 4px 4px calc(4px + var(--safe-bottom));
             position: relative;
             z-index: 10;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
@@ -162,17 +162,18 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
-            padding: 8px 4px;
+            gap: 2px;
+            padding: 5px 2px;
             border: none;
             background: none;
             color: var(--text-muted);
             font-family: var(--font-body);
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 500;
             cursor: pointer;
             transition: color 0.2s;
             position: relative;
+            letter-spacing: -0.2px;
         }
 
         .tab-item.active {
@@ -184,9 +185,9 @@
         }
 
         .tab-icon-wrap {
-            width: 40px;
-            height: 28px;
-            border-radius: 14px;
+            width: 36px;
+            height: 24px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -194,8 +195,8 @@
         }
 
         .tab-icon {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
         }
 
         /* ─── CARDS ─── */
@@ -701,6 +702,41 @@
         /* Tab content */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* ─── DELPECH — case à cocher facturation ─── */
+        .facturation-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .facturation-btn {
+            flex: 1;
+            padding: 11px 8px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .facturation-btn.active-paye {
+            border-color: #26C6DA;
+            background: var(--nast-turquoise-light);
+            color: var(--nast-turquoise-dark);
+            font-weight: 600;
+        }
+
+        .facturation-btn.active-nonfacture {
+            border-color: var(--warning);
+            background: #fff8e1;
+            color: #e65100;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -790,7 +826,7 @@
                 <div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Webhooks n8n</div>
                 <div class="settings-group">
                     <div class="settings-item">
-                        <span class="settings-item-label">Statut</span>
+                        <span class="settings-item-label">Statut BL</span>
                         <span class="webhook-status disconnected" id="webhookStatus">
                             <span class="webhook-dot"></span>
                             Non configuré
@@ -803,6 +839,21 @@
                     </div>
                 </div>
 
+                <div class="settings-group">
+                    <div class="settings-item">
+                        <span class="settings-item-label">Statut Delpech</span>
+                        <span class="webhook-status disconnected" id="webhookDelpechStatus">
+                            <span class="webhook-dot"></span>
+                            Non configuré
+                        </span>
+                    </div>
+                    <div style="padding: 14px 16px;">
+                        <label class="form-label">URL webhook — Delpech Préparatoire</label>
+                        <input type="url" class="settings-input" id="webhookDelpechInput" placeholder="https://n8n.example.com/webhook/delpech">
+                        <button class="btn-save" id="btnSaveDelpechWebhook">Sauvegarder</button>
+                    </div>
+                </div>
+
                 <div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Liste des laboratoires</div>
                 <div class="settings-group">
                     <div style="padding: 14px 16px;">
@@ -811,6 +862,64 @@
                         <button class="btn-save" id="btnSaveLabos">Sauvegarder les labos</button>
                     </div>
                 </div>
+            </div>
+
+            <!-- TAB: Delpech Préparatoire -->
+            <div class="tab-content" id="tabDelpech">
+                <div class="card">
+                    <div class="card-title"><span class="card-title-dot"></span>Préparation magistrale</div>
+
+                    <div class="form-group">
+                        <label class="form-label">Laboratoire</label>
+                        <input type="text" class="input" id="delpechLaboInput" value="DELPECH PREPARATOIRE" readonly style="color:var(--text-muted);background:var(--bg-input);">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Envoyé par</label>
+                        <input type="text" class="input" id="delpechEnvoyeurInput" placeholder="Nom de l'expéditeur">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nom du client</label>
+                        <input type="text" class="input" id="delpechClientInput" placeholder="Nom / Prénom du patient">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Principe actif de la préparation</label>
+                        <input type="text" class="input" id="delpechPrincipeInput" placeholder="ex: Kétoprofène 2,5%">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Numéro du promis</label>
+                        <input type="text" class="input" id="delpechPromisInput" placeholder="N° promis">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Statut facturation</label>
+                        <div class="facturation-toggle">
+                            <button class="facturation-btn active-paye" id="btnPaye" onclick="selectFacturation('paye')">✓ Payé / Facturé</button>
+                            <button class="facturation-btn" id="btnNonFacture" onclick="selectFacturation('nonfacture')">⚠ Non facturé</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><span class="card-title-dot"></span>Photo / document de la préparation</div>
+                    <div class="photo-zone" id="delpechPhotoZone">
+                        <svg class="photo-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        <div class="photo-zone-text">Ajouter la préparation</div>
+                        <div class="photo-zone-sub">Photo ou PDF · Plusieurs fichiers possibles</div>
+                    </div>
+                    <input type="file" id="delpechPhotoInput" accept="image/*,application/pdf" multiple>
+                    <div class="photos-grid" id="delpechPhotosGrid"></div>
+                </div>
+
+                <button class="btn-submit" id="btnDelpechSubmit" disabled>
+                    ✉ Envoyer par mail + Drive
+                </button>
             </div>
 
         </main>
@@ -826,6 +935,14 @@
                     </svg>
                 </div>
                 RECEPTION/BL
+            </button>
+            <button class="tab-item" data-tab="tabDelpech" data-title="Delpech Préparatoire">
+                <div class="tab-icon-wrap">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
+                    </svg>
+                </div>
+                DELPECH
             </button>
             <button class="tab-item" data-tab="tabDashboard" data-title="Tableau de bord">
                 <div class="tab-icon-wrap">
@@ -859,6 +976,7 @@
     <script>
         // ─── STATE ───
         const state = { photos: [], recentReceptions: [], labos: [], site: 'NAST' };
+        const delpechState = { photos: [], facturation: 'paye' };
 
         const DEFAULT_LABOS = [
             'ABBOTT', 'ACCU-CHECK', 'ARROW', 'BAUSCH & LOMB', 'BAYER', 'BIOGARAN',
@@ -882,6 +1000,7 @@
             setupPhotoCapture();
             setupFormValidation();
             setupSettings();
+            setupDelpech();
         }
 
         function updateDate() {
@@ -1116,37 +1235,6 @@
             }).join('');
         }
 
-        // ─── SETTINGS ───
-        function setupSettings() {
-            document.getElementById('btnSaveSettings').addEventListener('click', () => {
-                setVal('mlp_webhook_url', document.getElementById('webhookUrlInput').value.trim());
-                updateWebhookStatus();
-                showToast('Paramètres sauvegardés', 'success');
-            });
-            document.getElementById('btnSaveLabos').addEventListener('click', () => {
-                state.labos = document.getElementById('labosListInput').value.split('\n').map(l => l.trim()).filter(Boolean).sort();
-                setVal('mlp_labos', JSON.stringify(state.labos));
-                document.getElementById('labosListInput').value = state.labos.join('\n');
-                showToast(`${state.labos.length} labos sauvegardés`, 'success');
-            });
-        }
-
-        function loadSettings() {
-            document.getElementById('webhookUrlInput').value = getVal('mlp_webhook_url') || '';
-            updateWebhookStatus();
-        }
-
-        function updateWebhookStatus() {
-            const s = document.getElementById('webhookStatus');
-            if (getVal('mlp_webhook_url')) {
-                s.className = 'webhook-status connected';
-                s.innerHTML = '<span class="webhook-dot"></span>Connecté';
-            } else {
-                s.className = 'webhook-status disconnected';
-                s.innerHTML = '<span class="webhook-dot"></span>Non configuré';
-            }
-        }
-
         function loadLabos() {
             try { const s = getVal('mlp_labos'); state.labos = s ? JSON.parse(s) : DEFAULT_LABOS; } catch (e) { state.labos = DEFAULT_LABOS; }
             document.getElementById('labosListInput').value = state.labos.join('\n');
@@ -1163,6 +1251,192 @@
             toast.querySelector('.toast-icon').textContent = type === 'error' ? '✕' : '✓';
             toast.className = `toast ${type}`;
             requestAnimationFrame(() => { toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); });
+        }
+
+        // ─── SETTINGS Delpech ───
+        function setupSettings() {
+            document.getElementById('btnSaveSettings').addEventListener('click', () => {
+                setVal('mlp_webhook_url', document.getElementById('webhookUrlInput').value.trim());
+                updateWebhookStatus();
+                showToast('Paramètres sauvegardés', 'success');
+            });
+            document.getElementById('btnSaveDelpechWebhook').addEventListener('click', () => {
+                setVal('mlp_delpech_webhook_url', document.getElementById('webhookDelpechInput').value.trim());
+                updateDelpechWebhookStatus();
+                showToast('Webhook Delpech sauvegardé', 'success');
+            });
+            document.getElementById('btnSaveLabos').addEventListener('click', () => {
+                state.labos = document.getElementById('labosListInput').value.split('\n').map(l => l.trim()).filter(Boolean).sort();
+                setVal('mlp_labos', JSON.stringify(state.labos));
+                document.getElementById('labosListInput').value = state.labos.join('\n');
+                showToast(`${state.labos.length} labos sauvegardés`, 'success');
+            });
+        }
+
+        function loadSettings() {
+            document.getElementById('webhookUrlInput').value = getVal('mlp_webhook_url') || '';
+            document.getElementById('webhookDelpechInput').value = getVal('mlp_delpech_webhook_url') || '';
+            updateWebhookStatus();
+            updateDelpechWebhookStatus();
+        }
+
+        function updateWebhookStatus() {
+            const s = document.getElementById('webhookStatus');
+            if (getVal('mlp_webhook_url')) {
+                s.className = 'webhook-status connected';
+                s.innerHTML = '<span class="webhook-dot"></span>Connecté';
+            } else {
+                s.className = 'webhook-status disconnected';
+                s.innerHTML = '<span class="webhook-dot"></span>Non configuré';
+            }
+        }
+
+        function updateDelpechWebhookStatus() {
+            const s = document.getElementById('webhookDelpechStatus');
+            if (getVal('mlp_delpech_webhook_url')) {
+                s.className = 'webhook-status connected';
+                s.innerHTML = '<span class="webhook-dot"></span>Connecté';
+            } else {
+                s.className = 'webhook-status disconnected';
+                s.innerHTML = '<span class="webhook-dot"></span>Non configuré';
+            }
+        }
+
+        // ─── DELPECH SETUP ───
+        function setupDelpech() {
+            // Photos
+            const zone = document.getElementById('delpechPhotoZone');
+            const input = document.getElementById('delpechPhotoInput');
+            zone.addEventListener('click', () => input.click());
+            input.addEventListener('change', (e) => {
+                Array.from(e.target.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        delpechState.photos.push({
+                            data: ev.target.result,
+                            name: file.name,
+                            type: file.type,
+                            isPdf: file.type === 'application/pdf',
+                            timestamp: new Date().toISOString()
+                        });
+                        renderDelpechPhotos();
+                        validateDelpechForm();
+                    };
+                    reader.readAsDataURL(file);
+                });
+                input.value = '';
+            });
+
+            // Validation sur saisie
+            ['delpechEnvoyeurInput', 'delpechClientInput', 'delpechPromisInput'].forEach(id => {
+                document.getElementById(id).addEventListener('input', validateDelpechForm);
+            });
+
+            // Submit
+            document.getElementById('btnDelpechSubmit').addEventListener('click', submitDelpech);
+        }
+
+        function renderDelpechPhotos() {
+            document.getElementById('delpechPhotosGrid').innerHTML = delpechState.photos.map((p, i) => {
+                if (p.isPdf) {
+                    return `<div class="photo-thumb photo-thumb-pdf">
+                        <div class="pdf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <text x="12" y="16" text-anchor="middle" font-size="6" fill="currentColor" font-weight="bold">PDF</text>
+                        </svg></div>
+                        <span class="photo-thumb-badge">${i + 1}</span>
+                        <button class="photo-thumb-remove" onclick="removeDelpechPhoto(${i})">×</button>
+                    </div>`;
+                } else {
+                    return `<div class="photo-thumb">
+                        <img src="${p.data}" alt="Prépa ${i + 1}">
+                        <span class="photo-thumb-badge">${i + 1}</span>
+                        <button class="photo-thumb-remove" onclick="removeDelpechPhoto(${i})">×</button>
+                    </div>`;
+                }
+            }).join('');
+        }
+
+        function removeDelpechPhoto(i) {
+            delpechState.photos.splice(i, 1);
+            renderDelpechPhotos();
+            validateDelpechForm();
+        }
+
+        function selectFacturation(type) {
+            delpechState.facturation = type;
+            document.getElementById('btnPaye').className = 'facturation-btn' + (type === 'paye' ? ' active-paye' : '');
+            document.getElementById('btnNonFacture').className = 'facturation-btn' + (type === 'nonfacture' ? ' active-nonfacture' : '');
+        }
+
+        function validateDelpechForm() {
+            const ok = document.getElementById('delpechEnvoyeurInput').value.trim()
+                    && document.getElementById('delpechClientInput').value.trim()
+                    && document.getElementById('delpechPromisInput').value.trim()
+                    && delpechState.photos.length > 0;
+            document.getElementById('btnDelpechSubmit').disabled = !ok;
+        }
+
+        async function submitDelpech() {
+            const btn = document.getElementById('btnDelpechSubmit');
+            const url = getVal('mlp_delpech_webhook_url');
+            if (!url) { showToast('Configurez le webhook Delpech dans Réglages', 'error'); return; }
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            const envoyeur  = document.getElementById('delpechEnvoyeurInput').value.trim();
+            const client    = document.getElementById('delpechClientInput').value.trim();
+            const principe  = document.getElementById('delpechPrincipeInput').value.trim();
+            const promis    = document.getElementById('delpechPromisInput').value.trim();
+            const now       = new Date();
+            const dateISO   = now.toISOString();
+            const dateStr   = now.toISOString().slice(0,10).replace(/-/g,'') + '_' + now.toTimeString().slice(0,5).replace(':','');
+            const clientSlug = client.replace(/[^A-Za-z0-9]/g, '_').toUpperCase();
+            const promisSlug = promis.replace(/[^A-Za-z0-9]/g, '_');
+
+            const payload = {
+                type:        'DELPECH',
+                labo:        'DELPECH PREPARATOIRE',
+                envoyeur,
+                client,
+                principe,
+                promis,
+                facturation: delpechState.facturation,
+                date:        dateISO,
+                emailDest:   'commandespharmacienast@gmail.com',
+                photos: delpechState.photos.map((p, i) => {
+                    const [header, base64] = p.data.split(',');
+                    const mimeType = header.replace('data:', '').replace(';base64', '');
+                    const ext = p.isPdf ? 'pdf' : mimeType.includes('png') ? 'png' : 'jpg';
+                    // DELPECH_CLIENT_PROMIS_DATE.jpg
+                    const filename = `DELPECH_${clientSlug}_${promisSlug}_${dateStr}_p${i + 1}.${ext}`;
+                    return { index: i + 1, data: base64, mimeType, filename, isPdf: p.isPdf };
+                })
+            };
+
+            try {
+                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (res.ok) {
+                    // Reset formulaire
+                    document.getElementById('delpechEnvoyeurInput').value = '';
+                    document.getElementById('delpechClientInput').value = '';
+                    document.getElementById('delpechPrincipeInput').value = '';
+                    document.getElementById('delpechPromisInput').value = '';
+                    delpechState.photos = [];
+                    delpechState.facturation = 'paye';
+                    selectFacturation('paye');
+                    renderDelpechPhotos();
+                    showToast(`Delpech ${client} envoyé !`, 'success');
+                } else {
+                    showToast('Erreur — vérifiez le webhook', 'error');
+                }
+            } catch (e) {
+                showToast('Serveur n8n injoignable', 'error');
+            }
+            btn.classList.remove('loading');
+            validateDelpechForm();
         }
 
         init();
