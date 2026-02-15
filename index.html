@@ -1027,12 +1027,42 @@
             btn.classList.add('loading');
             btn.disabled = true;
 
+            const labo     = document.getElementById('laboInput').value.trim().toUpperCase();
+            const receptionnaire = document.getElementById('receptInput').value.trim();
+            const now      = new Date();
+            const dateISO  = now.toISOString();
+            // Format date pour le nom de fichier : YYYYMMDD_HHMM
+            const dateStr  = now.toISOString().slice(0,10).replace(/-/g,'') + '_' + now.toTimeString().slice(0,5).replace(':','');
+
             const payload = {
-                labo: document.getElementById('laboInput').value.trim().toUpperCase(),
-                receptionnaire: document.getElementById('receptInput').value.trim(),
-                date: new Date().toISOString(),
+                labo,
+                receptionnaire,
+                date: dateISO,
                 site: state.site,
-                photos: state.photos.map((p, i) => ({ index: i + 1, data: p.data, filename: `BL_page_${i + 1}.jpg` }))
+                photos: state.photos.map((p, i) => {
+                    // Séparer le préfixe MIME du base64 pur
+                    // p.data = "data:image/jpeg;base64,/9j/4AAQ..." ou "data:application/pdf;base64,..."
+                    const [header, base64] = p.data.split(',');
+                    const mimeType = header.replace('data:', '').replace(';base64', '');
+
+                    // Extension selon le type MIME
+                    const ext = p.isPdf ? 'pdf'
+                              : mimeType.includes('png') ? 'png'
+                              : mimeType.includes('webp') ? 'webp'
+                              : 'jpg';
+
+                    // Nom de fichier lisible : BL_BIOGARAN_NAST_20260215_1430_p1.jpg
+                    const laboSlug = labo.replace(/[^A-Z0-9]/g, '_');
+                    const filename = `BL_${laboSlug}_${state.site}_${dateStr}_p${i + 1}.${ext}`;
+
+                    return {
+                        index:    i + 1,
+                        data:     base64,       // base64 pur, sans préfixe
+                        mimeType: mimeType,     // ex: "image/jpeg"
+                        filename: filename,     // ex: "BL_BIOGARAN_NAST_20260215_1430_p1.jpg"
+                        isPdf:    p.isPdf
+                    };
+                })
             };
 
             try {
