@@ -1144,8 +1144,15 @@
             const receptionnaire = document.getElementById('receptInput').value.trim();
             const now      = new Date();
             const dateISO  = now.toISOString();
-            // Format date pour le nom de fichier : YYYYMMDD_HHMM
-            const dateStr  = now.toISOString().slice(0,10).replace(/-/g,'') + '_' + now.toTimeString().slice(0,5).replace(':','');
+            // Format date pour le nom de fichier : JJ-MM-AAAA_HH-MM
+            const dd      = String(now.getDate()).padStart(2,'0');
+            const mm      = String(now.getMonth()+1).padStart(2,'0');
+            const yyyy    = now.getFullYear();
+            const hh      = String(now.getHours()).padStart(2,'0');
+            const min     = String(now.getMinutes()).padStart(2,'0');
+            const dateStr = `${dd}-${mm}-${yyyy}_${hh}-${min}`;
+
+            const laboSlug = labo.replace(/[^A-Z0-9]/g, '_');
 
             const payload = {
                 labo,
@@ -1153,26 +1160,23 @@
                 date: dateISO,
                 site: state.site,
                 photos: state.photos.map((p, i) => {
-                    // Séparer le préfixe MIME du base64 pur
-                    // p.data = "data:image/jpeg;base64,/9j/4AAQ..." ou "data:application/pdf;base64,..."
                     const [header, base64] = p.data.split(',');
                     const mimeType = header.replace('data:', '').replace(';base64', '');
 
-                    // Extension selon le type MIME
                     const ext = p.isPdf ? 'pdf'
                               : mimeType.includes('png') ? 'png'
                               : mimeType.includes('webp') ? 'webp'
                               : 'jpg';
 
-                    // Nom de fichier lisible : BL_BIOGARAN_NAST_20260215_1430_p1.jpg
-                    const laboSlug = labo.replace(/[^A-Z0-9]/g, '_');
-                    const filename = `BL_${laboSlug}_${state.site}_${dateStr}_p${i + 1}.${ext}`;
+                    // Nom de fichier : BL_BIOGARAN_XAVIER_15-02-2026_22-45_p1.jpg
+                    const receptSlug = receptionnaire.replace(/[^A-Za-z0-9]/g, '_').toUpperCase();
+                    const filename = `BL_${laboSlug}_${receptSlug}_${dateStr}_p${i + 1}.${ext}`;
 
                     return {
                         index:    i + 1,
-                        data:     base64,       // base64 pur, sans préfixe
-                        mimeType: mimeType,     // ex: "image/jpeg"
-                        filename: filename,     // ex: "BL_BIOGARAN_NAST_20260215_1430_p1.jpg"
+                        data:     base64,
+                        mimeType: mimeType,
+                        filename: filename,
                         isPdf:    p.isPdf
                     };
                 })
@@ -1396,7 +1400,12 @@
             const promis    = document.getElementById('delpechPromisInput').value.trim();
             const now       = new Date();
             const dateISO   = now.toISOString();
-            const dateStr   = now.toISOString().slice(0,10).replace(/-/g,'') + '_' + now.toTimeString().slice(0,5).replace(':','');
+            const dd      = String(now.getDate()).padStart(2,'0');
+            const mm      = String(now.getMonth()+1).padStart(2,'0');
+            const yyyy    = now.getFullYear();
+            const hh      = String(now.getHours()).padStart(2,'0');
+            const min     = String(now.getMinutes()).padStart(2,'0');
+            const dateStr = `${dd}-${mm}-${yyyy}_${hh}-${min}`;
             const clientSlug = client.replace(/[^A-Za-z0-9]/g, '_').toUpperCase();
             const promisSlug = promis.replace(/[^A-Za-z0-9]/g, '_');
 
@@ -1414,8 +1423,9 @@
                     const [header, base64] = p.data.split(',');
                     const mimeType = header.replace('data:', '').replace(';base64', '');
                     const ext = p.isPdf ? 'pdf' : mimeType.includes('png') ? 'png' : 'jpg';
-                    // DELPECH_CLIENT_PROMIS_DATE.jpg
-                    const filename = `DELPECH_${clientSlug}_${promisSlug}_${dateStr}_p${i + 1}.${ext}`;
+                    // Nom : DELPECH_ENVOYEUR_CLIENT_PROMIS_15-02-2026_22-45_p1.jpg
+                    const envoyeurSlug = envoyeur.replace(/[^A-Za-z0-9]/g, '_').toUpperCase();
+                    const filename = `DELPECH_${envoyeurSlug}_CLIENT_${clientSlug}_${promisSlug}_${dateStr}_p${i + 1}.${ext}`;
                     return { index: i + 1, data: base64, mimeType, filename, isPdf: p.isPdf };
                 })
             };
