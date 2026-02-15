@@ -1274,8 +1274,12 @@
         }
 
         function loadSettings() {
-            document.getElementById('webhookUrlInput').value = getVal('mlp_webhook_url') || '';
-            document.getElementById('webhookDelpechInput').value = getVal('mlp_delpech_webhook_url') || '';
+            const blUrl = getVal('mlp_webhook_url') || 'https://n8n.srv1086994.hstgr.cloud/webhook/reception-bl';
+            const delpechUrl = getVal('mlp_delpech_webhook_url') || 'https://n8n.srv1086994.hstgr.cloud/webhook/delpech-preparatoire';
+            if (!getVal('mlp_webhook_url')) setVal('mlp_webhook_url', blUrl);
+            if (!getVal('mlp_delpech_webhook_url')) setVal('mlp_delpech_webhook_url', delpechUrl);
+            document.getElementById('webhookUrlInput').value = blUrl;
+            document.getElementById('webhookDelpechInput').value = delpechUrl;
             updateWebhookStatus();
             updateDelpechWebhookStatus();
         }
