@@ -12,14 +12,17 @@
     <style>
         :root {
             /* Couleurs Pharmacie Nast — inspirées de mapharmacienast.com */
-            --nast-green: #00a651;
-            --nast-green-dark: #008c45;
-            --nast-green-light: #e8f5ee;
-            --nast-green-glow: rgba(0, 166, 81, 0.08);
-            --nast-green-glow-md: rgba(0, 166, 81, 0.12);
-            --nast-green-glow-strong: rgba(0, 166, 81, 0.18);
-            --nast-blue: #2d3e50;
+            --nast-pink: #E91E63;
+            --nast-pink-dark: #C2185B;
+            --nast-pink-light: #FCE4EC;
+            --nast-turquoise: #26C6DA;
+            --nast-turquoise-dark: #00ACC1;
+            --nast-turquoise-light: #E0F7FA;
+            --nast-blue: #2C4A5E;
             --nast-blue-light: #3a5068;
+            --nast-glow: rgba(233, 30, 99, 0.08);
+            --nast-glow-md: rgba(233, 30, 99, 0.12);
+            --nast-glow-strong: rgba(233, 30, 99, 0.18);
 
             --bg-primary: #ffffff;
             --bg-secondary: #f7f9fb;
@@ -29,12 +32,12 @@
             --text-primary: #1a2332;
             --text-secondary: #5a6a7e;
             --text-muted: #9aa8b8;
-            --text-on-green: #ffffff;
+            --text-on-primary: #ffffff;
 
             --danger: #e74c3c;
             --danger-bg: #fdf0ef;
             --warning: #f39c12;
-            --success: #00a651;
+            --success: #26C6DA;
 
             --border: #e8ecf0;
             --border-light: #f0f2f5;
@@ -76,7 +79,7 @@
         /* ─── HEADER ─── */
         .header {
             padding: 14px 20px 14px;
-            background: var(--nast-green);
+            background: linear-gradient(135deg, var(--nast-pink) 0%, var(--nast-turquoise) 100%);
             color: white;
             position: relative;
             z-index: 10;
@@ -109,7 +112,7 @@
         .logo-cross svg {
             width: 18px;
             height: 18px;
-            color: var(--nast-green);
+            color: var(--nast-pink);
         }
 
         .logo-text {
@@ -173,11 +176,11 @@
         }
 
         .tab-item.active {
-            color: var(--nast-green);
+            color: var(--nast-pink);
         }
 
         .tab-item.active .tab-icon-wrap {
-            background: var(--nast-green-light);
+            background: var(--nast-pink-light);
         }
 
         .tab-icon-wrap {
@@ -221,7 +224,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: var(--nast-green);
+            background: var(--nast-pink);
         }
 
         /* ─── FORM ELEMENTS ─── */
@@ -256,9 +259,9 @@
         }
 
         .input:focus {
-            border-color: var(--nast-green);
+            border-color: var(--nast-pink);
             background: white;
-            box-shadow: 0 0 0 3px var(--nast-green-glow-md);
+            box-shadow: 0 0 0 3px var(--nast-glow-md);
         }
 
         .input::placeholder { color: var(--text-muted); }
@@ -300,42 +303,42 @@
         .labo-suggestion:last-child { border-bottom: none; }
 
         .labo-suggestion:hover, .labo-suggestion:active {
-            background: var(--nast-green-light);
+            background: var(--nast-pink-light);
         }
 
         .labo-suggestion mark {
             background: none;
-            color: var(--nast-green);
+            color: var(--nast-pink);
             font-weight: 600;
         }
 
         /* Photo zone */
         .photo-zone {
-            border: 2px dashed var(--nast-green);
+            border: 2px dashed var(--nast-pink);
             border-radius: var(--radius);
             padding: 28px 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
-            background: var(--nast-green-glow);
+            background: var(--nast-glow);
         }
 
         .photo-zone:active {
             transform: scale(0.98);
-            background: var(--nast-green-glow-strong);
+            background: var(--nast-glow-strong);
         }
 
         .photo-zone-icon {
             width: 42px;
             height: 42px;
             margin: 0 auto 10px;
-            color: var(--nast-green);
+            color: var(--nast-pink);
         }
 
         .photo-zone-text {
             font-size: 14px;
             font-weight: 600;
-            color: var(--nast-green-dark);
+            color: var(--nast-pink-dark);
         }
 
         .photo-zone-sub {
@@ -373,7 +376,7 @@
             position: absolute;
             top: 5px;
             left: 5px;
-            background: var(--nast-green);
+            background: var(--nast-pink);
             color: white;
             font-family: var(--font-mono);
             font-size: 10px;
@@ -400,6 +403,24 @@
             line-height: 1;
         }
 
+        .photo-thumb-pdf {
+            background: var(--nast-pink-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pdf-icon {
+            width: 50%;
+            height: 50%;
+            color: var(--nast-pink);
+        }
+
+        .pdf-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
         /* Site selector */
         .site-toggle {
             display: flex;
@@ -423,9 +444,9 @@
         }
 
         .site-btn.active {
-            border-color: var(--nast-green);
-            background: var(--nast-green-light);
-            color: var(--nast-green-dark);
+            border-color: var(--nast-pink);
+            background: var(--nast-pink-light);
+            color: var(--nast-pink-dark);
             font-weight: 600;
         }
 
@@ -433,7 +454,7 @@
         .btn-submit {
             width: 100%;
             padding: 14px;
-            background: var(--nast-green);
+            background: var(--nast-pink);
             color: white;
             border: none;
             border-radius: var(--radius-xs);
@@ -456,7 +477,7 @@
 
         .btn-submit:not(:disabled):active {
             transform: scale(0.98);
-            background: var(--nast-green-dark);
+            background: var(--nast-pink-dark);
         }
 
         .btn-submit.loading { color: transparent; }
@@ -484,7 +505,7 @@
             left: 50%;
             transform: translateX(-50%) translateY(-120px);
             background: white;
-            border: 1px solid var(--nast-green);
+            border: 1px solid var(--nast-pink);
             color: var(--text-primary);
             padding: 12px 20px;
             border-radius: var(--radius-xs);
@@ -502,7 +523,7 @@
         .toast.show { transform: translateX(-50%) translateY(0); }
 
         .toast-icon { font-size: 16px; }
-        .toast.success .toast-icon { color: var(--nast-green); }
+        .toast.success .toast-icon { color: var(--nast-pink); }
         .toast.error { border-color: var(--danger); }
         .toast.error .toast-icon { color: var(--danger); }
 
@@ -526,7 +547,7 @@
             font-family: var(--font-mono);
             font-size: 32px;
             font-weight: 700;
-            color: var(--nast-green);
+            color: var(--nast-pink);
             line-height: 1;
         }
 
@@ -557,12 +578,12 @@
         .recent-item-icon {
             width: 36px;
             height: 36px;
-            background: var(--nast-green-light);
+            background: var(--nast-pink-light);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--nast-green);
+            color: var(--nast-pink);
             flex-shrink: 0;
         }
 
@@ -626,8 +647,8 @@
         }
 
         .webhook-status.connected {
-            background: var(--nast-green-light);
-            color: var(--nast-green-dark);
+            background: var(--nast-pink-light);
+            color: var(--nast-pink-dark);
         }
 
         .webhook-status.disconnected {
@@ -657,13 +678,13 @@
         }
 
         .settings-input:focus {
-            border-color: var(--nast-green);
+            border-color: var(--nast-pink);
             background: white;
         }
 
         .btn-save {
             padding: 10px 20px;
-            background: var(--nast-green);
+            background: var(--nast-pink);
             color: white;
             border: none;
             border-radius: var(--radius-xs);
@@ -675,7 +696,7 @@
             transition: background 0.2s;
         }
 
-        .btn-save:active { background: var(--nast-green-dark); }
+        .btn-save:active { background: var(--nast-pink-dark); }
 
         /* Tab content */
         .tab-content { display: none; }
@@ -735,49 +756,16 @@
                             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                             <circle cx="12" cy="13" r="4"/>
                         </svg>
-                        <div class="photo-zone-text">Prendre une photo du BL</div>
-                        <div class="photo-zone-sub">Appuyez pour capturer · Plusieurs pages possibles</div>
+                        <div class="photo-zone-text">Ajouter le bon de livraison</div>
+                        <div class="photo-zone-sub">Photo, PDF ou image · Plusieurs fichiers possibles</div>
                     </div>
-                    <input type="file" id="photoInput" accept="image/*" capture="environment" multiple>
+                    <input type="file" id="photoInput" accept="image/*,application/pdf" multiple>
                     <div class="photos-grid" id="photosGrid"></div>
                 </div>
 
                 <button class="btn-submit" id="btnSubmit" disabled>
                     ✓ Envoyer sur Google Drive
                 </button>
-            </div>
-
-            <!-- TAB: Scanner -->
-            <div class="tab-content" id="tabScanner">
-                <div class="card">
-                    <div class="card-title"><span class="card-title-dot"></span>Scanner un bon de préparation</div>
-                    <div class="photo-zone" id="scannerZone">
-                        <svg class="photo-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="4 7 4 4 20 4 20 7"/>
-                            <line x1="9" y1="20" x2="15" y2="20"/>
-                            <line x1="12" y1="4" x2="12" y2="20"/>
-                        </svg>
-                        <div class="photo-zone-text">Scanner un document</div>
-                        <div class="photo-zone-sub">Photo via la caméra du téléphone</div>
-                    </div>
-                    <input type="file" id="scanInput" accept="image/*" capture="environment">
-                    <div class="photos-grid" id="scanGrid"></div>
-                </div>
-
-                <div class="card" id="emailCompose" style="display:none;">
-                    <div class="card-title"><span class="card-title-dot"></span>Envoyer par e-mail</div>
-                    <div class="form-group">
-                        <label class="form-label">Adresse e-mail</label>
-                        <input type="email" class="input" id="emailTo" placeholder="destinataire@email.com">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Message</label>
-                        <textarea class="input" id="emailMessage" placeholder="Votre message..."></textarea>
-                    </div>
-                    <button class="btn-submit" id="btnSendEmail" disabled>
-                        ✉ Envoyer par e-mail
-                    </button>
-                </div>
             </div>
 
             <!-- TAB: Dashboard -->
@@ -817,8 +805,6 @@
                     <div style="padding: 14px 16px;">
                         <label class="form-label">URL webhook — Réception BL</label>
                         <input type="url" class="settings-input" id="webhookUrlInput" placeholder="https://n8n.example.com/webhook/reception-bl">
-                        <label class="form-label" style="margin-top:12px">URL webhook — Scanner / Email</label>
-                        <input type="url" class="settings-input" id="webhookEmailInput" placeholder="https://n8n.example.com/webhook/scanner-email">
                         <button class="btn-save" id="btnSaveSettings">Sauvegarder</button>
                     </div>
                 </div>
@@ -846,16 +832,6 @@
                     </svg>
                 </div>
                 Réception
-            </button>
-            <button class="tab-item" data-tab="tabScanner" data-title="Scanner & Envoi">
-                <div class="tab-icon-wrap">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="4 7 4 4 20 4 20 7"/>
-                        <line x1="9" y1="20" x2="15" y2="20"/>
-                        <line x1="12" y1="4" x2="12" y2="20"/>
-                    </svg>
-                </div>
-                Scanner
             </button>
             <button class="tab-item" data-tab="tabDashboard" data-title="Tableau de bord">
                 <div class="tab-icon-wrap">
@@ -888,7 +864,7 @@
 
     <script>
         // ─── STATE ───
-        const state = { photos: [], scanPhotos: [], recentReceptions: [], labos: [], site: 'NAST' };
+        const state = { photos: [], recentReceptions: [], labos: [], site: 'NAST' };
 
         const DEFAULT_LABOS = [
             'ABBOTT', 'ACCU-CHECK', 'ARROW', 'BAUSCH & LOMB', 'BAYER', 'BIOGARAN',
@@ -910,7 +886,6 @@
             setupTabs();
             setupLaboInput();
             setupPhotoCapture();
-            setupScanCapture();
             setupFormValidation();
             setupSettings();
         }
@@ -981,7 +956,14 @@
                 Array.from(e.target.files).forEach(file => {
                     const reader = new FileReader();
                     reader.onload = (ev) => {
-                        state.photos.push({ data: ev.target.result, name: file.name, timestamp: new Date().toISOString() });
+                        const isPdf = file.type === 'application/pdf';
+                        state.photos.push({ 
+                            data: ev.target.result, 
+                            name: file.name, 
+                            type: file.type,
+                            isPdf: isPdf,
+                            timestamp: new Date().toISOString() 
+                        });
                         renderPhotos();
                         validateForm();
                     };
@@ -992,43 +974,41 @@
         }
 
         function renderPhotos() {
-            document.getElementById('photosGrid').innerHTML = state.photos.map((p, i) => `
-                <div class="photo-thumb">
-                    <img src="${p.data}" alt="BL page ${i + 1}">
-                    <span class="photo-thumb-badge">${i + 1}</span>
-                    <button class="photo-thumb-remove" onclick="removePhoto(${i})">×</button>
-                </div>
-            `).join('');
+            document.getElementById('photosGrid').innerHTML = state.photos.map((p, i) => {
+                if (p.isPdf) {
+                    return `
+                        <div class="photo-thumb photo-thumb-pdf">
+                            <div class="pdf-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <text x="12" y="16" text-anchor="middle" font-size="6" fill="currentColor" font-weight="bold">PDF</text>
+                                </svg>
+                            </div>
+                            <span class="photo-thumb-badge">${i + 1}</span>
+                            <button class="photo-thumb-remove" onclick="removePhoto(${i})">×</button>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="photo-thumb">
+                            <img src="${p.data}" alt="BL page ${i + 1}">
+                            <span class="photo-thumb-badge">${i + 1}</span>
+                            <button class="photo-thumb-remove" onclick="removePhoto(${i})">×</button>
+                        </div>
+                    `;
+                }
+            }).join('');
         }
 
         function removePhoto(i) { state.photos.splice(i, 1); renderPhotos(); validateForm(); }
 
-        // ─── SCANNER ───
-        function setupScanCapture() {
-            const zone = document.getElementById('scannerZone');
-            const input = document.getElementById('scanInput');
-            zone.addEventListener('click', () => input.click());
-            input.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    state.scanPhotos = [{ data: ev.target.result, name: file.name }];
-                    document.getElementById('scanGrid').innerHTML = `<div class="photo-thumb"><img src="${ev.target.result}"><span class="photo-thumb-badge">✓</span></div>`;
-                    document.getElementById('emailCompose').style.display = 'block';
-                    validateEmailForm();
-                };
-                reader.readAsDataURL(file);
-                input.value = '';
-            });
-        }
+
 
         // ─── VALIDATION ───
         function setupFormValidation() {
             ['laboInput', 'receptInput'].forEach(id => document.getElementById(id).addEventListener('input', validateForm));
             document.getElementById('btnSubmit').addEventListener('click', submitReception);
-            ['emailTo', 'emailMessage'].forEach(id => document.getElementById(id).addEventListener('input', validateEmailForm));
-            document.getElementById('btnSendEmail').addEventListener('click', submitEmail);
         }
 
         function validateForm() {
@@ -1036,10 +1016,7 @@
             document.getElementById('btnSubmit').disabled = !ok;
         }
 
-        function validateEmailForm() {
-            const ok = document.getElementById('emailTo').value.trim() && state.scanPhotos.length > 0;
-            document.getElementById('btnSendEmail').disabled = !ok;
-        }
+
 
         // ─── SUBMIT RECEPTION ───
         async function submitReception() {
@@ -1077,38 +1054,7 @@
             validateForm();
         }
 
-        // ─── SUBMIT EMAIL ───
-        async function submitEmail() {
-            const btn = document.getElementById('btnSendEmail');
-            const url = getVal('mlp_webhook_email_url');
-            if (!url) { showToast('Configurez le webhook email dans Réglages', 'error'); return; }
 
-            btn.classList.add('loading');
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        to: document.getElementById('emailTo').value.trim(),
-                        message: document.getElementById('emailMessage').value.trim(),
-                        scan: state.scanPhotos[0]?.data,
-                        date: new Date().toISOString()
-                    })
-                });
-                if (res.ok) {
-                    document.getElementById('emailTo').value = '';
-                    document.getElementById('emailMessage').value = '';
-                    state.scanPhotos = [];
-                    document.getElementById('scanGrid').innerHTML = '';
-                    document.getElementById('emailCompose').style.display = 'none';
-                    showToast('E-mail envoyé !', 'success');
-                } else { showToast('Erreur d\'envoi', 'error'); }
-            } catch (e) { showToast('Serveur injoignable', 'error'); }
-            btn.classList.remove('loading');
-            validateEmailForm();
-        }
 
         // ─── HISTORY ───
         function addToHistory(entry) {
