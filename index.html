@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#ffffff">
+    <title>Pharmacie Nast — Gestion</title>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Couleurs Pharmacie Nast — inspirées de mapharmacienast.com */
+            --nast-green: #00a651;
+            --nast-green-dark: #008c45;
+            --nast-green-light: #e8f5ee;
+            --nast-green-glow: rgba(0, 166, 81, 0.08);
+            --nast-green-glow-md: rgba(0, 166, 81, 0.12);
+            --nast-green-glow-strong: rgba(0, 166, 81, 0.18);
+            --nast-blue: #2d3e50;
+            --nast-blue-light: #3a5068;
+
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7f9fb;
+            --bg-card: #ffffff;
+            --bg-input: #f2f5f8;
+
+            --text-primary: #1a2332;
+            --text-secondary: #5a6a7e;
+            --text-muted: #9aa8b8;
+            --text-on-green: #ffffff;
+
+            --danger: #e74c3c;
+            --danger-bg: #fdf0ef;
+            --warning: #f39c12;
+            --success: #00a651;
+
+            --border: #e8ecf0;
+            --border-light: #f0f2f5;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+
+            --radius: 14px;
+            --radius-sm: 10px;
+            --radius-xs: 8px;
+
+            --font-body: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            overscroll-behavior: none;
+        }
+
+        /* ─── APP SHELL ─── */
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            max-width: 500px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            position: relative;
+        }
+
+        /* ─── HEADER ─── */
+        .header {
+            padding: 14px 20px 14px;
+            background: var(--nast-green);
+            color: white;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-cross {
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-cross svg {
+            width: 18px;
+            height: 18px;
+            color: var(--nast-green);
+        }
+
+        .logo-text {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            opacity: 0.95;
+        }
+
+        .header-date {
+            font-size: 11px;
+            opacity: 0.75;
+            font-weight: 400;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin-top: 4px;
+        }
+
+        /* ─── CONTENT ─── */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
+            padding-bottom: calc(90px + var(--safe-bottom));
+            -webkit-overflow-scrolling: touch;
+            background: var(--bg-secondary);
+        }
+
+        /* ─── TAB BAR ─── */
+        .tab-bar {
+            display: flex;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            padding: 6px 8px calc(6px + var(--safe-bottom));
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 8px 4px;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            font-family: var(--font-body);
+            font-size: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        .tab-item.active {
+            color: var(--nast-green);
+        }
+
+        .tab-item.active .tab-icon-wrap {
+            background: var(--nast-green-light);
+        }
+
+        .tab-icon-wrap {
+            width: 40px;
+            height: 28px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .tab-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* ─── CARDS ─── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-title-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--nast-green);
+        }
+
+        /* ─── FORM ELEMENTS ─── */
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Inputs */
+        .input {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-input);
+            border: 1.5px solid transparent;
+            border-radius: var(--radius-xs);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .input:focus {
+            border-color: var(--nast-green);
+            background: white;
+            box-shadow: 0 0 0 3px var(--nast-green-glow-md);
+        }
+
+        .input::placeholder { color: var(--text-muted); }
+
+        textarea.input {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Labo selector */
+        .labo-selector { position: relative; }
+
+        .labo-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            margin-top: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .labo-suggestions.show { display: block; }
+
+        .labo-suggestion {
+            padding: 11px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.15s;
+        }
+
+        .labo-suggestion:last-child { border-bottom: none; }
+
+        .labo-suggestion:hover, .labo-suggestion:active {
+            background: var(--nast-green-light);
+        }
+
+        .labo-suggestion mark {
+            background: none;
+            color: var(--nast-green);
+            font-weight: 600;
+        }
+
+        /* Photo zone */
+        .photo-zone {
+            border: 2px dashed var(--nast-green);
+            border-radius: var(--radius);
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--nast-green-glow);
+        }
+
+        .photo-zone:active {
+            transform: scale(0.98);
+            background: var(--nast-green-glow-strong);
+        }
+
+        .photo-zone-icon {
+            width: 42px;
+            height: 42px;
+            margin: 0 auto 10px;
+            color: var(--nast-green);
+        }
+
+        .photo-zone-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--nast-green-dark);
+        }
+
+        .photo-zone-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        #photoInput, #scanInput { display: none; }
+
+        /* Photo grid */
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .photo-thumb {
+            position: relative;
+            aspect-ratio: 3/4;
+            border-radius: var(--radius-xs);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .photo-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-thumb-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: var(--nast-green);
+            color: white;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 500;
+            padding: 2px 7px;
+            border-radius: 6px;
+        }
+
+        .photo-thumb-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 22px;
+            height: 22px;
+            background: var(--danger);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        /* Site selector */
+        .site-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 0;
+        }
+
+        .site-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .site-btn.active {
+            border-color: var(--nast-green);
+            background: var(--nast-green-light);
+            color: var(--nast-green-dark);
+            font-weight: 600;
+        }
+
+        /* Submit button */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--nast-green);
+            color: white;
+            border: none;
+            border-radius: var(--radius-xs);
+            font-family: var(--font-body);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 166, 81, 0.25);
+            margin-top: 6px;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-submit:not(:disabled):active {
+            transform: scale(0.98);
+            background: var(--nast-green-dark);
+        }
+
+        .btn-submit.loading { color: transparent; }
+
+        .btn-submit.loading::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border: 3px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            top: 50%;
+            left: 50%;
+            margin: -11px 0 0 -11px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: white;
+            border: 1px solid var(--nast-green);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: var(--radius-xs);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 90vw;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        .toast-icon { font-size: 16px; }
+        .toast.success .toast-icon { color: var(--nast-green); }
+        .toast.error { border-color: var(--danger); }
+        .toast.error .toast-icon { color: var(--danger); }
+
+        /* ─── DASHBOARD ─── */
+        .stat-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card-value {
+            font-family: var(--font-mono);
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--nast-green);
+            line-height: 1;
+        }
+
+        .stat-card-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .recent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .recent-item-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--nast-green-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--nast-green);
+            flex-shrink: 0;
+        }
+
+        .recent-item-info { flex: 1; min-width: 0; }
+
+        .recent-item-title {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .recent-item-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon { font-size: 40px; margin-bottom: 8px; opacity: 0.4; }
+
+        /* ─── SETTINGS ─── */
+        .settings-group {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .settings-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-item:last-child { border-bottom: none; }
+
+        .settings-item-label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .webhook-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .webhook-status.connected {
+            background: var(--nast-green-light);
+            color: var(--nast-green-dark);
+        }
+
+        .webhook-status.disconnected {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .webhook-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .settings-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border: 1.5px solid transparent;
+            border-radius: var(--radius-xs);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            outline: none;
+            margin-top: 6px;
+            transition: all 0.2s;
+        }
+
+        .settings-input:focus {
+            border-color: var(--nast-green);
+            background: white;
+        }
+
+        .btn-save {
+            padding: 10px 20px;
+            background: var(--nast-green);
+            color: white;
+            border: none;
+            border-radius: var(--radius-xs);
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-save:active { background: var(--nast-green-dark); }
+
+        /* Tab content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-top">
+                <div class="logo">
+                    <div class="logo-cross">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                    </div>
+                    <span class="logo-text">Pharmacie Nast</span>
+                </div>
+                <span class="header-date" id="headerDate"></span>
+            </div>
+            <h1 id="headerTitle">Réception BL</h1>
+        </header>
+
+        <!-- Content -->
+        <main class="content">
+
+            <!-- TAB: Réception BL -->
+            <div class="tab-content active" id="tabReception">
+                <div class="card">
+                    <div class="card-title"><span class="card-title-dot"></span>Informations livraison</div>
+
+                    <div class="form-group">
+                        <label class="form-label">Laboratoire</label>
+                        <div class="labo-selector">
+                            <input type="text" class="input" id="laboInput" placeholder="Rechercher ou saisir un labo..." autocomplete="off">
+                            <div class="labo-suggestions" id="laboSuggestions"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Réceptionné par</label>
+                        <input type="text" class="input" id="receptInput" placeholder="Nom du réceptionnaire">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Site</label>
+                        <div class="site-toggle">
+                            <button class="site-btn active" data-site="NAST" onclick="selectSite(this)">🏥 Nast — Chelles</button>
+                            <button class="site-btn" data-site="MONTFERMEIL" onclick="selectSite(this)">🏥 Montfermeil</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><span class="card-title-dot"></span>Photos du bon de livraison</div>
+                    <div class="photo-zone" id="photoZone">
+                        <svg class="photo-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        <div class="photo-zone-text">Prendre une photo du BL</div>
+                        <div class="photo-zone-sub">Appuyez pour capturer · Plusieurs pages possibles</div>
+                    </div>
+                    <input type="file" id="photoInput" accept="image/*" capture="environment" multiple>
+                    <div class="photos-grid" id="photosGrid"></div>
+                </div>
+
+                <button class="btn-submit" id="btnSubmit" disabled>
+                    ✓ Envoyer sur Google Drive
+                </button>
+            </div>
+
+            <!-- TAB: Scanner -->
+            <div class="tab-content" id="tabScanner">
+                <div class="card">
+                    <div class="card-title"><span class="card-title-dot"></span>Scanner un bon de préparation</div>
+                    <div class="photo-zone" id="scannerZone">
+                        <svg class="photo-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="4 7 4 4 20 4 20 7"/>
+                            <line x1="9" y1="20" x2="15" y2="20"/>
+                            <line x1="12" y1="4" x2="12" y2="20"/>
+                        </svg>
+                        <div class="photo-zone-text">Scanner un document</div>
+                        <div class="photo-zone-sub">Photo via la caméra du téléphone</div>
+                    </div>
+                    <input type="file" id="scanInput" accept="image/*" capture="environment">
+                    <div class="photos-grid" id="scanGrid"></div>
+                </div>
+
+                <div class="card" id="emailCompose" style="display:none;">
+                    <div class="card-title"><span class="card-title-dot"></span>Envoyer par e-mail</div>
+                    <div class="form-group">
+                        <label class="form-label">Adresse e-mail</label>
+                        <input type="email" class="input" id="emailTo" placeholder="destinataire@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea class="input" id="emailMessage" placeholder="Votre message..."></textarea>
+                    </div>
+                    <button class="btn-submit" id="btnSendEmail" disabled>
+                        ✉ Envoyer par e-mail
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB: Dashboard -->
+            <div class="tab-content" id="tabDashboard">
+                <div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Aujourd'hui</div>
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-card-value" id="statToday">0</div>
+                        <div class="stat-card-label">Réceptions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-value" id="statLabos">0</div>
+                        <div class="stat-card-label">Labos différents</div>
+                    </div>
+                </div>
+
+                <div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Dernières réceptions</div>
+                <div class="recent-list" id="recentList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <p>Aucune réception enregistrée</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Paramètres -->
+            <div class="tab-content" id="tabSettings">
+                <div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Webhooks n8n</div>
+                <div class="settings-group">
+                    <div class="settings-item">
+                        <span class="settings-item-label">Statut</span>
+                        <span class="webhook-status disconnected" id="webhookStatus">
+                            <span class="webhook-dot"></span>
+                            Non configuré
+                        </span>
+                    </div>
+                    <div style="padding: 14px 16px;">
+                        <label class="form-label">URL webhook — Réception BL</label>
+                        <input type="url" class="settings-input" id="webhookUrlInput" placeholder="https://n8n.example.com/webhook/reception-bl">
+                        <label class="form-label" style="margin-top:12px">URL webhook — Scanner / Email</label>
+                        <input type="url" class="settings-input" id="webhookEmailInput" placeholder="https://n8n.example.com/webhook/scanner-email">
+                        <button class="btn-save" id="btnSaveSettings">Sauvegarder</button>
+                    </div>
+                </div>
+
+                <div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Liste des laboratoires</div>
+                <div class="settings-group">
+                    <div style="padding: 14px 16px;">
+                        <label class="form-label">Un labo par ligne</label>
+                        <textarea class="input" id="labosListInput" style="min-height:180px;font-size:13px;" placeholder="BIOGARAN&#10;SANDOZ&#10;MYLAN&#10;..."></textarea>
+                        <button class="btn-save" id="btnSaveLabos">Sauvegarder les labos</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Tab Bar -->
+        <nav class="tab-bar">
+            <button class="tab-item active" data-tab="tabReception" data-title="Réception BL">
+                <div class="tab-icon-wrap">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                </div>
+                Réception
+            </button>
+            <button class="tab-item" data-tab="tabScanner" data-title="Scanner & Envoi">
+                <div class="tab-icon-wrap">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="4 7 4 4 20 4 20 7"/>
+                        <line x1="9" y1="20" x2="15" y2="20"/>
+                        <line x1="12" y1="4" x2="12" y2="20"/>
+                    </svg>
+                </div>
+                Scanner
+            </button>
+            <button class="tab-item" data-tab="tabDashboard" data-title="Tableau de bord">
+                <div class="tab-icon-wrap">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </div>
+                Dashboard
+            </button>
+            <button class="tab-item" data-tab="tabSettings" data-title="Paramètres">
+                <div class="tab-icon-wrap">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </div>
+                Réglages
+            </button>
+        </nav>
+
+        <!-- Toast -->
+        <div class="toast" id="toast">
+            <span class="toast-icon">✓</span>
+            <span id="toastMessage"></span>
+        </div>
+    </div>
+
+    <script>
+        // ─── STATE ───
+        const state = { photos: [], scanPhotos: [], recentReceptions: [], labos: [], site: 'NAST' };
+
+        const DEFAULT_LABOS = [
+            'ABBOTT', 'ACCU-CHECK', 'ARROW', 'BAUSCH & LOMB', 'BAYER', 'BIOGARAN',
+            'BIODERMA', 'BOIRON', 'BRAUN', 'COOPER', 'EAFIT', 'EG LABO', 'ELANCO',
+            'FORTÉ PHARMA', 'GALLIA', 'GSK', 'JOHNSON & JOHNSON', 'LA ROCHE-POSAY',
+            'LEO PHARMA', 'LES SECRETS DE LOLY', 'LUXÉOL', 'MERCK', 'MY VARIATIONS',
+            'MYLAN', 'NOVARTIS', 'NUTRI&CO', 'NUXE', 'OENOBIOL', 'ONE TOUCH',
+            'PFIZER', 'PIERRE FABRE', 'PURESSENTIEL', 'ROC', 'ROCHE', 'SANOFI',
+            'SANDOZ', 'SERVIER', 'SUPERDIET', 'SVR', 'TENA', 'TEVA', 'THÉRALICA',
+            'TOPICREM', 'URIAGE', 'URGO', 'VIATRIS', 'VICHY'
+        ];
+
+        // ─── INIT ───
+        function init() {
+            updateDate();
+            loadSettings();
+            loadLabos();
+            loadHistory();
+            setupTabs();
+            setupLaboInput();
+            setupPhotoCapture();
+            setupScanCapture();
+            setupFormValidation();
+            setupSettings();
+        }
+
+        function updateDate() {
+            const now = new Date();
+            document.getElementById('headerDate').textContent = now.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+        }
+
+        // ─── TABS ───
+        function setupTabs() {
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                    document.getElementById('headerTitle').textContent = tab.dataset.title;
+                });
+            });
+        }
+
+        // ─── SITE SELECTOR ───
+        function selectSite(btn) {
+            document.querySelectorAll('.site-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.site = btn.dataset.site;
+        }
+
+        // ─── LABO ───
+        function setupLaboInput() {
+            const input = document.getElementById('laboInput');
+            const suggestions = document.getElementById('laboSuggestions');
+
+            input.addEventListener('input', () => {
+                const val = input.value.trim().toUpperCase();
+                if (!val) { suggestions.classList.remove('show'); validateForm(); return; }
+                const matches = state.labos.filter(l => l.toUpperCase().includes(val));
+                if (matches.length > 0) {
+                    suggestions.innerHTML = matches.map(m => {
+                        const hl = m.replace(new RegExp(`(${val.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'), '<mark>$1</mark>');
+                        return `<div class="labo-suggestion">${hl}</div>`;
+                    }).join('');
+                    suggestions.classList.add('show');
+                    suggestions.querySelectorAll('.labo-suggestion').forEach(s => {
+                        s.addEventListener('click', () => {
+                            input.value = s.textContent;
+                            suggestions.classList.remove('show');
+                            validateForm();
+                        });
+                    });
+                } else {
+                    suggestions.classList.remove('show');
+                }
+                validateForm();
+            });
+
+            input.addEventListener('focus', () => { if (input.value.trim()) input.dispatchEvent(new Event('input')); });
+            document.addEventListener('click', (e) => { if (!e.target.closest('.labo-selector')) suggestions.classList.remove('show'); });
+        }
+
+        // ─── PHOTOS ───
+        function setupPhotoCapture() {
+            const zone = document.getElementById('photoZone');
+            const input = document.getElementById('photoInput');
+            zone.addEventListener('click', () => input.click());
+            input.addEventListener('change', (e) => {
+                Array.from(e.target.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        state.photos.push({ data: ev.target.result, name: file.name, timestamp: new Date().toISOString() });
+                        renderPhotos();
+                        validateForm();
+                    };
+                    reader.readAsDataURL(file);
+                });
+                input.value = '';
+            });
+        }
+
+        function renderPhotos() {
+            document.getElementById('photosGrid').innerHTML = state.photos.map((p, i) => `
+                <div class="photo-thumb">
+                    <img src="${p.data}" alt="BL page ${i + 1}">
+                    <span class="photo-thumb-badge">${i + 1}</span>
+                    <button class="photo-thumb-remove" onclick="removePhoto(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removePhoto(i) { state.photos.splice(i, 1); renderPhotos(); validateForm(); }
+
+        // ─── SCANNER ───
+        function setupScanCapture() {
+            const zone = document.getElementById('scannerZone');
+            const input = document.getElementById('scanInput');
+            zone.addEventListener('click', () => input.click());
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    state.scanPhotos = [{ data: ev.target.result, name: file.name }];
+                    document.getElementById('scanGrid').innerHTML = `<div class="photo-thumb"><img src="${ev.target.result}"><span class="photo-thumb-badge">✓</span></div>`;
+                    document.getElementById('emailCompose').style.display = 'block';
+                    validateEmailForm();
+                };
+                reader.readAsDataURL(file);
+                input.value = '';
+            });
+        }
+
+        // ─── VALIDATION ───
+        function setupFormValidation() {
+            ['laboInput', 'receptInput'].forEach(id => document.getElementById(id).addEventListener('input', validateForm));
+            document.getElementById('btnSubmit').addEventListener('click', submitReception);
+            ['emailTo', 'emailMessage'].forEach(id => document.getElementById(id).addEventListener('input', validateEmailForm));
+            document.getElementById('btnSendEmail').addEventListener('click', submitEmail);
+        }
+
+        function validateForm() {
+            const ok = document.getElementById('laboInput').value.trim() && document.getElementById('receptInput').value.trim() && state.photos.length > 0;
+            document.getElementById('btnSubmit').disabled = !ok;
+        }
+
+        function validateEmailForm() {
+            const ok = document.getElementById('emailTo').value.trim() && state.scanPhotos.length > 0;
+            document.getElementById('btnSendEmail').disabled = !ok;
+        }
+
+        // ─── SUBMIT RECEPTION ───
+        async function submitReception() {
+            const btn = document.getElementById('btnSubmit');
+            const url = getVal('mlp_webhook_url');
+            if (!url) { showToast('Configurez le webhook dans Réglages', 'error'); return; }
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            const payload = {
+                labo: document.getElementById('laboInput').value.trim().toUpperCase(),
+                receptionnaire: document.getElementById('receptInput').value.trim(),
+                date: new Date().toISOString(),
+                site: state.site,
+                photos: state.photos.map((p, i) => ({ index: i + 1, data: p.data, filename: `BL_page_${i + 1}.jpg` }))
+            };
+
+            try {
+                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (res.ok) {
+                    addToHistory({ labo: payload.labo, receptionnaire: payload.receptionnaire, date: payload.date, photoCount: state.photos.length, site: state.site });
+                    document.getElementById('laboInput').value = '';
+                    document.getElementById('receptInput').value = '';
+                    state.photos = [];
+                    renderPhotos();
+                    showToast(`BL ${payload.labo} envoyé sur Drive !`, 'success');
+                } else {
+                    showToast('Erreur — vérifiez le webhook', 'error');
+                }
+            } catch (e) {
+                showToast('Serveur n8n injoignable', 'error');
+            }
+            btn.classList.remove('loading');
+            validateForm();
+        }
+
+        // ─── SUBMIT EMAIL ───
+        async function submitEmail() {
+            const btn = document.getElementById('btnSendEmail');
+            const url = getVal('mlp_webhook_email_url');
+            if (!url) { showToast('Configurez le webhook email dans Réglages', 'error'); return; }
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to: document.getElementById('emailTo').value.trim(),
+                        message: document.getElementById('emailMessage').value.trim(),
+                        scan: state.scanPhotos[0]?.data,
+                        date: new Date().toISOString()
+                    })
+                });
+                if (res.ok) {
+                    document.getElementById('emailTo').value = '';
+                    document.getElementById('emailMessage').value = '';
+                    state.scanPhotos = [];
+                    document.getElementById('scanGrid').innerHTML = '';
+                    document.getElementById('emailCompose').style.display = 'none';
+                    showToast('E-mail envoyé !', 'success');
+                } else { showToast('Erreur d\'envoi', 'error'); }
+            } catch (e) { showToast('Serveur injoignable', 'error'); }
+            btn.classList.remove('loading');
+            validateEmailForm();
+        }
+
+        // ─── HISTORY ───
+        function addToHistory(entry) {
+            state.recentReceptions.unshift(entry);
+            if (state.recentReceptions.length > 50) state.recentReceptions.pop();
+            setVal('mlp_history', JSON.stringify(state.recentReceptions));
+            renderDashboard();
+        }
+
+        function loadHistory() {
+            try { const s = getVal('mlp_history'); if (s) state.recentReceptions = JSON.parse(s); } catch (e) {}
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const today = new Date().toISOString().slice(0, 10);
+            const todayEntries = state.recentReceptions.filter(r => r.date?.startsWith(today));
+            document.getElementById('statToday').textContent = todayEntries.length;
+            document.getElementById('statLabos').textContent = new Set(todayEntries.map(r => r.labo)).size;
+
+            const list = document.getElementById('recentList');
+            if (!state.recentReceptions.length) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>Aucune réception enregistrée</p></div>';
+                return;
+            }
+            list.innerHTML = state.recentReceptions.slice(0, 20).map(r => {
+                const d = new Date(r.date);
+                return `<div class="recent-item">
+                    <div class="recent-item-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+                    <div class="recent-item-info">
+                        <div class="recent-item-title">${r.labo}</div>
+                        <div class="recent-item-meta">${r.receptionnaire} · ${r.photoCount} page(s) · ${r.site || 'NAST'} · ${d.toLocaleDateString('fr-FR', {day:'numeric',month:'short'})} ${d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ─── SETTINGS ───
+        function setupSettings() {
+            document.getElementById('btnSaveSettings').addEventListener('click', () => {
+                setVal('mlp_webhook_url', document.getElementById('webhookUrlInput').value.trim());
+                setVal('mlp_webhook_email_url', document.getElementById('webhookEmailInput').value.trim());
+                updateWebhookStatus();
+                showToast('Paramètres sauvegardés', 'success');
+            });
+            document.getElementById('btnSaveLabos').addEventListener('click', () => {
+                state.labos = document.getElementById('labosListInput').value.split('\n').map(l => l.trim()).filter(Boolean).sort();
+                setVal('mlp_labos', JSON.stringify(state.labos));
+                document.getElementById('labosListInput').value = state.labos.join('\n');
+                showToast(`${state.labos.length} labos sauvegardés`, 'success');
+            });
+        }
+
+        function loadSettings() {
+            document.getElementById('webhookUrlInput').value = getVal('mlp_webhook_url') || '';
+            document.getElementById('webhookEmailInput').value = getVal('mlp_webhook_email_url') || '';
+            updateWebhookStatus();
+        }
+
+        function updateWebhookStatus() {
+            const s = document.getElementById('webhookStatus');
+            if (getVal('mlp_webhook_url')) {
+                s.className = 'webhook-status connected';
+                s.innerHTML = '<span class="webhook-dot"></span>Connecté';
+            } else {
+                s.className = 'webhook-status disconnected';
+                s.innerHTML = '<span class="webhook-dot"></span>Non configuré';
+            }
+        }
+
+        function loadLabos() {
+            try { const s = getVal('mlp_labos'); state.labos = s ? JSON.parse(s) : DEFAULT_LABOS; } catch (e) { state.labos = DEFAULT_LABOS; }
+            document.getElementById('labosListInput').value = state.labos.join('\n');
+        }
+
+        // ─── STORAGE HELPERS ───
+        function getVal(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+        function setVal(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+        // ─── TOAST ───
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = msg;
+            toast.querySelector('.toast-icon').textContent = type === 'error' ? '✕' : '✓';
+            toast.className = `toast ${type}`;
+            requestAnimationFrame(() => { toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); });
+        }
+
+        init();
+    </script>
+</body>
+</html>
