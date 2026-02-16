@@ -1643,7 +1643,7 @@
         function openCommandeDetail(idx) {
             currentCommande = commandesData[idx];
             pickingState = {};
-            currentCommande.produits.forEach(p => { pickingState[p.ean] = false; });
+            currentCommande.produits.forEach(p => { pickingState[p.ean] = 0; });
             document.getElementById('commandesListView').classList.add('hidden');
             document.getElementById('commandeDetailView').classList.add('active');
             const d = new Date(currentCommande.date);
@@ -1664,16 +1664,26 @@
 
         function renderProduitsDetail() {
             const list = document.getElementById('produitsList');
-            if (!currentCommande?.produits.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Aucun produit trouvé</div>'; return; }
-            list.innerHTML = currentCommande.produits.map(p => {
-                const scanned = pickingState[p.ean];
-                return `<div class="produit-item ${scanned ? 'scanned' : ''}" id="prod-${p.ean.replace(/[^a-z0-9]/gi,'_')}">
-                    <div class="produit-check">${scanned ? '✓' : ''}</div>
+            if (!currentCommande?.produits.length) {
+                list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Aucun produit trouvé</div>';
+                return;
+            }
+            list.innerHTML = currentCommande.produits.map((p, idx) => {
+                const validated = pickingState[p.ean] || 0;
+                const scanned   = validated > 0;
+                return `<div class="produit-item ${scanned ? 'scanned' : ''}">
+                    <div class="produit-check" onclick="showScanPopupByIndex(${idx})" style="cursor:pointer;">${scanned ? '✓' : ''}</div>
                     <div class="produit-info">
                         <div class="produit-nom">${p.nom || 'Produit'}</div>
                         <div class="produit-ean">${p.ean}</div>
                     </div>
-                    <span class="produit-qty">×${p.qty}</span>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                        <span class="produit-qty">${scanned ? validated + '/' : ''}×${p.qty}</span>
+                        ${!scanned
+                            ? `<button onclick="showScanPopupByIndex(${idx})" style="font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:8px;background:white;color:var(--text-muted);cursor:pointer;">Valider</button>`
+                            : `<button onclick="resetProduit('${p.ean}')" style="font-size:10px;padding:3px 8px;border:1px solid #fce4ec;border-radius:8px;background:#fce4ec;color:#E91E63;cursor:pointer;">Annuler</button>`
+                        }
+                    </div>
                 </div>`;
             }).join('');
         }
@@ -1681,7 +1691,7 @@
         function updatePickingProgress() {
             if (!currentCommande) return;
             const total = currentCommande.produits.length;
-            const done  = Object.values(pickingState).filter(Boolean).length;
+            const done  = Object.values(pickingState).filter(v => v > 0).length;
             const pct   = total > 0 ? Math.round(done / total * 100) : 0;
             document.getElementById('pickingCount').textContent = done + ' / ' + total;
             const bar = document.getElementById('pickingBar');
@@ -1763,26 +1773,85 @@
 
         function onBarcodeDetected(ean) {
             if (!currentCommande || !ean) return;
-            const feedback = document.getElementById('scannerFeedback');
-            const result   = document.getElementById('scannerResult');
-            const produit  = currentCommande.produits.find(p => p.ean === ean || p.ean === ean.replace(/^0+/, '') || ('0'+p.ean) === ean);
+
+            // Normaliser l'EAN (enlever/ajouter zéro de tête)
+            const eanStr = String(ean).trim();
+            const produit = currentCommande.produits.find(p =>
+                String(p.ean) === eanStr ||
+                String(p.ean) === eanStr.replace(/^0+/, '') ||
+                ('0' + String(p.ean)) === eanStr ||
+                String(p.ean).replace(/^0+/, '') === eanStr.replace(/^0+/, '')
+            );
+
             if (produit) {
-                pickingState[produit.ean] = true;
-                feedback.className = 'scanner-feedback ok';
-                result.textContent = '✓ ' + (produit.nom?.substring(0, 40) || ean);
-                setTimeout(() => { feedback.className = 'scanner-feedback'; result.textContent = ''; }, 1500);
-                renderProduitsDetail();
-                updatePickingProgress();
-                const done = Object.values(pickingState).filter(Boolean).length;
-                if (done === currentCommande.produits.length) {
-                    setTimeout(() => { stopScan(); showToast('✅ Picking complet !', 'success'); }, 800);
-                }
+                // Afficher popup de confirmation avec quantité
+                showScanPopup(produit);
             } else {
-                feedback.className = 'scanner-feedback ko';
-                result.textContent = '✗ Non trouvé : ' + ean;
-                setTimeout(() => { feedback.className = 'scanner-feedback'; result.textContent = ''; }, 1500);
+                showToast('✗ EAN non trouvé : ' + eanStr, 'error');
+                console.log('EAN scanné:', eanStr, '— EANs dispo:', currentCommande.produits.map(p => p.ean));
             }
         }
+
+        function showScanPopupByIndex(idx) {
+            const p = currentCommande?.produits[idx];
+            if (p) showScanPopup(p);
+        }
+
+        function resetProduit(ean) {
+            pickingState[ean] = 0;
+            renderProduitsDetail();
+            updatePickingProgress();
+        }
+
+        function showScanPopup(produit) {
+            const existing = document.getElementById('scanPopup');
+            if (existing) existing.remove();
+
+            const alreadyDone = pickingState[produit.ean] || 0;
+            const defaultQty  = produit.qty || 1;
+            const popup = document.createElement('div');
+            popup.id = 'scanPopup';
+            popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;display:flex;align-items:flex-end;justify-content:center;';
+            popup.innerHTML = `
+                <div style="background:white;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;">
+                    <div style="width:40px;height:4px;background:#e8ecf0;border-radius:2px;margin:0 auto 20px;"></div>
+                    <div style="text-align:center;margin-bottom:20px;">
+                        <div style="font-size:11px;color:#9aa8b8;font-family:monospace;margin-bottom:6px;">${produit.ean}</div>
+                        <div style="font-size:15px;font-weight:600;color:#1a2332;line-height:1.4;padding:0 10px;">${produit.nom || 'Produit'}</div>
+                        <div style="margin-top:8px;font-size:13px;color:#5a6a7e;">Qté attendue : <strong style="color:#1a2332;">${produit.qty}</strong>${alreadyDone ? ' · <span style="color:#26C6DA;">✓ Déjà validé (' + alreadyDone + ')</span>' : ''}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:24px;">
+                        <button id="popupMinus" style="width:48px;height:48px;border-radius:50%;border:2px solid #e8ecf0;background:white;font-size:24px;cursor:pointer;color:#1a2332;">−</button>
+                        <div style="text-align:center;">
+                            <div id="scanQtyValue" style="font-size:42px;font-weight:700;color:#E91E63;line-height:1;">${defaultQty}</div>
+                            <div style="font-size:11px;color:#9aa8b8;margin-top:2px;">quantité</div>
+                        </div>
+                        <button id="popupPlus" style="width:48px;height:48px;border-radius:50%;border:2px solid #e8ecf0;background:white;font-size:24px;cursor:pointer;color:#1a2332;">+</button>
+                    </div>
+                    <button id="popupValider" style="width:100%;padding:16px;background:#E91E63;color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;margin-bottom:10px;">✓ Valider</button>
+                    <button id="popupAnnuler" style="width:100%;padding:13px;background:#f2f5f8;color:#5a6a7e;border:none;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">Annuler</button>
+                </div>`;
+            document.body.appendChild(popup);
+
+            // Logique boutons — sans passer par attributs onclick
+            let qty = defaultQty;
+            popup.querySelector('#popupMinus').addEventListener('click', () => { qty = Math.max(1, qty - 1); popup.querySelector('#scanQtyValue').textContent = qty; });
+            popup.querySelector('#popupPlus').addEventListener('click',  () => { qty = qty + 1; popup.querySelector('#scanQtyValue').textContent = qty; });
+            popup.querySelector('#popupValider').addEventListener('click', () => {
+                popup.remove();
+                pickingState[produit.ean] = qty;
+                renderProduitsDetail();
+                updatePickingProgress();
+                const done  = Object.values(pickingState).filter(v => v > 0).length;
+                const total = currentCommande.produits.length;
+                showToast(done === total ? '✅ Picking complet !' : '✓ Produit validé', 'success');
+            });
+            popup.querySelector('#popupAnnuler').addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => { if (e.target === popup) popup.remove(); });
+        }
+
+
+
 
 
         function loadLabos() {
