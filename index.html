@@ -842,9 +842,10 @@
         .scanner-label { color: white; margin-top: 20px; font-size: 14px; opacity: 0.8; text-align: center; padding: 0 20px; }
         .scanner-close {
             position: absolute; top: 50px; right: 20px;
-            background: rgba(255,255,255,0.15); border: none; color: white;
-            width: 44px; height: 44px; border-radius: 50%; font-size: 22px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
+            color: white; padding: 10px 18px; border-radius: 30px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            font-family: var(--font-body); letter-spacing: 0.3px;
         }
         .scanner-result { color: white; margin-top: 12px; font-family: var(--font-mono); font-size: 13px; min-height: 20px; }
         .scanner-feedback {
@@ -975,7 +976,7 @@
 
             <!-- SCANNER OVERLAY -->
             <div class="scanner-overlay" id="scannerOverlay">
-                <button class="scanner-close" onclick="stopScan()">×</button>
+                <button class="scanner-close" onclick="stopScan()">✕ Fermer</button>
                 <div class="scanner-video-wrap">
                     <video class="scanner-video" id="scannerVideo" autoplay playsinline muted></video>
                     <div class="scanner-frame">
@@ -1700,26 +1701,63 @@
             document.getElementById('scannerResult').textContent = '';
             document.getElementById('scannerFeedback').className = 'scanner-feedback';
             try {
-                scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 } } });
+                scannerStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+                });
                 video.srcObject = scannerStream;
                 overlay.classList.add('active');
-                if ('BarcodeDetector' in window) {
-                    const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','upc_a','upc_e'] });
-                    scannerInterval = setInterval(async () => {
-                        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                            try { const codes = await detector.detect(video); if (codes.length > 0) onBarcodeDetected(codes[0].rawValue); } catch(e) {}
-                        }
-                    }, 350);
-                } else {
-                    document.getElementById('scannerResult').textContent = 'Saisie manuelle :';
-                    const inp = document.createElement('input');
-                    inp.type = 'text'; inp.placeholder = 'EAN...';
-                    inp.style.cssText = 'margin-top:12px;padding:10px 16px;border-radius:10px;border:none;font-size:16px;width:260px;text-align:center;';
-                    inp.addEventListener('change', () => { onBarcodeDetected(inp.value.trim()); inp.value = ''; });
-                    overlay.appendChild(inp); setTimeout(() => inp.focus(), 300);
+
+                if (!window.ZXing) {
+                    await new Promise((resolve, reject) => {
+                        const s = document.createElement('script');
+                        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.21.3/zxing.min.js';
+                        s.onload = resolve; s.onerror = reject;
+                        document.head.appendChild(s);
+                    });
                 }
+
+                const hints = new Map();
+                hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+                    ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
+                    ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E
+                ]);
+                hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+
+                const reader = new ZXing.BrowserMultiFormatReader(hints);
+                window._zxingReader = reader;
+
+                const canvas = document.createElement('canvas');
+                const ctx    = canvas.getContext('2d');
+                let lastEan  = ''; let lastTime = 0;
+
+                scannerInterval = setInterval(() => {
+                    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+                    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0);
+                    try {
+                        const result = reader.decodeFromCanvas(canvas);
+                        if (result) {
+                            const ean = result.getText();
+                            const now = Date.now();
+                            if (ean !== lastEan || now - lastTime > 2000) {
+                                lastEan = ean; lastTime = now;
+                                onBarcodeDetected(ean);
+                            }
+                        }
+                    } catch(e) {}
+                }, 300);
+
             } catch(e) { showToast('Caméra non disponible', 'error'); }
         }
+
+        function stopScan() {
+            if (scannerInterval) { clearInterval(scannerInterval); scannerInterval = null; }
+            if (window._zxingReader) { try { window._zxingReader.reset(); } catch(e) {} window._zxingReader = null; }
+            if (scannerStream) { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
+            document.getElementById('scannerOverlay').classList.remove('active');
+            document.getElementById('scannerVideo').srcObject = null;
+        }
+
 
         function onBarcodeDetected(ean) {
             if (!currentCommande || !ean) return;
