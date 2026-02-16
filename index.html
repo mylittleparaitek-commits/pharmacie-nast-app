@@ -2306,22 +2306,29 @@
                     status.style.display = 'none'; return;
                 }
                 // Colonnes : id_mail(0) date(1) expediteur(2) sujet(3) corps(4) statut(5) thread_id(6) historique(7)
-                savData = rows.slice(1).filter(r => r[0]?.trim()).map(r => ({
-                    id: r[0]?.trim(),
-                    date: r[1]?.trim(),
-                    expediteur: r[2]?.trim(),
-                    sujet: r[3]?.trim() || '(sans objet)',
-                    corps: r[4]?.trim().replace(/\\n/g, '\n'),
-                    statut: r[5]?.trim() || 'nouveau',
-                    thread_id: r[6]?.trim(),
-                    historique: (() => {
-                        try {
-                            const h = JSON.parse(r[7] || '[]');
-                            // Corriger les \n dans les messages
-                            return h.map(m => ({ ...m, message: (m.message || '').replace(/\\n/g, '\n') }));
-                        } catch(e) { return []; }
-                    })()
-                })).sort((a, b) => new Date(b.date) - new Date(a.date));
+                savData = rows.slice(1)
+                    .filter(r => r[0]?.trim()) // Ligne avec ID
+                    .filter(r => {
+                        const exp = r[2]?.trim() || '';
+                        const sujet = r[3]?.trim() || '';
+                        // Filtrer les mails système sans expéditeur valide
+                        return exp !== 'undefined' && sujet !== 'undefined' && exp.includes('@');
+                    })
+                    .map(r => ({
+                        id: r[0]?.trim(),
+                        date: r[1]?.trim(),
+                        expediteur: r[2]?.trim(),
+                        sujet: r[3]?.trim() || '(sans objet)',
+                        corps: r[4]?.trim().replace(/\\n/g, '\n'),
+                        statut: r[5]?.trim() || 'nouveau',
+                        thread_id: r[6]?.trim(),
+                        historique: (() => {
+                            try {
+                                const h = JSON.parse(r[7] || '[]');
+                                return h.map(m => ({ ...m, message: (m.message || '').replace(/\\n/g, '\n') }));
+                            } catch(e) { return []; }
+                        })()
+                    })).sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 const nouveaux = savData.filter(t => t.statut === 'nouveau').length;
                 document.getElementById('savCount').textContent = savData.length + ' ticket' + (savData.length > 1 ? 's' : '') + (nouveaux ? ` · ${nouveaux} 🔴` : '');
@@ -2543,11 +2550,13 @@ Message : ${currentTicket.corps}`;
         function loadSettings() {
             const blUrl = getVal('mlp_webhook_url') || 'https://n8n.srv1086994.hstgr.cloud/webhook/reception-bl';
             const delpechUrl = getVal('mlp_delpech_webhook_url') || 'https://n8n.srv1086994.hstgr.cloud/webhook/delpech-preparatoire';
+            const savUrl = getVal('sav_webhook_url') || 'https://n8n.srv1086994.hstgr.cloud/webhook/sav-reply-mlp';
             if (!getVal('mlp_webhook_url')) setVal('mlp_webhook_url', blUrl);
             if (!getVal('mlp_delpech_webhook_url')) setVal('mlp_delpech_webhook_url', delpechUrl);
+            if (!getVal('sav_webhook_url')) setVal('sav_webhook_url', savUrl);
             document.getElementById('webhookUrlInput').value = blUrl;
             document.getElementById('webhookDelpechInput').value = delpechUrl;
-            document.getElementById('webhookSavInput').value = getVal('sav_webhook_url') || '';
+            document.getElementById('webhookSavInput').value = savUrl;
             updateWebhookStatus();
             updateDelpechWebhookStatus();
             updateSavWebhookStatus();
