@@ -841,11 +841,11 @@
         @keyframes scanline { 0%,100% { transform: translateY(-45px); } 50% { transform: translateY(45px); } }
         .scanner-label { color: white; margin-top: 20px; font-size: 14px; opacity: 0.8; text-align: center; padding: 0 20px; }
         .scanner-close {
-            position: absolute; top: 50px; right: 20px;
-            background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4);
-            color: white; padding: 10px 18px; border-radius: 30px;
-            font-size: 14px; font-weight: 600; cursor: pointer;
-            font-family: var(--font-body); letter-spacing: 0.3px;
+            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+            background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.6);
+            color: white; padding: 14px 40px; border-radius: 30px;
+            font-size: 16px; font-weight: 700; cursor: pointer;
+            font-family: var(--font-body); letter-spacing: 0.3px; white-space: nowrap;
         }
         .scanner-result { color: white; margin-top: 12px; font-family: var(--font-mono); font-size: 13px; min-height: 20px; }
         .scanner-feedback {
@@ -1698,64 +1698,73 @@
         async function startScan() {
             const overlay = document.getElementById('scannerOverlay');
             const video   = document.getElementById('scannerVideo');
-            document.getElementById('scannerResult').textContent = '';
+            document.getElementById('scannerResult').textContent = 'Initialisation…';
             document.getElementById('scannerFeedback').className = 'scanner-feedback';
+
             try {
                 scannerStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+                    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
                 });
                 video.srcObject = scannerStream;
                 overlay.classList.add('active');
+                document.getElementById('scannerResult').textContent = 'Pointez le code-barre dans le cadre';
 
-                if (!window.ZXing) {
-                    await new Promise((resolve, reject) => {
-                        const s = document.createElement('script');
-                        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.21.3/zxing.min.js';
-                        s.onload = resolve; s.onerror = reject;
-                        document.head.appendChild(s);
+                // Utiliser BarcodeDetector si dispo (Chrome Android), sinon canvas+ZXing via unpkg
+                if ('BarcodeDetector' in window) {
+                    const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','upc_a','upc_e'] });
+                    let lastEan = ''; let lastTime = 0;
+                    scannerInterval = setInterval(async () => {
+                        if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+                        try {
+                            const codes = await detector.detect(video);
+                            if (codes.length > 0) {
+                                const ean = codes[0].rawValue;
+                                const now = Date.now();
+                                if (ean !== lastEan || now - lastTime > 2000) {
+                                    lastEan = ean; lastTime = now;
+                                    onBarcodeDetected(ean);
+                                }
+                            }
+                        } catch(e) {}
+                    }, 300);
+                } else {
+                    // Fallback : saisie manuelle (Safari iOS sans BarcodeDetector)
+                    document.getElementById('scannerResult').textContent = '';
+                    const wrap = document.createElement('div');
+                    wrap.id = 'scanFallback';
+                    wrap.style.cssText = 'margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:10px;';
+                    wrap.innerHTML = '<p style="color:rgba(255,255,255,0.7);font-size:13px;text-align:center;">Scanner non disponible sur ce navigateur.<br>Saisissez le code-barre manuellement :</p>'
+                        + '<input type="number" inputmode="numeric" placeholder="Code-barre EAN..." style="padding:12px 18px;border-radius:12px;border:none;font-size:17px;width:260px;text-align:center;letter-spacing:2px;">';
+                    overlay.appendChild(wrap);
+                    const inp = wrap.querySelector('input');
+                    setTimeout(() => inp.focus(), 400);
+                    inp.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && inp.value.trim().length >= 8) {
+                            onBarcodeDetected(inp.value.trim());
+                            inp.value = '';
+                        }
+                    });
+                    inp.addEventListener('change', () => {
+                        if (inp.value.trim().length >= 8) {
+                            onBarcodeDetected(inp.value.trim());
+                            inp.value = '';
+                        }
                     });
                 }
-
-                const hints = new Map();
-                hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-                    ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8,
-                    ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E
-                ]);
-                hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-
-                const reader = new ZXing.BrowserMultiFormatReader(hints);
-                window._zxingReader = reader;
-
-                const canvas = document.createElement('canvas');
-                const ctx    = canvas.getContext('2d');
-                let lastEan  = ''; let lastTime = 0;
-
-                scannerInterval = setInterval(() => {
-                    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
-                    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-                    ctx.drawImage(video, 0, 0);
-                    try {
-                        const result = reader.decodeFromCanvas(canvas);
-                        if (result) {
-                            const ean = result.getText();
-                            const now = Date.now();
-                            if (ean !== lastEan || now - lastTime > 2000) {
-                                lastEan = ean; lastTime = now;
-                                onBarcodeDetected(ean);
-                            }
-                        }
-                    } catch(e) {}
-                }, 300);
-
-            } catch(e) { showToast('Caméra non disponible', 'error'); }
+            } catch(e) {
+                showToast('Caméra non disponible', 'error');
+                overlay.classList.remove('active');
+            }
         }
 
         function stopScan() {
             if (scannerInterval) { clearInterval(scannerInterval); scannerInterval = null; }
-            if (window._zxingReader) { try { window._zxingReader.reset(); } catch(e) {} window._zxingReader = null; }
             if (scannerStream) { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
             document.getElementById('scannerOverlay').classList.remove('active');
             document.getElementById('scannerVideo').srcObject = null;
+            const fb = document.getElementById('scanFallback');
+            if (fb) fb.remove();
+            document.getElementById('scannerResult').textContent = '';
         }
 
 
@@ -1780,15 +1789,6 @@
                 result.textContent = '✗ Non trouvé : ' + ean;
                 setTimeout(() => { feedback.className = 'scanner-feedback'; result.textContent = ''; }, 1500);
             }
-        }
-
-        function stopScan() {
-            if (scannerInterval) { clearInterval(scannerInterval); scannerInterval = null; }
-            if (scannerStream) { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
-            document.getElementById('scannerOverlay').classList.remove('active');
-            document.getElementById('scannerVideo').srcObject = null;
-            const inp = document.querySelector('#scannerOverlay input');
-            if (inp) inp.remove();
         }
 
 
