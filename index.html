@@ -2306,29 +2306,37 @@
                     status.style.display = 'none'; return;
                 }
                 // Colonnes : id_mail(0) date(1) expediteur(2) sujet(3) corps(4) statut(5) thread_id(6) historique(7)
-                savData = rows.slice(1)
-                    .filter(r => r[0]?.trim()) // Ligne avec ID
+                // Dédupliquer par id_mail (garder le plus récent)
+                const uniqueMap = {};
+                rows.slice(1)
+                    .filter(r => r[0]?.trim())
                     .filter(r => {
                         const exp = r[2]?.trim() || '';
                         const sujet = r[3]?.trim() || '';
-                        // Filtrer les mails système sans expéditeur valide
                         return exp !== 'undefined' && sujet !== 'undefined' && exp.includes('@');
                     })
-                    .map(r => ({
-                        id: r[0]?.trim(),
-                        date: r[1]?.trim(),
-                        expediteur: r[2]?.trim(),
-                        sujet: r[3]?.trim() || '(sans objet)',
-                        corps: r[4]?.trim().replace(/\\n/g, '\n'),
-                        statut: r[5]?.trim() || 'nouveau',
-                        thread_id: r[6]?.trim(),
-                        historique: (() => {
-                            try {
-                                const h = JSON.parse(r[7] || '[]');
-                                return h.map(m => ({ ...m, message: (m.message || '').replace(/\\n/g, '\n') }));
-                            } catch(e) { return []; }
-                        })()
-                    })).sort((a, b) => new Date(b.date) - new Date(a.date));
+                    .forEach(r => {
+                        const id = r[0].trim();
+                        const date = new Date(r[1]?.trim());
+                        if (!uniqueMap[id] || date > new Date(uniqueMap[id].date)) {
+                            uniqueMap[id] = {
+                                id: id,
+                                date: r[1]?.trim(),
+                                expediteur: r[2]?.trim(),
+                                sujet: r[3]?.trim() || '(sans objet)',
+                                corps: r[4]?.trim().replace(/\\n/g, '\n'),
+                                statut: r[5]?.trim() || 'nouveau',
+                                thread_id: r[6]?.trim(),
+                                historique: (() => {
+                                    try {
+                                        const h = JSON.parse(r[7] || '[]');
+                                        return h.map(m => ({ ...m, message: (m.message || '').replace(/\\n/g, '\n') }));
+                                    } catch(e) { return []; }
+                                })()
+                            };
+                        }
+                    });
+                savData = Object.values(uniqueMap).sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 const nouveaux = savData.filter(t => t.statut === 'nouveau').length;
                 document.getElementById('savCount').textContent = savData.length + ' ticket' + (savData.length > 1 ? 's' : '') + (nouveaux ? ` · ${nouveaux} 🔴` : '');
@@ -2358,13 +2366,19 @@
                 const d = new Date(t.date);
                 const dateStr = isNaN(d) ? t.date : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
                 const badgeClass = `sav-badge-${t.statut.replace('é','e').replace('û','u')}` || 'sav-badge-nouveau';
+                
+                // Extraire le vrai message sans les icônes et labels
+                let preview = t.corps || '';
+                const lines = preview.split('\n').filter(l => !l.startsWith('📧') && !l.startsWith('📦'));
+                preview = lines.join(' ').substring(0, 100);
+                
                 return `<div class="sav-ticket" onclick="openSavDetail(${idx})">
                     <div class="sav-ticket-top">
                         <div class="sav-ticket-sujet">${t.sujet}</div>
                         <span class="sav-badge ${badgeClass}">${t.statut}</span>
                     </div>
                     <div class="sav-ticket-from">✉ ${t.expediteur}</div>
-                    <div class="sav-ticket-preview">${t.corps?.substring(0, 80) || ''}…</div>
+                    <div class="sav-ticket-preview">${preview}…</div>
                     <div class="sav-ticket-date">🕐 ${dateStr}</div>
                 </div>`;
             }).join('');
@@ -2414,34 +2428,38 @@
 
         async function suggererReponseIA() {
             if (!currentTicket) return;
+            
+            const webhookUrl = getVal('sav_webhook_url');
+            if (!webhookUrl) {
+                showToast('⚠️ Webhook SAV non configuré', 'error');
+                return;
+            }
+            
+            const iaWebhookUrl = webhookUrl.replace('sav-reply-mlp', 'sav-ia-mlp');
             const loading = document.getElementById('iaLoading');
             const area    = document.getElementById('savReplyArea');
+            
             loading.style.display = 'block';
             area.value = '';
 
-            const contexte = `Tu es l'assistant SAV de My Little Para, une pharmacie en ligne française. 
-Réponds en français, de manière professionnelle, chaleureuse et concise.
-Signe avec "L'équipe My Little Para".
-
-Mail reçu de : ${currentTicket.expediteur}
-Sujet : ${currentTicket.sujet}
-Message : ${currentTicket.corps}`;
-
             try {
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                const response = await fetch(iaWebhookUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        model: 'claude-sonnet-4-5-20250929',
-                        max_tokens: 500,
-                        messages: [{ role: 'user', content: contexte }]
+                        expediteur: currentTicket.expediteur,
+                        sujet: currentTicket.sujet,
+                        corps: currentTicket.corps
                     })
                 });
+                
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
-                area.value = data.content?.[0]?.text || 'Erreur lors de la génération';
+                area.value = data.reponse || 'Erreur lors de la génération';
             } catch(e) {
-                area.value = 'Erreur de connexion à l\'IA';
+                area.value = 'Erreur de connexion à l\'IA : ' + e.message;
             }
+            
             loading.style.display = 'none';
         }
 
