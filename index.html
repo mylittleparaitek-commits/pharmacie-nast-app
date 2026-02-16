@@ -1578,19 +1578,35 @@
                     list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande à traiter</p></div>';
                     status.style.display = 'none'; return;
                 }
-                const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13, stockNast:17, stockMf:18 };
+                const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13 };
                 const map = {};
+                let lastNum = null; // garde le dernier numéro de commande vu
+
                 for (let i = 1; i < rows.length; i++) {
                     const r = rows[i];
                     const num = r[IDX.num]?.trim();
-                    if (!num) continue;
-                    const statut = (r[IDX.statut] || '').trim().toLowerCase();
-                    if (STATUTS_TRAITES.some(s => statut.includes(s))) continue;
-                    if (!map[num]) {
-                        map[num] = { num, ref: r[IDX.ref], date: r[IDX.date], client: r[IDX.client], ville: r[IDX.ville], statut: r[IDX.statut], total: r[IDX.total], produits: [] };
+
+                    // Ligne avec numéro de commande = nouvelle commande
+                    if (num) {
+                        lastNum = num;
+                        const statut = (r[IDX.statut] || '').trim().toLowerCase();
+                        if (STATUTS_TRAITES.some(s => statut.includes(s))) {
+                            lastNum = null; // marquer comme traitée, ignorer ses produits
+                            continue;
+                        }
+                        map[num] = {
+                            num, ref: r[IDX.ref], date: r[IDX.date], client: r[IDX.client],
+                            ville: r[IDX.ville], statut: r[IDX.statut], total: r[IDX.total], produits: []
+                        };
                     }
-                    if (r[IDX.ean]?.trim()) {
-                        map[num].produits.push({ ean: r[IDX.ean]?.trim(), nom: r[IDX.nom]?.trim(), qty: parseInt(r[IDX.qty]) || 1 });
+
+                    // Ligne produit (colonne A vide) : rattacher au dernier numéro connu
+                    if (lastNum && map[lastNum] && r[IDX.ean]?.trim()) {
+                        map[lastNum].produits.push({
+                            ean: r[IDX.ean].trim(),
+                            nom: r[IDX.nom]?.trim(),
+                            qty: parseInt(r[IDX.qty]) || 1
+                        });
                     }
                 }
                 commandesData = Object.values(map).sort((a, b) => new Date(b.date) - new Date(a.date));
