@@ -1244,6 +1244,21 @@
                     </div>
                 </div>
 
+                <div class="settings-group">
+                    <div class="settings-item">
+                        <span class="settings-item-label">Statut SAV MLP</span>
+                        <span class="webhook-status disconnected" id="webhookSavStatus">
+                            <span class="webhook-dot"></span>
+                            Non configuré
+                        </span>
+                    </div>
+                    <div style="padding: 14px 16px;">
+                        <label class="form-label">URL webhook — Réponse SAV MLP</label>
+                        <input type="url" class="settings-input" id="webhookSavInput" placeholder="https://n8n.example.com/webhook/sav-reply-mlp">
+                        <button class="btn-save" id="btnSaveSavWebhook">Sauvegarder</button>
+                    </div>
+                </div>
+
                 <div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Liste des laboratoires</div>
                 <div class="settings-group">
                     <div style="padding: 14px 16px;">
@@ -2428,22 +2443,57 @@ Message : ${currentTicket.corps}`;
             const msg  = area.value.trim();
             if (!msg || !currentTicket) return;
 
-            // Ajouter au fil local
-            const newMsg = { role: 'nous', date: new Date().toISOString(), de: 'My Little Para', message: msg };
-            currentTicket.historique.push(newMsg);
-            renderSavFil();
-            area.value = '';
-            showToast('Réponse enregistrée — envoyez via votre client mail', 'success');
+            const webhookUrl = getVal('sav_webhook_url');
+            if (!webhookUrl) {
+                showToast('⚠️ Webhook SAV non configuré dans les Réglages', 'error');
+                return;
+            }
 
-            // TODO: quand le webhook n8n sera configuré, envoyer via l'API
+            const btnSend = document.querySelector('.btn-send');
+            btnSend.textContent = 'Envoi…';
+            btnSend.disabled = true;
+
+            try {
+                const res = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id_mail:    currentTicket.id,
+                        thread_id:  currentTicket.thread_id,
+                        expediteur: currentTicket.expediteur,
+                        sujet:      currentTicket.sujet,
+                        reponse:    msg
+                    })
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const newMsg = { role: 'nous', date: new Date().toISOString(), de: 'My Little Para', message: msg };
+                currentTicket.historique.push(newMsg);
+                currentTicket.statut = 'en_cours';
+                renderSavFil();
+                area.value = '';
+                showToast('✅ Réponse envoyée !', 'success');
+            } catch(e) {
+                showToast('❌ Erreur envoi : ' + e.message, 'error');
+            }
+            btnSend.textContent = 'Envoyer →';
+            btnSend.disabled = false;
         }
 
         async function marquerResolu() {
             if (!currentTicket) return;
+            const webhookUrl = getVal('sav_webhook_url');
+            if (webhookUrl) {
+                try {
+                    await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_mail: currentTicket.id, thread_id: currentTicket.thread_id, expediteur: currentTicket.expediteur, sujet: currentTicket.sujet, reponse: null, statut: 'résolu' })
+                    });
+                } catch(e) {}
+            }
             currentTicket.statut = 'résolu';
             document.getElementById('savBtnResolu').style.display = 'none';
             showToast('✅ Ticket marqué comme résolu', 'success');
-            // TODO: mettre à jour le Sheet via n8n
         }
 
 
@@ -2477,6 +2527,11 @@ Message : ${currentTicket.corps}`;
                 updateDelpechWebhookStatus();
                 showToast('Webhook Delpech sauvegardé', 'success');
             });
+            document.getElementById('btnSaveSavWebhook').addEventListener('click', () => {
+                setVal('sav_webhook_url', document.getElementById('webhookSavInput').value.trim());
+                updateSavWebhookStatus();
+                showToast('Webhook SAV sauvegardé', 'success');
+            });
             document.getElementById('btnSaveLabos').addEventListener('click', () => {
                 state.labos = document.getElementById('labosListInput').value.split('\n').map(l => l.trim()).filter(Boolean).sort();
                 setVal('mlp_labos', JSON.stringify(state.labos));
@@ -2492,8 +2547,21 @@ Message : ${currentTicket.corps}`;
             if (!getVal('mlp_delpech_webhook_url')) setVal('mlp_delpech_webhook_url', delpechUrl);
             document.getElementById('webhookUrlInput').value = blUrl;
             document.getElementById('webhookDelpechInput').value = delpechUrl;
+            document.getElementById('webhookSavInput').value = getVal('sav_webhook_url') || '';
             updateWebhookStatus();
             updateDelpechWebhookStatus();
+            updateSavWebhookStatus();
+        }
+
+        function updateSavWebhookStatus() {
+            const s = document.getElementById('webhookSavStatus');
+            if (getVal('sav_webhook_url')) {
+                s.className = 'webhook-status connected';
+                s.innerHTML = '<span class="webhook-dot"></span>Connecté';
+            } else {
+                s.className = 'webhook-status disconnected';
+                s.innerHTML = '<span class="webhook-dot"></span>Non configuré';
+            }
         }
 
         function updateWebhookStatus() {
