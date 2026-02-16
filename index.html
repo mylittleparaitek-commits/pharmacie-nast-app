@@ -2415,10 +2415,12 @@
                 const d = new Date(m.date);
                 const dateStr = isNaN(d) ? '' : d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + ' · ' + d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
                 // Convertir \n en <br> pour l'affichage
-                const msgHtml = (m.message || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+                let msg = m.message || '';
+                msg = msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                msg = msg.replace(/\\n/g,'\n').replace(/\n/g,'<br>');
                 return `<div style="display:flex;flex-direction:column;align-items:${isNous ? 'flex-end' : 'flex-start'};">
                     <div class="sav-msg ${isNous ? 'sav-msg-nous' : 'sav-msg-client'}">
-                        ${msgHtml}
+                        ${msg}
                         <div class="sav-msg-meta">${isNous ? 'Vous' : (m.de || 'Client')} · ${dateStr}</div>
                     </div>
                 </div>`;
