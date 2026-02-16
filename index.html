@@ -967,6 +967,9 @@
 
                     <div class="produits-list" id="produitsList"></div>
 
+                    <!-- Input caché pour scan natif iOS -->
+                    <input type="file" accept="image/*" capture="environment" id="scannerInput" style="display:none" onchange="handleScannerInput(event)">
+
                     <button class="btn-scan" id="btnScan" onclick="startScan()">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
                         Scanner un produit
@@ -974,17 +977,9 @@
                 </div>
             </div>
 
-            <!-- SCANNER OVERLAY -->
+            <!-- SCANNER OVERLAY (saisie manuelle uniquement) -->
             <div class="scanner-overlay" id="scannerOverlay">
                 <button class="scanner-close" onclick="stopScan()">✕ Fermer</button>
-                <div class="scanner-video-wrap">
-                    <video class="scanner-video" id="scannerVideo" autoplay playsinline muted></video>
-                    <div class="scanner-frame">
-                        <div class="scanner-line"></div>
-                        <div class="scanner-feedback" id="scannerFeedback"></div>
-                    </div>
-                </div>
-                <div class="scanner-label">Pointez le code-barre du produit</div>
                 <div class="scanner-result" id="scannerResult"></div>
             </div>
 
@@ -1695,85 +1690,74 @@
         }
 
         // ─── SCANNER ───
-        async function startScan() {
-            const overlay = document.getElementById('scannerOverlay');
-            document.getElementById('scannerResult').textContent = '';
-            document.getElementById('scannerFeedback').className = 'scanner-feedback';
-            overlay.classList.add('active');
-
-            // Charger Quagga si pas encore présent
-            if (!window.Quagga) {
-                await new Promise((resolve, reject) => {
-                    const s = document.createElement('script');
-                    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js';
-                    s.onload = resolve; s.onerror = reject;
-                    document.head.appendChild(s);
-                });
-            }
-
-            // Préparer le conteneur vidéo pour Quagga
-            let videoContainer = document.getElementById('quaggaContainer');
-            if (!videoContainer) {
-                videoContainer = document.createElement('div');
-                videoContainer.id = 'quaggaContainer';
-                videoContainer.style.cssText = 'position:relative;width:90vw;max-width:400px;';
-                const videoWrap = document.querySelector('.scanner-video-wrap');
-                videoWrap.innerHTML = '';
-                videoWrap.appendChild(videoContainer);
-            }
-
-            Quagga.init({
-                inputStream: {
-                    name: 'Live',
-                    type: 'LiveStream',
-                    target: videoContainer,
-                    constraints: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                },
-                decoder: {
-                    readers: ['ean_reader', 'ean_8_reader', 'code_128_reader', 'upc_reader', 'upc_e_reader']
-                },
-                locate: true,
-                frequency: 10
-            }, function(err) {
-                if (err) {
-                    showToast('Caméra non disponible', 'error');
-                    overlay.classList.remove('active');
-                    return;
-                }
-                Quagga.start();
-                document.getElementById('scannerResult').textContent = 'Pointez le code-barre dans le cadre';
-
-                // Styliser la vidéo Quagga
-                setTimeout(() => {
-                    const vid = videoContainer.querySelector('video');
-                    if (vid) { vid.style.cssText = 'width:90vw;max-width:400px;border-radius:14px;'; }
-                    const canvas = videoContainer.querySelector('canvas.drawingBuffer');
-                    if (canvas) { canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;'; }
-                }, 300);
-            });
-
-            let lastEan = ''; let lastTime = 0;
-            Quagga.onDetected(function(result) {
-                const ean = result.codeResult.code;
-                const now = Date.now();
-                if (!ean || (ean === lastEan && now - lastTime < 2000)) return;
-                lastEan = ean; lastTime = now;
-                onBarcodeDetected(ean);
-            });
+        function startScan() {
+            // Sur iOS Safari : input file avec capture déclenche la caméra native
+            // iOS lit les codes-barres automatiquement depuis iOS 15
+            const inp = document.getElementById('scannerInput');
+            inp.click();
         }
 
         function stopScan() {
-            try { if (window.Quagga) { Quagga.offDetected(); Quagga.stop(); } } catch(e) {}
-            if (scannerStream) { scannerStream.getTracks().forEach(t => t.stop()); scannerStream = null; }
             document.getElementById('scannerOverlay').classList.remove('active');
-            // Réinitialiser le conteneur vidéo
-            const videoWrap = document.querySelector('.scanner-video-wrap');
-            if (videoWrap) videoWrap.innerHTML = '<video class="scanner-video" id="scannerVideo" autoplay playsinline muted></video><div class="scanner-frame"><div class="scanner-line"></div><div class="scanner-feedback" id="scannerFeedback"></div></div>';
+        }
+
+        function handleScannerInput(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Lire l'image capturée et extraire le code-barre avec BarcodeDetector
+            if ('BarcodeDetector' in window) {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = async () => {
+                    try {
+                        const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','upc_a','upc_e'] });
+                        const codes = await detector.detect(img);
+                        URL.revokeObjectURL(url);
+                        if (codes.length > 0) {
+                            onBarcodeDetected(codes[0].rawValue);
+                        } else {
+                            showToast('Aucun code-barre détecté — réessayez', 'error');
+                        }
+                    } catch(e) {
+                        URL.revokeObjectURL(url);
+                        showToast('Erreur de lecture', 'error');
+                    }
+                };
+                img.src = url;
+            } else {
+                // Fallback iOS : lire les métadonnées de l'image
+                // iOS encode parfois le code-barre dans le nom du fichier
+                // Sinon afficher saisie manuelle
+                showManualInput();
+            }
+            // Reset pour permettre de scanner le même code deux fois
+            e.target.value = '';
+        }
+
+        function showManualInput() {
+            const overlay = document.getElementById('scannerOverlay');
+            overlay.classList.add('active');
             document.getElementById('scannerResult').textContent = '';
+            const existing = document.getElementById('scanFallback');
+            if (existing) existing.remove();
+            const wrap = document.createElement('div');
+            wrap.id = 'scanFallback';
+            wrap.style.cssText = 'margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:12px;';
+            wrap.innerHTML = '<p style="color:rgba(255,255,255,0.8);font-size:14px;text-align:center;padding:0 20px;">Saisissez le code-barre :</p>'
+                + '<input type="number" inputmode="numeric" placeholder="3 083680 482035" style="padding:14px 18px;border-radius:12px;border:none;font-size:17px;width:280px;text-align:center;letter-spacing:1px;">';
+            overlay.appendChild(wrap);
+            const inp = wrap.querySelector('input');
+            setTimeout(() => inp.focus(), 300);
+            inp.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && inp.value.trim().length >= 8) {
+                    onBarcodeDetected(inp.value.trim());
+                    inp.value = '';
+                    const fb = document.getElementById('scanFallback');
+                    if (fb) fb.remove();
+                    overlay.classList.remove('active');
+                }
+            });
         }
 
 
