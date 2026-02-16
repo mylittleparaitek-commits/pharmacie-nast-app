@@ -2296,10 +2296,16 @@
                     date: r[1]?.trim(),
                     expediteur: r[2]?.trim(),
                     sujet: r[3]?.trim() || '(sans objet)',
-                    corps: r[4]?.trim(),
+                    corps: r[4]?.trim().replace(/\\n/g, '\n'),
                     statut: r[5]?.trim() || 'nouveau',
                     thread_id: r[6]?.trim(),
-                    historique: (() => { try { return JSON.parse(r[7] || '[]'); } catch(e) { return []; } })()
+                    historique: (() => {
+                        try {
+                            const h = JSON.parse(r[7] || '[]');
+                            // Corriger les \n dans les messages
+                            return h.map(m => ({ ...m, message: (m.message || '').replace(/\\n/g, '\n') }));
+                        } catch(e) { return []; }
+                    })()
                 })).sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 const nouveaux = savData.filter(t => t.statut === 'nouveau').length;
@@ -2365,7 +2371,6 @@
         function renderSavFil() {
             const fil = document.getElementById('savFil');
             if (!currentTicket) return;
-            // Message principal + historique
             const msgs = currentTicket.historique.length > 0
                 ? currentTicket.historique
                 : [{ role: 'client', date: currentTicket.date, de: currentTicket.expediteur, message: currentTicket.corps }];
@@ -2373,14 +2378,15 @@
                 const isNous = m.role === 'nous';
                 const d = new Date(m.date);
                 const dateStr = isNaN(d) ? '' : d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + ' · ' + d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+                // Convertir \n en <br> pour l'affichage
+                const msgHtml = (m.message || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
                 return `<div style="display:flex;flex-direction:column;align-items:${isNous ? 'flex-end' : 'flex-start'};">
                     <div class="sav-msg ${isNous ? 'sav-msg-nous' : 'sav-msg-client'}">
-                        ${m.message || ''}
-                        <div class="sav-msg-meta">${isNous ? 'Vous' : m.de || 'Client'} · ${dateStr}</div>
+                        ${msgHtml}
+                        <div class="sav-msg-meta">${isNous ? 'Vous' : (m.de || 'Client')} · ${dateStr}</div>
                     </div>
                 </div>`;
             }).join('');
-            // Scroll en bas
             setTimeout(() => fil.scrollTop = fil.scrollHeight, 100);
         }
 
