@@ -977,6 +977,65 @@
                 </div>
             </div>
 
+            <!-- TAB: Commandes MLP -->
+            <div class="tab-content" id="tabMLP">
+
+                <!-- Vue liste -->
+                <div class="commandes-list-view" id="mlpListView">
+                    <div class="commandes-header">
+                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>MLP — À traiter</div>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span class="commandes-count" id="mlpCount"></span>
+                            <button onclick="loadMLP()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                Actualiser
+                            </button>
+                        </div>
+                    </div>
+                    <div id="mlpStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+                        Chargement…
+                    </div>
+                    <div class="commandes-list" id="mlpList">
+                        <div class="commande-empty">
+                            <div class="commande-empty-icon">💊</div>
+                            <p>Appuyez sur Actualiser</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vue détail commande MLP -->
+                <div class="commande-detail-view" id="mlpDetailView">
+                    <div class="detail-header">
+                        <div class="detail-header-top">
+                            <button class="detail-back" onclick="closeMlpDetail()">←</button>
+                            <div><div class="detail-ref" id="mlpDetailRef"></div></div>
+                        </div>
+                        <div class="detail-client" id="mlpDetailClient"></div>
+                        <div class="detail-date" id="mlpDetailDate"></div>
+                    </div>
+
+                    <div class="picking-progress">
+                        <div class="picking-progress-top">
+                            <span class="picking-label">Picking en cours</span>
+                            <span class="picking-count" id="mlpPickingCount">0 / 0</span>
+                        </div>
+                        <div class="picking-bar-bg">
+                            <div class="picking-bar-fill" id="mlpPickingBar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="produits-list" id="mlpProduitsList"></div>
+
+                    <input type="file" accept="image/*" capture="environment" id="mlpScannerInput" style="display:none" onchange="handleMlpScannerInput(event)">
+
+                    <button class="btn-scan" onclick="startMlpScan()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
+                        Scanner un produit
+                    </button>
+                </div>
+            </div>
+
             <!-- SCANNER OVERLAY (saisie manuelle uniquement) -->
             <div class="scanner-overlay" id="scannerOverlay">
                 <button class="scanner-close" onclick="stopScan()">✕ Fermer</button>
@@ -1148,6 +1207,14 @@
                 </div>
                 NAST.COM
             </button>
+            <button class="tab-item" data-tab="tabMLP" data-title="My Little Para">
+                <div class="tab-icon-wrap">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                </div>
+                MLP
+            </button>
             <button class="tab-item" data-tab="tabDelpech" data-title="Delpech Préparatoire">
                 <div class="tab-icon-wrap">
                     <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1232,6 +1299,7 @@
                     // Refresh auto selon l'onglet
                     if (tab.dataset.tab === 'tabDashboard') loadSheetData();
                     if (tab.dataset.tab === 'tabCommandes') loadCommandes();
+                    if (tab.dataset.tab === 'tabMLP') loadMLP();
                 });
             });
         }
@@ -1852,6 +1920,212 @@
 
 
 
+
+
+        // ─── COMMANDES MLP ───
+        const MLP_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXlvAmyixl9AHfofVt6Lip-r3MLrbaVUh9odTblPnG0-EYrdupt82i7ZvhWMRqldndcVawJh9tJCJu/pub?gid=942322525&single=true&output=csv';
+
+        let mlpData = [];
+        let currentMlp = null;
+        let mlpPickingState = {};
+
+        async function loadMLP() {
+            const status = document.getElementById('mlpStatus');
+            const list   = document.getElementById('mlpList');
+            status.style.display = 'block';
+            list.innerHTML = '';
+            try {
+                const res  = await fetch(MLP_CSV + '&t=' + Date.now());
+                const text = await res.text();
+                const rows = parseCSV(text);
+                if (rows.length < 2) {
+                    list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande à traiter</p></div>';
+                    status.style.display = 'none'; return;
+                }
+                const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13 };
+                const map = {};
+                let lastNum = null;
+                for (let i = 1; i < rows.length; i++) {
+                    const r = rows[i];
+                    const num = r[IDX.num]?.trim();
+                    if (num) {
+                        lastNum = num;
+                        const statut = (r[IDX.statut] || '').trim().toLowerCase();
+                        if (STATUTS_TRAITES.some(s => statut.includes(s))) { lastNum = null; continue; }
+                        map[num] = { num, ref: r[IDX.ref], date: r[IDX.date], client: r[IDX.client], ville: r[IDX.ville], statut: r[IDX.statut], total: r[IDX.total], produits: [] };
+                    }
+                    if (lastNum && map[lastNum] && r[IDX.ean]?.trim()) {
+                        map[lastNum].produits.push({ ean: r[IDX.ean].trim(), nom: r[IDX.nom]?.trim(), qty: parseInt(r[IDX.qty]) || 1 });
+                    }
+                }
+                mlpData = Object.values(map).sort((a, b) => new Date(b.date) - new Date(a.date));
+                document.getElementById('mlpCount').textContent = mlpData.length + ' commande' + (mlpData.length > 1 ? 's' : '');
+                if (!mlpData.length) {
+                    list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Toutes traitées !</p></div>';
+                } else {
+                    renderMlpList();
+                }
+            } catch(e) {
+                list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Impossible de charger</p></div>';
+            }
+            status.style.display = 'none';
+        }
+
+        function renderMlpList() {
+            const list = document.getElementById('mlpList');
+            list.innerHTML = mlpData.map((c, idx) => {
+                const d = new Date(c.date);
+                const dateStr = isNaN(d) ? c.date : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+                const statut = c.statut?.trim() || '';
+                const statutClass = statut.toLowerCase().includes('docmorris') ? 'statut-docmorris' : statut.toLowerCase().includes('payplug') ? 'statut-payplug' : 'statut-autre';
+                return `<div class="commande-card" onclick="openMlpDetail(${idx})">
+                    <div class="commande-card-top">
+                        <span class="commande-ref">#${c.num}</span>
+                        <span class="commande-statut ${statutClass}">${statut}</span>
+                    </div>
+                    <div class="commande-client">${c.client || '—'}</div>
+                    <div class="commande-meta">
+                        <span>📦 ${c.produits.length} produit(s)</span>
+                        <span>📍 ${c.ville || '—'}</span>
+                        <span>🕐 ${dateStr}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function openMlpDetail(idx) {
+            currentMlp = mlpData[idx];
+            mlpPickingState = {};
+            currentMlp.produits.forEach(p => { mlpPickingState[p.ean] = 0; });
+            document.getElementById('mlpListView').classList.add('hidden');
+            document.getElementById('mlpDetailView').classList.add('active');
+            const d = new Date(currentMlp.date);
+            const dateStr = isNaN(d) ? currentMlp.date : d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}) + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('mlpDetailRef').textContent = '#' + currentMlp.num + (currentMlp.ref ? ' — ' + currentMlp.ref : '');
+            document.getElementById('mlpDetailClient').textContent = '👤 ' + (currentMlp.client || '—') + (currentMlp.ville ? ' · ' + currentMlp.ville : '');
+            document.getElementById('mlpDetailDate').textContent = '🕐 ' + dateStr;
+            renderMlpProduits();
+            updateMlpProgress();
+        }
+
+        function closeMlpDetail() {
+            currentMlp = null;
+            document.getElementById('mlpListView').classList.remove('hidden');
+            document.getElementById('mlpDetailView').classList.remove('active');
+        }
+
+        function renderMlpProduits() {
+            const list = document.getElementById('mlpProduitsList');
+            if (!currentMlp?.produits.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Aucun produit</div>'; return; }
+            list.innerHTML = currentMlp.produits.map(p => {
+                const validated = mlpPickingState[p.ean] || 0;
+                const scanned = validated > 0;
+                return `<div class="produit-item ${scanned ? 'scanned' : ''}">
+                    <div class="produit-check" onclick="showMlpPopup(${JSON.stringify(p).replace(/"/g,'&quot;')})" style="cursor:pointer;">${scanned ? '✓' : ''}</div>
+                    <div class="produit-info">
+                        <div class="produit-nom">${p.nom || 'Produit'}</div>
+                        <div class="produit-ean">${p.ean}</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                        <span class="produit-qty">${scanned ? validated + '/' : ''}×${p.qty}</span>
+                        ${!scanned ? `<button onclick="showMlpPopup(${JSON.stringify(p).replace(/"/g,'&quot;')})" style="font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:8px;background:white;color:var(--text-muted);cursor:pointer;">Valider</button>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function updateMlpProgress() {
+            if (!currentMlp) return;
+            const total = currentMlp.produits.length;
+            const done  = Object.values(mlpPickingState).filter(v => v > 0).length;
+            const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+            document.getElementById('mlpPickingCount').textContent = done + ' / ' + total;
+            const bar = document.getElementById('mlpPickingBar');
+            bar.style.width = pct + '%';
+            bar.className = 'picking-bar-fill' + (done === total && total > 0 ? ' done' : '');
+        }
+
+        function startMlpScan() {
+            document.getElementById('mlpScannerInput').click();
+        }
+
+        function handleMlpScannerInput(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if ('BarcodeDetector' in window) {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = async () => {
+                    try {
+                        const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','upc_a','upc_e'] });
+                        const codes = await detector.detect(img);
+                        URL.revokeObjectURL(url);
+                        if (codes.length > 0) { onMlpBarcodeDetected(codes[0].rawValue); }
+                        else { showToast('Aucun code-barre détecté', 'error'); }
+                    } catch(err) { URL.revokeObjectURL(url); showToast('Erreur lecture', 'error'); }
+                };
+                img.src = url;
+            } else {
+                showToast('Scanner non disponible', 'error');
+            }
+            e.target.value = '';
+        }
+
+        function onMlpBarcodeDetected(ean) {
+            if (!currentMlp || !ean) return;
+            const eanStr = String(ean).trim();
+            const produit = currentMlp.produits.find(p =>
+                String(p.ean) === eanStr ||
+                String(p.ean) === eanStr.replace(/^0+/, '') ||
+                ('0' + String(p.ean)) === eanStr ||
+                String(p.ean).replace(/^0+/, '') === eanStr.replace(/^0+/, '')
+            );
+            if (produit) { showMlpPopup(produit); }
+            else { showToast('✗ EAN non trouvé : ' + eanStr, 'error'); }
+        }
+
+        function showMlpPopup(produit) {
+            const existing = document.getElementById('scanPopup');
+            if (existing) existing.remove();
+            const popup = document.createElement('div');
+            popup.id = 'scanPopup';
+            popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;display:flex;align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px);';
+            popup.innerHTML = `
+                <div style="background:white;border-radius:24px 24px 0 0;padding:24px 20px 32px;width:100%;max-width:480px;">
+                    <div style="text-align:center;margin-bottom:16px;">
+                        <div style="font-size:13px;color:#9aa8b8;font-family:monospace;margin-bottom:4px;">${produit.ean}</div>
+                        <div style="font-size:15px;font-weight:600;color:#1a2332;line-height:1.3;">${produit.nom || 'Produit'}</div>
+                        <div style="margin-top:6px;font-size:13px;color:#5a6a7e;">Quantité attendue : <strong>${produit.qty}</strong></div>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;">
+                        <button onclick="changeScanQty(-1)" style="width:44px;height:44px;border-radius:50%;border:2px solid #e8ecf0;background:white;font-size:22px;cursor:pointer;">−</button>
+                        <div style="text-align:center;">
+                            <div id="scanQtyValue" style="font-size:36px;font-weight:700;color:#E91E63;line-height:1;">${produit.qty}</div>
+                            <div style="font-size:11px;color:#9aa8b8;">quantité</div>
+                        </div>
+                        <button onclick="changeScanQty(1)" style="width:44px;height:44px;border-radius:50%;border:2px solid #e8ecf0;background:white;font-size:22px;cursor:pointer;">+</button>
+                    </div>
+                    <button onclick="validateMlpScan('${produit.ean}')" style="width:100%;padding:16px;background:#E91E63;color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;margin-bottom:10px;">✓ Valider</button>
+                    <button onclick="document.getElementById('scanPopup').remove()" style="width:100%;padding:12px;background:#f2f5f8;color:#5a6a7e;border:none;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">Annuler</button>
+                </div>`;
+            popup.dataset.ean = produit.ean;
+            popup.dataset.qty = produit.qty;
+            document.body.appendChild(popup);
+            popup.addEventListener('click', (e) => { if (e.target === popup) popup.remove(); });
+        }
+
+        function validateMlpScan(ean) {
+            const popup = document.getElementById('scanPopup');
+            if (!popup) return;
+            const qty = parseInt(popup.dataset.qty) || 1;
+            popup.remove();
+            mlpPickingState[ean] = qty;
+            renderMlpProduits();
+            updateMlpProgress();
+            const total = currentMlp.produits.length;
+            const done  = Object.values(mlpPickingState).filter(v => v > 0).length;
+            showToast(done === total ? '✅ Picking MLP complet !' : '✓ Produit validé', 'success');
+        }
 
 
         function loadLabos() {
