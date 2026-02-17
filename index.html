@@ -919,6 +919,91 @@
             font-family: var(--font-body); color: var(--text-secondary); transition: all 0.2s;
         }
         .sav-filter.active { background: var(--nast-pink); color: white; border-color: var(--nast-pink); }
+
+        /* ─── TODO ─── */
+        .todo-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+        .todo-filters { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+        .todo-filter { padding:6px 12px; border-radius:20px; border:1.5px solid var(--border); background:white; font-size:11px; font-weight:700; cursor:pointer; font-family:var(--font-body); color:var(--text-secondary); transition:all 0.2s; text-transform:uppercase; }
+        .todo-filter.active { background:var(--nast-pink); color:white; border-color:var(--nast-pink); }
+
+        .todo-card {
+            background:var(--bg-card); border-radius:var(--radius); border:1.5px solid var(--border);
+            padding:14px 16px; margin-bottom:8px; display:flex; align-items:flex-start; gap:12px;
+            box-shadow:var(--shadow-sm); transition:all 0.2s;
+        }
+        .todo-card.done { opacity:0.55; }
+        .todo-check {
+            width:22px; height:22px; border-radius:50%; border:2px solid var(--border);
+            flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center;
+            font-size:12px; transition:all 0.2s; margin-top:1px;
+        }
+        .todo-check.checked { background:var(--nast-pink); border-color:var(--nast-pink); color:white; }
+        .todo-body { flex:1; min-width:0; }
+        .todo-titre { font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:4px; }
+        .todo-card.done .todo-titre { text-decoration:line-through; color:var(--text-muted); }
+        .todo-notes { font-size:12px; color:var(--text-secondary); margin-bottom:6px; }
+        .todo-meta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .todo-prio { font-size:10px; font-weight:700; padding:2px 8px; border-radius:12px; text-transform:uppercase; }
+        .todo-prio-urgent { background:#fce4ec; color:#c2185b; }
+        .todo-prio-normal { background:#e3f2fd; color:#1565c0; }
+        .todo-prio-faible { background:#f3e5f5; color:#6a1b9a; }
+        .todo-date { font-size:10px; color:var(--text-muted); }
+
+        /* Formulaire ajout tâche */
+        .todo-add-btn {
+            width:100%; padding:14px; background:var(--nast-pink); color:white;
+            border:none; border-radius:var(--radius); font-size:14px; font-weight:700;
+            cursor:pointer; font-family:var(--font-body); display:flex; align-items:center;
+            justify-content:center; gap:8px; margin-bottom:16px;
+        }
+        .todo-form {
+            background:var(--bg-card); border-radius:var(--radius); border:1.5px solid var(--border);
+            padding:16px; margin-bottom:16px; display:none;
+        }
+        .todo-form.visible { display:block; }
+        .todo-form input, .todo-form textarea, .todo-form select {
+            width:100%; padding:10px 12px; border:1.5px solid var(--border);
+            border-radius:var(--radius-sm); font-family:var(--font-body); font-size:13px;
+            color:var(--text-primary); background:var(--bg-input); margin-bottom:10px;
+        }
+        .todo-form input:focus, .todo-form textarea:focus, .todo-form select:focus {
+            outline:none; border-color:var(--nast-pink);
+        }
+        .todo-form-btns { display:flex; gap:8px; }
+        .btn-todo-save { flex:1; padding:12px; background:var(--nast-pink); color:white; border:none; border-radius:var(--radius-sm); font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font-body); }
+        .btn-todo-cancel { flex:1; padding:12px; background:#f2f5f8; color:var(--text-secondary); border:none; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-body); }
+
+        /* ─── Sous-onglets A traiter / TODO ─── */
+        .subtab-bar {
+            display: flex;
+            background: #f2f5f8;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 16px;
+            gap: 4px;
+        }
+        .subtab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            font-family: var(--font-body);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .subtab-btn.active {
+            background: white;
+            color: var(--nast-pink);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+        }
+        .subtab-panel { display: none; }
+        .subtab-panel.active { display: block; }
     </style>
 </head>
 <body>
@@ -1047,6 +1132,14 @@
             <!-- TAB: Commandes NAST.COM -->
             <div class="tab-content" id="tabCommandes">
 
+                <!-- Sous-onglets NAST -->
+                <div class="subtab-bar">
+                    <button class="subtab-btn active" onclick="switchSubtab('nast','traiter',this)">📦 À traiter</button>
+                    <button class="subtab-btn" onclick="switchSubtab('nast','todo',this)">✅ Todo</button>
+                </div>
+
+                <!-- Panel À traiter -->
+                <div class="subtab-panel active" id="nastSubTraiter">
                 <!-- Vue liste -->
                 <div class="commandes-list-view" id="commandesListView">
                     <div class="commandes-header">
@@ -1070,6 +1163,37 @@
                         </div>
                     </div>
                 </div>
+
+                </div><!-- /nastSubTraiter -->
+
+                <!-- Panel TODO NAST -->
+                <div class="subtab-panel" id="nastSubTodo">
+                    <button class="todo-add-btn" onclick="toggleTodoForm('nast')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Nouvelle tâche
+                    </button>
+                    <div class="todo-form" id="todoFormNast">
+                        <input type="text" id="todoNastTitre" placeholder="Titre de la tâche *">
+                        <textarea id="todoNastNotes" placeholder="Notes / description (optionnel)" rows="2" style="resize:none;"></textarea>
+                        <select id="todoNastPrio">
+                            <option value="normal">🔵 Normal</option>
+                            <option value="urgent">🔴 Urgent</option>
+                            <option value="faible">🟣 Faible</option>
+                        </select>
+                        <div class="todo-form-btns">
+                            <button class="btn-todo-save" onclick="saveTodoNast()">Ajouter</button>
+                            <button class="btn-todo-cancel" onclick="toggleTodoForm('nast')">Annuler</button>
+                        </div>
+                    </div>
+                    <div class="todo-filters">
+                        <button class="todo-filter active" onclick="filterTodo('nast','tous',this)">Tous</button>
+                        <button class="todo-filter" onclick="filterTodo('nast','urgent',this)">🔴 Urgent</button>
+                        <button class="todo-filter" onclick="filterTodo('nast','normal',this)">🔵 Normal</button>
+                        <button class="todo-filter" onclick="filterTodo('nast','done',this)">✅ Résolus</button>
+                    </div>
+                    <div id="todoNastStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
+                    <div id="todoNastList"></div>
+                </div><!-- /nastSubTodo -->
 
                 <!-- Vue détail commande -->
                 <div class="commande-detail-view" id="commandeDetailView">
@@ -1109,6 +1233,14 @@
             <!-- TAB: Commandes MLP -->
             <div class="tab-content" id="tabMLP">
 
+                <!-- Sous-onglets MLP -->
+                <div class="subtab-bar">
+                    <button class="subtab-btn active" onclick="switchSubtab('mlp','traiter',this)">📦 À traiter</button>
+                    <button class="subtab-btn" onclick="switchSubtab('mlp','todo',this)">✅ Todo</button>
+                </div>
+
+                <!-- Panel À traiter MLP -->
+                <div class="subtab-panel active" id="mlpSubTraiter">
                 <!-- Vue liste -->
                 <div class="commandes-list-view" id="mlpListView">
                     <div class="commandes-header">
@@ -2521,6 +2653,201 @@
             currentTicket.statut = 'résolu';
             document.getElementById('savBtnResolu').style.display = 'none';
             showToast('✅ Ticket marqué comme résolu', 'success');
+        }
+
+
+        function switchSubtab(section, panel, btn) {
+            const prefix = section === 'nast' ? 'nast' : 'mlp';
+            const panelId = prefix + 'Sub' + (panel === 'traiter' ? 'Traiter' : 'Todo');
+            
+            // Changer boutons
+            const bar = btn.closest('.subtab-bar');
+            bar.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Changer panels
+            const tabContent = btn.closest('.tab-content');
+            tabContent.querySelectorAll('.subtab-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            
+            // Charger les données si TODO
+            if (panel === 'todo') {
+                if (section === 'nast') loadTodoNast();
+                else loadTodoWeb();
+            }
+        }
+
+
+        // ─── TODO NAST + WEB ───
+        const TODO_NAST_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRz7fq6cq5pZMIgml9xH9ClgY1mMgDnEK9oYVSQ9etzh4jOLmUzWvjyMBJGzugeiX5QKDfKfNMcXxhw/pub?gid=0&single=true&output=csv';
+        const TODO_WEB_CSV  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSKq6-JJ5AreXcuX6HBSjkcIRhmC5rWLv--KgUijpRz9bOfQYKo63bP16hUc96tLcgMQaf3DetfRX2I/pub?gid=0&single=true&output=csv';
+        const TODO_NAST_SHEET = '1-6xsf6ukxmba2fRwnsqZeIXYq9oOL9h9uEIvJQ9fhIU';
+        const TODO_WEB_SHEET  = '1MJhApWfHs9BTlatv6ME3rv1tbBiFUA4tuW8bCC5DxbQ';
+
+        let todoNastData = [];
+        let todoWebData  = [];
+        let todoNastFiltre = 'tous';
+        let todoWebFiltre  = 'tous';
+
+        function genTodoId() { return Date.now().toString(36) + Math.random().toString(36).substring(2,6); }
+
+        async function loadTodoGeneric(csvUrl, statusId, listId, storeVar) {
+            const status = document.getElementById(statusId);
+            const list   = document.getElementById(listId);
+            status.style.display = 'block';
+            list.innerHTML = '';
+            try {
+                const res  = await fetch(csvUrl + '&t=' + Date.now());
+                const text = await res.text();
+                const rows = parseCSV(text);
+                // colonnes : id(0) titre(1) priorite(2) statut(3) date_creation(4) notes(5)
+                const data = rows.slice(1)
+                    .filter(r => r[0]?.trim() && r[1]?.trim())
+                    .map(r => ({
+                        id: r[0].trim(),
+                        titre: r[1].trim(),
+                        priorite: r[2]?.trim() || 'normal',
+                        statut: r[3]?.trim() || 'todo',
+                        date: r[4]?.trim(),
+                        notes: r[5]?.trim() || ''
+                    }))
+                    .sort((a,b) => {
+                        // Urgent d'abord, puis par date
+                        if (a.statut === 'done' && b.statut !== 'done') return 1;
+                        if (a.statut !== 'done' && b.statut === 'done') return -1;
+                        if (a.priorite === 'urgent' && b.priorite !== 'urgent') return -1;
+                        if (a.priorite !== 'urgent' && b.priorite === 'urgent') return 1;
+                        return new Date(b.date) - new Date(a.date);
+                    });
+                return data;
+            } catch(e) {
+                list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Impossible de charger</p></div>';
+                return [];
+            } finally {
+                status.style.display = 'none';
+            }
+        }
+
+        async function loadTodoNast() {
+            todoNastData = await loadTodoGeneric(TODO_NAST_CSV, 'todoNastStatus', 'todoNastList');
+            renderTodo('nast');
+        }
+
+        async function loadTodoWeb() {
+            todoWebData = await loadTodoGeneric(TODO_WEB_CSV, 'todoWebStatus', 'todoWebList');
+            renderTodo('web');
+        }
+
+        function filterTodo(type, filtre, btn) {
+            if (type === 'nast') todoNastFiltre = filtre;
+            else todoWebFiltre = filtre;
+            const prefix = type === 'nast' ? 'todoNast' : 'todoWeb';
+            document.querySelectorAll(`#tab${type === 'nast' ? 'TodoNast' : 'TodoWeb'} .todo-filter`).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTodo(type);
+        }
+
+        function renderTodo(type) {
+            const data   = type === 'nast' ? todoNastData : todoWebData;
+            const filtre = type === 'nast' ? todoNastFiltre : todoWebFiltre;
+            const listId = type === 'nast' ? 'todoNastList' : 'todoWebList';
+            const list   = document.getElementById(listId);
+
+            let filtered = data;
+            if (filtre === 'done')   filtered = data.filter(t => t.statut === 'done');
+            else if (filtre === 'tous') filtered = data.filter(t => t.statut !== 'done');
+            else filtered = data.filter(t => t.priorite === filtre && t.statut !== 'done');
+
+            if (!filtered.length) {
+                list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune tâche</p></div>';
+                return;
+            }
+
+            const prioLabels = { urgent: '🔴 Urgent', normal: '🔵 Normal', faible: '🟣 Faible' };
+            const prioClass  = { urgent: 'todo-prio-urgent', normal: 'todo-prio-normal', faible: 'todo-prio-faible' };
+
+            list.innerHTML = filtered.map(t => {
+                const done = t.statut === 'done';
+                const d = new Date(t.date);
+                const dateStr = isNaN(d) ? '' : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'});
+                return `<div class="todo-card ${done ? 'done' : ''}">
+                    <div class="todo-check ${done ? 'checked' : ''}" onclick="toggleTodo('${type}','${t.id}')">
+                        ${done ? '✓' : ''}
+                    </div>
+                    <div class="todo-body">
+                        <div class="todo-titre">${t.titre}</div>
+                        ${t.notes ? `<div class="todo-notes">${t.notes}</div>` : ''}
+                        <div class="todo-meta">
+                            <span class="todo-prio ${prioClass[t.priorite] || 'todo-prio-normal'}">${prioLabels[t.priorite] || t.priorite}</span>
+                            ${dateStr ? `<span class="todo-date">📅 ${dateStr}</span>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleTodoForm(type) {
+            const formId = type === 'nast' ? 'todoFormNast' : 'todoFormWeb';
+            const form = document.getElementById(formId);
+            form.classList.toggle('visible');
+        }
+
+        async function saveTodoGeneric(type, sheetId) {
+            const titre = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Titre`).value.trim();
+            const notes = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Notes`).value.trim();
+            const prio  = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Prio`).value;
+            if (!titre) { showToast('⚠️ Le titre est obligatoire', 'error'); return; }
+
+            const id = genTodoId();
+            const date = new Date().toISOString();
+            const webhookUrl = getVal('mlp_webhook_url').replace('reception-bl', 'todo-sheet');
+            
+            // Appel webhook n8n pour écrire dans le Sheet
+            const todoWebhook = getVal('todo_webhook_url');
+            if (todoWebhook) {
+                try {
+                    await fetch(todoWebhook, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sheet_id: sheetId, id, titre, priorite: prio, statut: 'todo', date_creation: date, notes })
+                    });
+                } catch(e) {}
+            }
+
+            // Ajout local immédiat
+            const newTask = { id, titre, priorite: prio, statut: 'todo', date, notes };
+            if (type === 'nast') todoNastData.unshift(newTask);
+            else todoWebData.unshift(newTask);
+            
+            renderTodo(type);
+            toggleTodoForm(type);
+            document.getElementById(`todo${type==='nast'?'Nast':'Web'}Titre`).value = '';
+            document.getElementById(`todo${type==='nast'?'Nast':'Web'}Notes`).value = '';
+            showToast('✅ Tâche ajoutée !', 'success');
+        }
+
+        function saveTodoNast() { saveTodoGeneric('nast', TODO_NAST_SHEET); }
+        function saveTodoWeb()  { saveTodoGeneric('web',  TODO_WEB_SHEET);  }
+
+        async function toggleTodo(type, id) {
+            const data = type === 'nast' ? todoNastData : todoWebData;
+            const task = data.find(t => t.id === id);
+            if (!task) return;
+            task.statut = task.statut === 'done' ? 'todo' : 'done';
+            renderTodo(type);
+
+            const todoWebhook = getVal('todo_webhook_url');
+            if (todoWebhook) {
+                const sheetId = type === 'nast' ? TODO_NAST_SHEET : TODO_WEB_SHEET;
+                try {
+                    await fetch(todoWebhook, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sheet_id: sheetId, id, statut: task.statut, _update: true })
+                    });
+                } catch(e) {}
+            }
+            showToast(task.statut === 'done' ? '✅ Tâche résolue !' : '↩️ Tâche réouverte', 'success');
         }
 
 
