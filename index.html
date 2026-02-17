@@ -146,16 +146,7 @@
             background: var(--bg-secondary);
         }
 
-        /* ─── TAB BAR ─── */
-        .tab-bar {
-            display: flex;
-            background: var(--bg-primary);
-            border-top: 1px solid var(--border);
-            padding: 4px 4px calc(4px + var(--safe-bottom));
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
-        }
+        /* ─── TAB BAR (supprimée) ─── */
 
         .tab-item {
             flex: 1;
@@ -1005,6 +996,164 @@
         }
         .subtab-panel { display: none; }
         .subtab-panel.active { display: block; }
+
+        /* ─── MENU PRINCIPAL ─── */
+        .menu-home { display: block; }
+        .menu-home.hidden { display: none; }
+        .section-view { display: none; }
+        .section-view.active { display: block; }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            padding: 4px 0;
+        }
+
+        .menu-card {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card:active { transform: scale(0.97); }
+
+        .menu-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 24px;
+        }
+
+        .menu-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .menu-card-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .menu-card-pharma .menu-card-icon { background: #fce4ec; }
+        .menu-card-pharma { border-bottom: 3px solid var(--nast-pink); }
+        .menu-card-nast .menu-card-icon { background: #e3f2fd; }
+        .menu-card-nast { border-bottom: 3px solid #1976D2; }
+        .menu-card-mlp .menu-card-icon { background: #f3e5f5; }
+        .menu-card-mlp { border-bottom: 3px solid #9C27B0; }
+        .menu-card-settings .menu-card-icon { background: #f5f5f5; }
+        .menu-card-settings { border-bottom: 3px solid #78909C; }
+
+        /* ─── SECTION HEADER (retour + titre + sub-tabs) ─── */
+        .section-back {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .btn-back {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: white;
+            color: var(--text-primary);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.15s;
+        }
+
+        .btn-back:active { transform: scale(0.9); background: var(--bg-secondary); }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Sub-tabs scrollable pour les sections */
+        .section-subtabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+        }
+        .section-subtabs::-webkit-scrollbar { display: none; }
+
+        .section-subtab {
+            padding: 9px 14px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: white;
+            font-family: var(--font-body);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .section-subtab.active {
+            background: var(--nast-pink);
+            color: white;
+            border-color: var(--nast-pink);
+        }
+
+        .section-subtab.active-blue {
+            background: #1976D2;
+            color: white;
+            border-color: #1976D2;
+        }
+
+        .section-subtab.active-purple {
+            background: #9C27B0;
+            color: white;
+            border-color: #9C27B0;
+        }
+
+        .section-panel { display: none; }
+        .section-panel.active { display: block; }
+
+        /* Menu greeting */
+        .menu-greeting {
+            margin-bottom: 20px;
+        }
+        .menu-greeting-hello {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+        .menu-greeting-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+    
     </style>
 </head>
 <body>
@@ -1020,14 +1169,57 @@
                 </div>
                 <span class="header-date" id="headerDate"></span>
             </div>
-            <h1 id="headerTitle">Réception BL</h1>
+            <h1 id="headerTitle">Accueil</h1>
         </header>
 
         <!-- Content -->
         <main class="content">
 
-            <!-- TAB: Réception BL -->
-            <div class="tab-content active" id="tabReception">
+            <!-- ═══ MENU PRINCIPAL ═══ -->
+            <div class="menu-home" id="menuHome">
+                <div class="menu-greeting">
+                    <div class="menu-greeting-hello">👋 Bonjour !</div>
+                    <div class="menu-greeting-sub" id="menuDate"></div>
+                </div>
+                <div class="menu-grid">
+                    <div class="menu-card menu-card-pharma" onclick="openSection('pharma')">
+                        <div class="menu-card-icon">🏥</div>
+                        <div class="menu-card-title">Pharmacie</div>
+                        <div class="menu-card-sub">Officine · Quotidien</div>
+                    </div>
+                    <div class="menu-card menu-card-nast" onclick="openSection('nastcom')">
+                        <div class="menu-card-icon">🛒</div>
+                        <div class="menu-card-title">Nast.com</div>
+                        <div class="menu-card-sub">Commandes · Site web</div>
+                    </div>
+                    <div class="menu-card menu-card-mlp" onclick="openSection('mlp')">
+                        <div class="menu-card-icon">💜</div>
+                        <div class="menu-card-title">My Little Para</div>
+                        <div class="menu-card-sub">MLP · E-commerce</div>
+                    </div>
+                    <div class="menu-card menu-card-settings" onclick="openSection('settings')">
+                        <div class="menu-card-icon">⚙️</div>
+                        <div class="menu-card-title">Réglages</div>
+                        <div class="menu-card-sub">Webhooks · Compte</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ SECTION PHARMACIE NAST ═══ -->
+            <div class="section-view" id="sectionPharma">
+                <div class="section-back">
+                    <button class="btn-back" onclick="goHome()">←</button>
+                    <div class="section-title">🏥 Pharmacie Nast</div>
+                </div>
+                <div class="section-subtabs" id="pharmaSubtabs">
+                    <button class="section-subtab active" onclick="switchSection('pharma','reception',this)">📦 Réception</button>
+                    <button class="section-subtab" onclick="switchSection('pharma','delpech',this)">💊 Delpech</button>
+                    <button class="section-subtab" onclick="switchSection('pharma','todoPharma',this)">✅ Messages</button>
+                    <button class="section-subtab" onclick="switchSection('pharma','dashboard',this)">📊 Dashboard</button>
+                </div>
+
+                <div class="section-panel active" id="pharma_reception">
+
                 <div class="card">
                     <div class="card-title"><span class="card-title-dot"></span>Informations livraison</div>
 
@@ -1064,12 +1256,257 @@
                 <button class="btn-submit" id="btnSubmit" disabled>
                     ✓ Envoyer sur Google Drive
                 </button>
+            
+                </div>
+
+                <div class="section-panel" id="pharma_delpech">
+
+                <div class="card">
+                    <div class="card-title"><span class="card-title-dot"></span>Préparation magistrale</div>
+
+                    <div class="form-group">
+                        <label class="form-label">Laboratoire</label>
+                        <input type="text" class="input" id="delpechLaboInput" value="DELPECH PREPARATOIRE" readonly style="color:var(--text-muted);background:var(--bg-input);">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Envoyé par</label>
+                        <input type="text" class="input" id="delpechEnvoyeurInput" placeholder="Nom de l'expéditeur">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nom du client</label>
+                        <input type="text" class="input" id="delpechClientInput" placeholder="Nom / Prénom du patient">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Principe actif de la préparation</label>
+                        <input type="text" class="input" id="delpechPrincipeInput" placeholder="ex: Kétoprofène 2,5%">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Numéro du promis</label>
+                        <input type="text" class="input" id="delpechPromisInput" placeholder="N° promis">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Statut facturation</label>
+                        <div class="facturation-toggle">
+                            <button class="facturation-btn active-paye" id="btnPaye" onclick="selectFacturation('paye')">✓ Payé / Facturé</button>
+                            <button class="facturation-btn" id="btnNonFacture" onclick="selectFacturation('nonfacture')">⚠ Non facturé</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><span class="card-title-dot"></span>Photo / document de la préparation</div>
+                    <div class="photo-zone" id="delpechPhotoZone">
+                        <svg class="photo-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        <div class="photo-zone-text">Ajouter la préparation</div>
+                        <div class="photo-zone-sub">Photo ou PDF · Plusieurs fichiers possibles</div>
+                    </div>
+                    <input type="file" id="delpechPhotoInput" accept="image/*,application/pdf" multiple>
+                    <div class="photos-grid" id="delpechPhotosGrid"></div>
+                </div>
+
+                <button class="btn-submit" id="btnDelpechSubmit" disabled>
+                    ✉ Envoyer par mail + Drive
+                </button>
+            
+                </div>
+
+                <div class="section-panel" id="pharma_todoPharma">
+                    <div class="commande-empty"><div class="commande-empty-icon">💬</div><p>Messages équipe — Bientôt disponible</p></div>
+                </div>
+
+                <div class="section-panel" id="pharma_dashboard">
+
+
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                    <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Aujourd'hui</div>
+                    <button onclick="loadSheetData()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        Actualiser
+                    </button>
+                </div>
+
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-card-value" id="statToday">—</div>
+                        <div class="stat-card-label">Réceptions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-value" id="statLabos">—</div>
+                        <div class="stat-card-label">Labos différents</div>
+                    </div>
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                    <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Dernières réceptions</div>
+                    <span id="dashLastUpdate" style="font-size:10px;color:var(--text-muted);"></span>
+                </div>
+
+                <div id="dashStatus" style="display:none; text-align:center; padding:16px; font-size:13px; color:var(--text-muted);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+                    Chargement…
+                </div>
+
+                <div class="recent-list" id="recentList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <p>Appuyez sur Actualiser</p>
+                    </div>
+                </div>
+            
+                </div>
             </div>
 
-            <!-- TAB: SAV MLP -->
-            <div class="tab-content" id="tabSAV">
+            <!-- ═══ SECTION NAST.COM ═══ -->
+            <div class="section-view" id="sectionNastcom">
+                <div class="section-back">
+                    <button class="btn-back" onclick="goHome()">←</button>
+                    <div class="section-title">🛒 Nast.com</div>
+                </div>
+                <div class="section-subtabs" id="nastcomSubtabs">
+                    <button class="section-subtab active-blue" onclick="switchSection('nastcom','traiter',this,'blue')">📦 À traiter</button>
+                    <button class="section-subtab" onclick="switchSection('nastcom','todoNast',this,'blue')">✅ Todo</button>
+                </div>
 
-                <!-- Vue liste tickets -->
+                <div class="section-panel active" id="nastcom_traiter">
+<!-- Sous-onglets NAST -->
+                
+
+                <!-- Panel À traiter -->
+                
+                <!-- Vue liste -->
+                <div class="commandes-list-view" id="commandesListView">
+                    <div class="commandes-header">
+                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>À traiter</div>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span class="commandes-count" id="commandesCount"></span>
+                            <button onclick="loadCommandes()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                Actualiser
+                            </button>
+                        </div>
+                    </div>
+                    <div id="commandesStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+                        Chargement…
+                    </div>
+                    <div class="commandes-list" id="commandesList">
+                        <div class="commande-empty">
+                            <div class="commande-empty-icon">🛒</div>
+                            <p>Appuyez sur Actualiser</p>
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <div class="section-panel" id="nastcom_todoNast">
+
+                    <button class="todo-add-btn" onclick="toggleTodoForm('nast')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Nouvelle tâche
+                    </button>
+                    <div class="todo-form" id="todoFormNast">
+                        <input type="text" id="todoNastTitre" placeholder="Titre de la tâche *">
+                        <textarea id="todoNastNotes" placeholder="Notes / description (optionnel)" rows="2" style="resize:none;"></textarea>
+                        <select id="todoNastPrio">
+                            <option value="normal">🔵 Normal</option>
+                            <option value="urgent">🔴 Urgent</option>
+                            <option value="faible">🟣 Faible</option>
+                        </select>
+                        <div class="todo-form-btns">
+                            <button class="btn-todo-save" onclick="saveTodoNast()">Ajouter</button>
+                            <button class="btn-todo-cancel" onclick="toggleTodoForm('nast')">Annuler</button>
+                        </div>
+                    </div>
+                    <div class="todo-filters">
+                        <button class="todo-filter active" onclick="filterTodo('nast','tous',this)">Tous</button>
+                        <button class="todo-filter" onclick="filterTodo('nast','urgent',this)">🔴 Urgent</button>
+                        <button class="todo-filter" onclick="filterTodo('nast','normal',this)">🔵 Normal</button>
+                        <button class="todo-filter" onclick="filterTodo('nast','done',this)">✅ Résolus</button>
+                    </div>
+                    <div id="todoNastStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
+                    <div id="todoNastList"></div>
+                </div><!-- /nastcom_todoNast -->
+            </div><!-- /sectionNastcom -->
+
+            <!-- ═══ SECTION MLP ═══ -->
+            <div class="section-view" id="sectionMlp">
+                <div class="section-back">
+                    <button class="btn-back" onclick="goHome()">←</button>
+                    <div class="section-title">💜 My Little Para</div>
+                </div>
+                <div class="section-subtabs" id="mlpSubtabs">
+                    <button class="section-subtab active-purple" onclick="switchSection('mlp','traiterMlp',this,'purple')">📦 À traiter</button>
+                    <button class="section-subtab" onclick="switchSection('mlp','savMlp',this,'purple')">💬 SAV</button>
+                    <button class="section-subtab" onclick="switchSection('mlp','todoWeb',this,'purple')">✅ Todo</button>
+                </div>
+
+                <div class="section-panel active" id="mlp_traiterMlp">
+<!-- Vue liste -->
+                <div class="commandes-list-view" id="mlpListView">
+                    <div class="commandes-header">
+                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>MLP — À traiter</div>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span class="commandes-count" id="mlpCount"></span>
+                            <button onclick="loadMLP()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                Actualiser
+                            </button>
+                        </div>
+                    </div>
+                    <div id="mlpStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+                        Chargement…
+                    </div>
+                    <div class="commandes-list" id="mlpList">
+                        <div class="commande-empty">
+                            <div class="commande-empty-icon">💊</div>
+                            <p>Appuyez sur Actualiser</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vue détail commande MLP -->
+                <div class="commande-detail-view" id="mlpDetailView">
+                    <div class="detail-header">
+                        <div class="detail-header-top">
+                            <button class="detail-back" onclick="closeMlpDetail()">←</button>
+                            <div><div class="detail-ref" id="mlpDetailRef"></div></div>
+                        </div>
+                        <div class="detail-client" id="mlpDetailClient"></div>
+                        <div class="detail-date" id="mlpDetailDate"></div>
+                    </div>
+
+                    <div class="picking-progress">
+                        <div class="picking-progress-top">
+                            <span class="picking-label">Picking en cours</span>
+                            <span class="picking-count" id="mlpPickingCount">0 / 0</span>
+                        </div>
+                        <div class="picking-bar-bg">
+                            <div class="picking-bar-fill" id="mlpPickingBar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="produits-list" id="mlpProduitsList"></div>
+
+                    <input type="file" accept="image/*" capture="environment" id="mlpScannerInput" style="display:none" onchange="handleMlpScannerInput(event)">
+
+                    <button class="btn-scan" onclick="startMlpScan()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
+                        Scanner un produit
+                    </button>
+                </div>
+                </div>
+
+                <div class="section-panel" id="mlp_savMlp">
+<!-- Vue liste tickets -->
                 <div class="sav-list-view" id="savListView">
                     <div class="commandes-header">
                         <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>SAV My Little Para</div>
@@ -1129,178 +1566,10 @@
                     </div>
                 </div>
             </div>
-
-            <!-- TAB: Commandes NAST.COM -->
-            <div class="tab-content" id="tabCommandes">
-
-                <!-- Sous-onglets NAST -->
-                <div class="subtab-bar">
-                    <button class="subtab-btn active" onclick="switchSubtab('nast','traiter',this)">📦 À traiter</button>
-                    <button class="subtab-btn" onclick="switchSubtab('nast','todo',this)">✅ Todo</button>
                 </div>
 
-                <!-- Panel À traiter -->
-                <div class="subtab-panel active" id="nastSubTraiter">
-                <!-- Vue liste -->
-                <div class="commandes-list-view" id="commandesListView">
-                    <div class="commandes-header">
-                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>À traiter</div>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <span class="commandes-count" id="commandesCount"></span>
-                            <button onclick="loadCommandes()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                                Actualiser
-                            </button>
-                        </div>
-                    </div>
-                    <div id="commandesStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
-                        Chargement…
-                    </div>
-                    <div class="commandes-list" id="commandesList">
-                        <div class="commande-empty">
-                            <div class="commande-empty-icon">🛒</div>
-                            <p>Appuyez sur Actualiser</p>
-                        </div>
-                    </div>
-                </div>
-
-                </div><!-- /nastSubTraiter -->
-
-                <!-- Panel TODO NAST -->
-                <div class="subtab-panel" id="nastSubTodo">
-                    <button class="todo-add-btn" onclick="toggleTodoForm('nast')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Nouvelle tâche
-                    </button>
-                    <div class="todo-form" id="todoFormNast">
-                        <input type="text" id="todoNastTitre" placeholder="Titre de la tâche *">
-                        <textarea id="todoNastNotes" placeholder="Notes / description (optionnel)" rows="2" style="resize:none;"></textarea>
-                        <select id="todoNastPrio">
-                            <option value="normal">🔵 Normal</option>
-                            <option value="urgent">🔴 Urgent</option>
-                            <option value="faible">🟣 Faible</option>
-                        </select>
-                        <div class="todo-form-btns">
-                            <button class="btn-todo-save" onclick="saveTodoNast()">Ajouter</button>
-                            <button class="btn-todo-cancel" onclick="toggleTodoForm('nast')">Annuler</button>
-                        </div>
-                    </div>
-                    <div class="todo-filters">
-                        <button class="todo-filter active" onclick="filterTodo('nast','tous',this)">Tous</button>
-                        <button class="todo-filter" onclick="filterTodo('nast','urgent',this)">🔴 Urgent</button>
-                        <button class="todo-filter" onclick="filterTodo('nast','normal',this)">🔵 Normal</button>
-                        <button class="todo-filter" onclick="filterTodo('nast','done',this)">✅ Résolus</button>
-                    </div>
-                    <div id="todoNastStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
-                    <div id="todoNastList"></div>
-                </div><!-- /nastSubTodo -->
-
-                <!-- Vue détail commande -->
-                <div class="commande-detail-view" id="commandeDetailView">
-                    <div class="detail-header" id="detailHeader">
-                        <div class="detail-header-top">
-                            <button class="detail-back" onclick="closeCommandeDetail()">←</button>
-                            <div>
-                                <div class="detail-ref" id="detailRef"></div>
-                            </div>
-                        </div>
-                        <div class="detail-client" id="detailClient"></div>
-                        <div class="detail-date" id="detailDate"></div>
-                    </div>
-
-                    <div class="picking-progress">
-                        <div class="picking-progress-top">
-                            <span class="picking-label">Picking en cours</span>
-                            <span class="picking-count" id="pickingCount">0 / 0</span>
-                        </div>
-                        <div class="picking-bar-bg">
-                            <div class="picking-bar-fill" id="pickingBar" style="width:0%"></div>
-                        </div>
-                    </div>
-
-                    <div class="produits-list" id="produitsList"></div>
-
-                    <!-- Input caché pour scan natif iOS -->
-                    <input type="file" accept="image/*" capture="environment" id="scannerInput" style="display:none" onchange="handleScannerInput(event)">
-
-                    <button class="btn-scan" id="btnScan" onclick="startScan()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
-                        Scanner un produit
-                    </button>
-                </div>
-            </div>
-
-            <!-- TAB: Commandes MLP -->
-            <div class="tab-content" id="tabMLP">
-
-                <!-- Sous-onglets MLP -->
-                <div class="subtab-bar">
-                    <button class="subtab-btn active" onclick="switchSubtab('mlp','traiter',this)">📦 À traiter</button>
-                    <button class="subtab-btn" onclick="switchSubtab('mlp','todo',this)">✅ Todo</button>
-                </div>
-
-                <!-- Panel À traiter MLP -->
-                <div class="subtab-panel active" id="mlpSubTraiter">
-                <!-- Vue liste -->
-                <div class="commandes-list-view" id="mlpListView">
-                    <div class="commandes-header">
-                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>MLP — À traiter</div>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <span class="commandes-count" id="mlpCount"></span>
-                            <button onclick="loadMLP()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                                Actualiser
-                            </button>
-                        </div>
-                    </div>
-                    <div id="mlpStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
-                        Chargement…
-                    </div>
-                    <div class="commandes-list" id="mlpList">
-                        <div class="commande-empty">
-                            <div class="commande-empty-icon">💊</div>
-                            <p>Appuyez sur Actualiser</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Vue détail commande MLP -->
-                <div class="commande-detail-view" id="mlpDetailView">
-                    <div class="detail-header">
-                        <div class="detail-header-top">
-                            <button class="detail-back" onclick="closeMlpDetail()">←</button>
-                            <div><div class="detail-ref" id="mlpDetailRef"></div></div>
-                        </div>
-                        <div class="detail-client" id="mlpDetailClient"></div>
-                        <div class="detail-date" id="mlpDetailDate"></div>
-                    </div>
-
-                    <div class="picking-progress">
-                        <div class="picking-progress-top">
-                            <span class="picking-label">Picking en cours</span>
-                            <span class="picking-count" id="mlpPickingCount">0 / 0</span>
-                        </div>
-                        <div class="picking-bar-bg">
-                            <div class="picking-bar-fill" id="mlpPickingBar" style="width:0%"></div>
-                        </div>
-                    </div>
-
-                    <div class="produits-list" id="mlpProduitsList"></div>
-
-                    <input type="file" accept="image/*" capture="environment" id="mlpScannerInput" style="display:none" onchange="handleMlpScannerInput(event)">
-
-                    <button class="btn-scan" onclick="startMlpScan()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
-                        Scanner un produit
-                    </button>
-                </div>
-                </div><!-- /mlpSubTraiter -->
-
-                <!-- Panel TODO WEB -->
-                <div class="subtab-panel" id="mlpSubTodo">
-                    <button class="todo-add-btn" onclick="toggleTodoForm('web')">
+                <div class="section-panel" id="mlp_todoWeb">
+<button class="todo-add-btn" onclick="toggleTodoForm('web')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Nouvelle tâche
                     </button>
@@ -1325,59 +1594,16 @@
                     </div>
                     <div id="todoWebStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
                     <div id="todoWebList"></div>
-                </div><!-- /mlpSubTodo -->
-
-            </div><!-- /tabMLP -->
-
-            <!-- SCANNER OVERLAY (saisie manuelle uniquement) -->
-            <div class="scanner-overlay" id="scannerOverlay">
-                <button class="scanner-close" onclick="stopScan()">✕ Fermer</button>
-                <div class="scanner-result" id="scannerResult"></div>
-            </div>
-
-
-            <div class="tab-content" id="tabDashboard">
-
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                    <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Aujourd'hui</div>
-                    <button onclick="loadSheetData()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                        Actualiser
-                    </button>
-                </div>
-
-                <div class="stat-cards">
-                    <div class="stat-card">
-                        <div class="stat-card-value" id="statToday">—</div>
-                        <div class="stat-card-label">Réceptions</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-value" id="statLabos">—</div>
-                        <div class="stat-card-label">Labos différents</div>
-                    </div>
-                </div>
-
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                    <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Dernières réceptions</div>
-                    <span id="dashLastUpdate" style="font-size:10px;color:var(--text-muted);"></span>
-                </div>
-
-                <div id="dashStatus" style="display:none; text-align:center; padding:16px; font-size:13px; color:var(--text-muted);">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
-                    Chargement…
-                </div>
-
-                <div class="recent-list" id="recentList">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📦</div>
-                        <p>Appuyez sur Actualiser</p>
-                    </div>
                 </div>
             </div>
 
-            <!-- TAB: Paramètres -->
-            <div class="tab-content" id="tabSettings">
-                <div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Webhooks n8n</div>
+            <!-- ═══ SECTION RÉGLAGES ═══ -->
+            <div class="section-view" id="sectionSettings">
+                <div class="section-back">
+                    <button class="btn-back" onclick="goHome()">←</button>
+                    <div class="section-title">⚙️ Réglages</div>
+                </div>
+<div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Webhooks n8n</div>
                 <div class="settings-group">
                     <div class="settings-item">
                         <span class="settings-item-label">Statut BL</span>
@@ -1432,134 +1658,18 @@
                     </div>
                 </div>
             </div>
-
-            <!-- TAB: Delpech Préparatoire -->
-            <div class="tab-content" id="tabDelpech">
-                <div class="card">
-                    <div class="card-title"><span class="card-title-dot"></span>Préparation magistrale</div>
-
-                    <div class="form-group">
-                        <label class="form-label">Laboratoire</label>
-                        <input type="text" class="input" id="delpechLaboInput" value="DELPECH PREPARATOIRE" readonly style="color:var(--text-muted);background:var(--bg-input);">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Envoyé par</label>
-                        <input type="text" class="input" id="delpechEnvoyeurInput" placeholder="Nom de l'expéditeur">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Nom du client</label>
-                        <input type="text" class="input" id="delpechClientInput" placeholder="Nom / Prénom du patient">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Principe actif de la préparation</label>
-                        <input type="text" class="input" id="delpechPrincipeInput" placeholder="ex: Kétoprofène 2,5%">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Numéro du promis</label>
-                        <input type="text" class="input" id="delpechPromisInput" placeholder="N° promis">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Statut facturation</label>
-                        <div class="facturation-toggle">
-                            <button class="facturation-btn active-paye" id="btnPaye" onclick="selectFacturation('paye')">✓ Payé / Facturé</button>
-                            <button class="facturation-btn" id="btnNonFacture" onclick="selectFacturation('nonfacture')">⚠ Non facturé</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title"><span class="card-title-dot"></span>Photo / document de la préparation</div>
-                    <div class="photo-zone" id="delpechPhotoZone">
-                        <svg class="photo-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                            <circle cx="12" cy="13" r="4"/>
-                        </svg>
-                        <div class="photo-zone-text">Ajouter la préparation</div>
-                        <div class="photo-zone-sub">Photo ou PDF · Plusieurs fichiers possibles</div>
-                    </div>
-                    <input type="file" id="delpechPhotoInput" accept="image/*,application/pdf" multiple>
-                    <div class="photos-grid" id="delpechPhotosGrid"></div>
-                </div>
-
-                <button class="btn-submit" id="btnDelpechSubmit" disabled>
-                    ✉ Envoyer par mail + Drive
-                </button>
             </div>
+
+            <!-- SCANNER OVERLAY -->
+            <div class="scanner-overlay" id="scannerOverlay">
+                <button class="scanner-close" onclick="stopScan()">✕ Fermer</button>
+                <div class="scanner-result" id="scannerResult"></div>
+            </div>
+
 
         </main>
 
-        <!-- Tab Bar -->
-        <nav class="tab-bar">
-            <button class="tab-item active" data-tab="tabReception" data-title="Réception BL">
-                <div class="tab-icon-wrap">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                        <line x1="12" y1="22.08" x2="12" y2="12"/>
-                    </svg>
-                </div>
-                RECEPTION/BL
-            </button>
-            <button class="tab-item" data-tab="tabCommandes" data-title="Commandes à traiter">
-                <div class="tab-icon-wrap">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-                        <line x1="3" y1="6" x2="21" y2="6"/>
-                        <path d="M16 10a4 4 0 01-8 0"/>
-                    </svg>
-                </div>
-                NAST.COM
-            </button>
-            <button class="tab-item" data-tab="tabMLP" data-title="My Little Para">
-                <div class="tab-icon-wrap">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                </div>
-                MLP
-            </button>
-            <button class="tab-item" data-tab="tabSAV" data-title="SAV My Little Para">
-                <div class="tab-icon-wrap">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                </div>
-                SAV
-            </button>
-            <button class="tab-item" data-tab="tabDelpech" data-title="Delpech Préparatoire">
-                <div class="tab-icon-wrap">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
-                    </svg>
-                </div>
-                DELPECH
-            </button>
-            <button class="tab-item" data-tab="tabDashboard" data-title="Tableau de bord">
-                <div class="tab-icon-wrap">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="7" height="7" rx="1"/>
-                        <rect x="14" y="3" width="7" height="7" rx="1"/>
-                        <rect x="14" y="14" width="7" height="7" rx="1"/>
-                        <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    </svg>
-                </div>
-                Dashboard
-            </button>
-            <button class="tab-item" data-tab="tabSettings" data-title="Paramètres">
-                <div class="tab-icon-wrap">
-                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                    </svg>
-                </div>
-                Réglages
-            </button>
-        </nav>
+        <!-- Tab bar supprimée — remplacée par menu principal -->
 
         <!-- Toast -->
         <div class="toast" id="toast">
@@ -1584,9 +1694,89 @@
             'TOPICREM', 'URIAGE', 'URGO', 'VIATRIS', 'VICHY'
         ];
 
+        
+        // ─── NAVIGATION MENU PRINCIPAL ───
+        let currentSection = null;
+
+        function openSection(section) {
+            document.getElementById('menuHome').classList.add('hidden');
+            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            
+            const sectionMap = {
+                'pharma': 'sectionPharma',
+                'nastcom': 'sectionNastcom',
+                'mlp': 'sectionMlp',
+                'settings': 'sectionSettings'
+            };
+            
+            const titles = {
+                'pharma': '🏥 Pharmacie Nast',
+                'nastcom': '🛒 Nast.com',
+                'mlp': '💜 My Little Para',
+                'settings': '⚙️ Réglages'
+            };
+            
+            const el = document.getElementById(sectionMap[section]);
+            if (el) el.classList.add('active');
+            document.getElementById('headerTitle').textContent = titles[section] || '';
+            currentSection = section;
+            
+            // Auto-load data
+            if (section === 'nastcom') loadCommandes();
+            if (section === 'mlp') loadMLP();
+            if (section === 'pharma') {
+                // Check quel panel est actif
+                const activePanel = document.querySelector('#sectionPharma .section-panel.active');
+                if (activePanel?.id === 'pharma_dashboard') loadSheetData();
+            }
+        }
+
+        function goHome() {
+            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            document.getElementById('menuHome').classList.remove('hidden');
+            document.getElementById('headerTitle').textContent = 'Accueil';
+            currentSection = null;
+        }
+
+        function switchSection(section, panel, btn, color) {
+            const container = btn.closest('.section-view');
+            
+            // Reset tous les subtabs
+            container.querySelectorAll('.section-subtab').forEach(b => {
+                b.classList.remove('active', 'active-blue', 'active-purple');
+            });
+            
+            // Activer le bon
+            const activeClass = color ? ('active-' + color) : 'active';
+            btn.classList.add(activeClass);
+            
+            // Changer panels
+            container.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+            const panelEl = document.getElementById(section + '_' + panel);
+            if (panelEl) panelEl.classList.add('active');
+            
+            // Auto-load
+            if (panel === 'todoNast') loadTodoNast();
+            if (panel === 'todoWeb') loadTodoWeb();
+            if (panel === 'savMlp') loadSAV();
+            if (panel === 'dashboard') loadSheetData();
+            if (panel === 'traiter') loadCommandes();
+            if (panel === 'traiterMlp') loadMLP();
+        }
+
+        // Menu date
+        function updateMenuDate() {
+            const el = document.getElementById('menuDate');
+            if (el) {
+                const now = new Date();
+                el.textContent = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            }
+        }
+
         // ─── INIT ───
         function init() {
             updateDate();
+            updateMenuDate();
             loadSettings();
             loadLabos();
             loadHistory();
@@ -1603,22 +1793,9 @@
             document.getElementById('headerDate').textContent = now.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
         }
 
-        // ─── TABS ───
+        // ─── TABS (remplacé par menu sections) ───
         function setupTabs() {
-            document.querySelectorAll('.tab-item').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    tab.classList.add('active');
-                    document.getElementById(tab.dataset.tab).classList.add('active');
-                    document.getElementById('headerTitle').textContent = tab.dataset.title;
-                    // Refresh auto selon l'onglet
-                    if (tab.dataset.tab === 'tabDashboard') loadSheetData();
-                    if (tab.dataset.tab === 'tabCommandes') loadCommandes();
-                    if (tab.dataset.tab === 'tabSAV') loadSAV();
-                    if (tab.dataset.tab === 'tabMLP') loadMLP();
-                });
-            });
+            // Plus de tab bar — navigation par menu principal + sections
         }
 
         // ─── SITE SELECTOR ───
@@ -2689,18 +2866,8 @@
 
 
         function switchSubtab(section, panel, btn) {
-            const prefix = section === 'nast' ? 'nast' : 'mlp';
-            const panelId = prefix + 'Sub' + (panel === 'traiter' ? 'Traiter' : 'Todo');
-            
-            // Changer boutons
-            const bar = btn.closest('.subtab-bar');
-            bar.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            // Changer panels
-            const tabContent = btn.closest('.tab-content');
-            tabContent.querySelectorAll('.subtab-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(panelId).classList.add('active');
+            // Legacy — redirigé vers switchSection
+            return;
             
             // Charger les données si TODO
             if (panel === 'todo') {
