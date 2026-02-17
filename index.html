@@ -1139,6 +1139,17 @@
         .section-panel { display: none; }
         .section-panel.active { display: block; }
 
+        /* Périmés multi-produits */
+        .perim-produit-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .perim-produit-row .form-group { margin-bottom: 0; flex:1; }
+        .perim-produit-row .form-group:last-child { flex: 0 0 100px; }
+
         /* Menu greeting */
         .menu-greeting {
             margin-bottom: 20px;
@@ -1214,7 +1225,11 @@
                 <div class="section-subtabs" id="pharmaSubtabs">
                     <button class="section-subtab active" onclick="switchSection('pharma','reception',this)">📦 Réception</button>
                     <button class="section-subtab" onclick="switchSection('pharma','delpech',this)">💊 Delpech</button>
-                    <button class="section-subtab" onclick="switchSection('pharma','todoPharma',this)">✅ Messages</button>
+                    <button class="section-subtab" onclick="switchSection('pharma','todoPharma',this)">💬 Messages</button>
+                    <button class="section-subtab" onclick="switchSection('pharma','tickets',this)">🧾 Tickets</button>
+                    <button class="section-subtab" onclick="switchSection('pharma','ruptures',this)">🚫 Ruptures</button>
+                    <button class="section-subtab" onclick="switchSection('pharma','photosTg',this)">📸 Photos TG</button>
+                    <button class="section-subtab" onclick="switchSection('pharma','perimes',this)">⚠️ Périmés</button>
                     <button class="section-subtab" onclick="switchSection('pharma','dashboard',this)">📊 Dashboard</button>
                 </div>
 
@@ -1236,7 +1251,10 @@
                         <input type="text" class="input" id="receptInput" placeholder="Nom du réceptionnaire">
                     </div>
 
-
+                    <div class="form-group">
+                        <label class="form-label">Commentaire (optionnel)</label>
+                        <textarea class="input" id="receptCommentInput" placeholder="Anomalie, colis abîmé, produit manquant..." rows="2" style="resize:none;min-height:60px;"></textarea>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -1296,6 +1314,11 @@
                             <button class="facturation-btn" id="btnNonFacture" onclick="selectFacturation('nonfacture')">⚠ Non facturé</button>
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Commentaire (optionnel)</label>
+                        <textarea class="input" id="delpechCommentInput" placeholder="Remarques, précisions..." rows="2" style="resize:none;min-height:60px;"></textarea>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -1319,7 +1342,178 @@
                 </div>
 
                 <div class="section-panel" id="pharma_todoPharma">
-                    <div class="commande-empty"><div class="commande-empty-icon">💬</div><p>Messages équipe — Bientôt disponible</p></div>
+                    <button class="todo-add-btn" onclick="toggleTodoForm('pharma')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Nouveau message
+                    </button>
+                    <div class="todo-form" id="todoFormPharma">
+                        <input type="text" id="todoPharmaTitre" placeholder="Message / tâche *">
+                        <textarea id="todoPharmaNotes" placeholder="Détails (optionnel)" rows="2" style="resize:none;"></textarea>
+                        <select id="todoPharmaPrio">
+                            <option value="normal">🔵 Normal</option>
+                            <option value="urgent">🔴 Urgent</option>
+                            <option value="faible">🟣 Faible</option>
+                        </select>
+                        <div class="todo-form-btns">
+                            <button class="btn-todo-save" onclick="saveTodoPharma()">Envoyer</button>
+                            <button class="btn-todo-cancel" onclick="toggleTodoForm('pharma')">Annuler</button>
+                        </div>
+                    </div>
+                    <div class="todo-filters">
+                        <button class="todo-filter active" onclick="filterTodo('pharma','tous',this)">Tous</button>
+                        <button class="todo-filter" onclick="filterTodo('pharma','urgent',this)">🔴 Urgent</button>
+                        <button class="todo-filter" onclick="filterTodo('pharma','normal',this)">🔵 Normal</button>
+                        <button class="todo-filter" onclick="filterTodo('pharma','done',this)">✅ Résolus</button>
+                    </div>
+                    <div id="todoPharmaStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
+                    <div id="todoPharmaList"></div>
+                </div>
+
+                <!-- Panel Tickets de caisse -->
+                <div class="section-panel" id="pharma_tickets">
+                    <div class="card">
+                        <div class="card-title"><span class="card-title-dot"></span>Scanner un ticket de caisse</div>
+                        <div class="photo-zone" id="ticketPhotoZone">
+                            <svg class="photo-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 7h10M7 12h10M7 17h4"/></svg>
+                            <div class="photo-zone-text">Photographier le ticket</div>
+                            <div class="photo-zone-sub">Photo du ticket de caisse</div>
+                        </div>
+                        <input type="file" id="ticketPhotoInput" accept="image/*" capture="environment" style="display:none">
+                        <div class="photos-grid" id="ticketPhotosGrid"></div>
+                    </div>
+                    <button class="btn-submit" id="btnTicketSubmit" disabled onclick="submitTicket()">
+                        🧾 Envoyer sur Drive
+                    </button>
+                </div>
+
+                <!-- Panel Ruptures labo -->
+                <div class="section-panel" id="pharma_ruptures">
+                    <div class="card">
+                        <div class="card-title"><span class="card-title-dot"></span>Signaler une rupture</div>
+                        <div class="form-group">
+                            <label class="form-label">Produit *</label>
+                            <input type="text" class="input" id="ruptProduit" placeholder="Nom du produit en rupture">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Laboratoire</label>
+                            <input type="text" class="input" id="ruptLabo" placeholder="Labo fournisseur">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date de la rupture</label>
+                            <input type="date" class="input" id="ruptDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Patient concerné (optionnel)</label>
+                            <input type="text" class="input" id="ruptPatient" placeholder="Nom du patient">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Téléphone patient (optionnel)</label>
+                            <input type="tel" class="input" id="ruptTel" placeholder="06 XX XX XX XX">
+                        </div>
+                    </div>
+                    <button class="btn-submit" id="btnRuptSubmit" disabled onclick="submitRupture()">
+                        🚫 Enregistrer la rupture
+                    </button>
+                </div>
+
+                <!-- Panel Photos TG / Mise en avant -->
+                <div class="section-panel" id="pharma_photosTg">
+                    <div class="card">
+                        <div class="card-title"><span class="card-title-dot"></span>Photo TG / Mise en avant</div>
+                        <div class="form-group">
+                            <label class="form-label">Laboratoire *</label>
+                            <input type="text" class="input" id="tgLabo" placeholder="Nom du labo">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nom de l'opération *</label>
+                            <input type="text" class="input" id="tgOperation" placeholder="ex: Promo été Nuxe, Vitrine hiver...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="input" id="tgDate">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title"><span class="card-title-dot"></span>Photos</div>
+                        <div class="photo-zone" id="tgPhotoZone">
+                            <svg class="photo-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            <div class="photo-zone-text">Ajouter des photos</div>
+                            <div class="photo-zone-sub">Tête de gondole, vitrine, mise en avant</div>
+                        </div>
+                        <input type="file" id="tgPhotoInput" accept="image/*" multiple style="display:none">
+                        <div class="photos-grid" id="tgPhotosGrid"></div>
+                    </div>
+                    <button class="btn-submit" id="btnTgSubmit" disabled onclick="submitPhotoTg()">
+                        📸 Envoyer sur Drive
+                    </button>
+                </div>
+
+                <!-- Panel Périmés -->
+                <div class="section-panel" id="pharma_perimes">
+                    <div class="card">
+                        <div class="card-title"><span class="card-title-dot"></span>Déclarer des produits périmés</div>
+                        <div class="form-group">
+                            <label class="form-label">Laboratoire *</label>
+                            <input type="text" class="input" id="perimLabo" placeholder="Nom du labo">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date de péremption</label>
+                            <input type="date" class="input" id="perimDate">
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title"><span class="card-title-dot"></span>Produits périmés</div>
+                        <div id="perimProduitsList">
+                            <div class="perim-produit-row" data-idx="0">
+                                <div class="form-group">
+                                    <label class="form-label">Produit 1 *</label>
+                                    <input type="text" class="input perim-nom" placeholder="Nom du produit">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Quantité</label>
+                                    <input type="number" class="input perim-qty" placeholder="1" value="1" min="1" style="width:100px;">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addPerimProduit()" style="background:none;border:1.5px dashed var(--nast-pink);border-radius:var(--radius-xs);padding:10px;width:100%;color:var(--nast-pink);font-weight:600;font-size:13px;cursor:pointer;font-family:var(--font-body);margin-top:8px;">
+                            + Ajouter un produit
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title"><span class="card-title-dot"></span>Photos obligatoires (3 minimum)</div>
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            <div>
+                                <label class="form-label">📦 Photo du produit *</label>
+                                <div class="photo-zone" id="perimPhotoProduitZone" style="padding:16px;">
+                                    <div class="photo-zone-text" style="font-size:13px;">Photographier le produit</div>
+                                </div>
+                                <input type="file" id="perimPhotoProduitInput" accept="image/*" capture="environment" style="display:none">
+                                <div class="photos-grid" id="perimPhotoProduitGrid"></div>
+                            </div>
+                            <div>
+                                <label class="form-label">📊 Photo code-barre *</label>
+                                <div class="photo-zone" id="perimPhotoEanZone" style="padding:16px;">
+                                    <div class="photo-zone-text" style="font-size:13px;">Photographier le code-barre</div>
+                                </div>
+                                <input type="file" id="perimPhotoEanInput" accept="image/*" capture="environment" style="display:none">
+                                <div class="photos-grid" id="perimPhotoEanGrid"></div>
+                            </div>
+                            <div>
+                                <label class="form-label">🏷️ Photo n° lot / péremption *</label>
+                                <div class="photo-zone" id="perimPhotoLotZone" style="padding:16px;">
+                                    <div class="photo-zone-text" style="font-size:13px;">Photographier le n° de lot</div>
+                                </div>
+                                <input type="file" id="perimPhotoLotInput" accept="image/*" capture="environment" style="display:none">
+                                <div class="photos-grid" id="perimPhotoLotGrid"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-submit" id="btnPerimSubmit" disabled onclick="submitPerime()">
+                        ⚠️ Enregistrer les périmés
+                    </button>
                 </div>
 
                 <div class="section-panel" id="pharma_dashboard">
@@ -1756,6 +1950,7 @@
             // Auto-load
             if (panel === 'todoNast') loadTodoNast();
             if (panel === 'todoWeb') loadTodoWeb();
+            if (panel === 'todoPharma') loadTodoPharma();
             if (panel === 'savMlp') loadSAV();
             if (panel === 'dashboard') loadSheetData();
             if (panel === 'traiter') loadCommandes();
@@ -1784,6 +1979,10 @@
             setupFormValidation();
             setupSettings();
             setupDelpech();
+            setupTickets();
+            setupRuptures();
+            setupPhotosTg();
+            setupPerimes();
         }
 
         function updateDate() {
@@ -2875,16 +3074,22 @@
         }
 
 
-        // ─── TODO NAST + WEB ───
+        // ─── TODO NAST + WEB + PHARMA ───
         const TODO_NAST_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRz7fq6cq5pZMIgml9xH9ClgY1mMgDnEK9oYVSQ9etzh4jOLmUzWvjyMBJGzugeiX5QKDfKfNMcXxhw/pub?gid=0&single=true&output=csv';
         const TODO_WEB_CSV  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSKq6-JJ5AreXcuX6HBSjkcIRhmC5rWLv--KgUijpRz9bOfQYKo63bP16hUc96tLcgMQaf3DetfRX2I/pub?gid=0&single=true&output=csv';
+        const TODO_PHARMA_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSU0qtyu31xKNxx4bqzaaNNbp6V732prmfpe0wfnftGEKze3CEwLRK1jjNvIYfdCH3g2V5lhlwT8P2b/pub?gid=0&single=true&output=csv';
         const TODO_NAST_SHEET = '1-6xsf6ukxmba2fRwnsqZeIXYq9oOL9h9uEIvJQ9fhIU';
         const TODO_WEB_SHEET  = '1MJhApWfHs9BTlatv6ME3rv1tbBiFUA4tuW8bCC5DxbQ';
+        const TODO_PHARMA_SHEET = '1Hwz3e3Vh-CfAJKc47vibHXTuXG3FB-h0lurYUPN0oVs';
+
+        const PHARMA_WEBHOOK = 'https://n8n.srv1086994.hstgr.cloud/webhook/pharma-tools';
 
         let todoNastData = [];
         let todoWebData  = [];
+        let todoPharmaData = [];
         let todoNastFiltre = 'tous';
         let todoWebFiltre  = 'tous';
+        let todoPharmaFiltre = 'tous';
 
         function genTodoId() { return Date.now().toString(36) + Math.random().toString(36).substring(2,6); }
 
@@ -2940,19 +3145,27 @@
             renderTodo('web');
         }
 
+        async function loadTodoPharma() {
+            todoPharmaData = await loadTodoGeneric(TODO_PHARMA_CSV, 'todoPharmaStatus', 'todoPharmaList');
+            renderTodo('pharma');
+        }
+
         function filterTodo(type, filtre, btn) {
             if (type === 'nast') todoNastFiltre = filtre;
-            else todoWebFiltre = filtre;
-            // Reset active sur les filtres du même panel
+            else if (type === 'web') todoWebFiltre = filtre;
+            else todoPharmaFiltre = filtre;
             btn.closest('.todo-filters').querySelectorAll('.todo-filter').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             renderTodo(type);
         }
 
         function renderTodo(type) {
-            const data   = type === 'nast' ? todoNastData : todoWebData;
-            const filtre = type === 'nast' ? todoNastFiltre : todoWebFiltre;
-            const listId = type === 'nast' ? 'todoNastList' : 'todoWebList';
+            const dataMap = { nast: todoNastData, web: todoWebData, pharma: todoPharmaData };
+            const filtreMap = { nast: todoNastFiltre, web: todoWebFiltre, pharma: todoPharmaFiltre };
+            const listMap = { nast: 'todoNastList', web: 'todoWebList', pharma: 'todoPharmaList' };
+            const data   = dataMap[type] || [];
+            const filtre = filtreMap[type] || 'tous';
+            const listId = listMap[type];
             const list   = document.getElementById(listId);
 
             let filtered = data;
@@ -3005,13 +3218,15 @@
         }
 
         function toggleTodoForm(type) {
-            const formId = (type === 'nast' || type === 'todoFormNast') ? 'todoFormNast' : 'todoFormWeb';
+            const formMap = { nast: 'todoFormNast', web: 'todoFormWeb', pharma: 'todoFormPharma' };
+            const formId = formMap[type] || formMap['nast'];
             const form = document.getElementById(formId);
             if(form) form.classList.toggle('visible');
         }
 
         async function saveTodoGeneric(type, sheetId) {
-            const cap   = type === 'nast' ? 'Nast' : 'Web';
+            const capMap = { nast: 'Nast', web: 'Web', pharma: 'Pharma' };
+            const cap = capMap[type] || 'Nast';
             const titre = document.getElementById(`todo${cap}Titre`).value.trim();
             const notes = document.getElementById(`todo${cap}Notes`).value.trim();
             const prio  = document.getElementById(`todo${cap}Prio`).value;
@@ -3022,34 +3237,32 @@
             const newTask = { id, titre, priorite: prio, notes, statut: 'todo', date, date_resolution: '', assigne_a: '' };
 
             // Ajout local immédiat
+            const storeMap = { nast: 'todoNastData', web: 'todoWebData', pharma: 'todoPharmaData' };
             if (type === 'nast') todoNastData.unshift(newTask);
-            else todoWebData.unshift(newTask);
+            else if (type === 'web') todoWebData.unshift(newTask);
+            else todoPharmaData.unshift(newTask);
             renderTodo(type);
             toggleTodoForm(type);
             document.getElementById(`todo${cap}Titre`).value = '';
             document.getElementById(`todo${cap}Notes`).value = '';
-            showToast('✅ Tâche ajoutée !', 'success');
+            showToast('✅ Message ajouté !', 'success');
             
-            // Sync Sheet via webhook
             try {
                 await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/todo-manager', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        type, id, titre, priorite: prio, notes, 
-                        statut: 'todo', date_ajout: date, 
-                        date_resolution: '', assigne_a: '',
-                        _update: false 
-                    })
+                    body: JSON.stringify({ type, id, titre, priorite: prio, notes, statut: 'todo', date_ajout: date, date_resolution: '', assigne_a: '', _update: false })
                 });
             } catch(e) { showToast('⚠️ Sync Sheet échouée', 'error'); }
         }
 
         function saveTodoNast() { saveTodoGeneric('nast', TODO_NAST_SHEET); }
         function saveTodoWeb()  { saveTodoGeneric('web',  TODO_WEB_SHEET);  }
+        function saveTodoPharma() { saveTodoGeneric('pharma', TODO_PHARMA_SHEET); }
 
         async function toggleTodo(type, id) {
-            const data = type === 'nast' ? todoNastData : todoWebData;
+            const dataMap = { nast: todoNastData, web: todoWebData, pharma: todoPharmaData };
+            const data = dataMap[type] || [];
             const task = data.find(t => t.id === id);
             if (!task) return;
             
@@ -3058,24 +3271,324 @@
             task.date_resolution = newStatut === 'done' ? new Date().toISOString() : '';
             renderTodo(type);
 
-            // Webhook n8n pour update le Sheet
             try {
                 await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/todo-manager', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        type, 
-                        id, 
-                        statut: newStatut, 
-                        date_resolution: task.date_resolution,
-                        _update: true 
-                    })
+                    body: JSON.stringify({ type, id, statut: newStatut, date_resolution: task.date_resolution, _update: true })
                 });
             } catch(e) { console.error('Erreur sync TODO:', e); }
             
             showToast(newStatut === 'done' ? '✅ Tâche résolue !' : '↩️ Tâche réouverte', 'success');
         }
 
+
+        // ─── TICKETS DE CAISSE ───
+        const ticketState = { photos: [] };
+
+        function setupTickets() {
+            const zone = document.getElementById('ticketPhotoZone');
+            const input = document.getElementById('ticketPhotoInput');
+            if (!zone || !input) return;
+            zone.addEventListener('click', () => input.click());
+            input.addEventListener('change', (e) => {
+                for (const f of e.target.files) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        ticketState.photos.push({ name: f.name, data: ev.target.result });
+                        renderTicketPhotos();
+                    };
+                    reader.readAsDataURL(f);
+                }
+                input.value = '';
+            });
+        }
+
+        function renderTicketPhotos() {
+            const grid = document.getElementById('ticketPhotosGrid');
+            grid.innerHTML = ticketState.photos.map((p, i) => `
+                <div class="photo-item">
+                    <img src="${p.data}" alt="${p.name}">
+                    <button class="photo-remove" onclick="ticketState.photos.splice(${i},1);renderTicketPhotos();">✕</button>
+                </div>
+            `).join('');
+            document.getElementById('btnTicketSubmit').disabled = !ticketState.photos.length;
+        }
+
+        async function submitTicket() {
+            if (!ticketState.photos.length) return;
+            const btn = document.getElementById('btnTicketSubmit');
+            btn.disabled = true;
+            btn.textContent = '⏳ Envoi en cours...';
+            try {
+                await fetch(PHARMA_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'ticket_caisse',
+                        date: new Date().toISOString(),
+                        photos: ticketState.photos.map(p => p.data),
+                        nb_photos: ticketState.photos.length
+                    })
+                });
+                showToast('🧾 Ticket envoyé !', 'success');
+                ticketState.photos = [];
+                renderTicketPhotos();
+            } catch(e) {
+                showToast('❌ Erreur envoi', 'error');
+            }
+            btn.textContent = '🧾 Envoyer sur Drive';
+            btn.disabled = true;
+        }
+
+        // ─── RUPTURES LABO ───
+        function setupRuptures() {
+            const inputs = ['ruptProduit'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', () => {
+                    document.getElementById('btnRuptSubmit').disabled = !document.getElementById('ruptProduit').value.trim();
+                });
+            });
+            // Date par défaut = aujourd'hui
+            const dateEl = document.getElementById('ruptDate');
+            if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+        }
+
+        async function submitRupture() {
+            const produit = document.getElementById('ruptProduit').value.trim();
+            if (!produit) return;
+            const btn = document.getElementById('btnRuptSubmit');
+            btn.disabled = true;
+            btn.textContent = '⏳ Envoi en cours...';
+            try {
+                await fetch(PHARMA_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'rupture',
+                        id: genTodoId(),
+                        produit,
+                        labo: document.getElementById('ruptLabo').value.trim(),
+                        date_rupture: document.getElementById('ruptDate').value,
+                        patient_nom: document.getElementById('ruptPatient').value.trim(),
+                        patient_tel: document.getElementById('ruptTel').value.trim(),
+                        date_ajout: new Date().toISOString(),
+                        statut: 'en_cours'
+                    })
+                });
+                showToast('🚫 Rupture enregistrée !', 'success');
+                ['ruptProduit','ruptLabo','ruptPatient','ruptTel'].forEach(id => document.getElementById(id).value = '');
+            } catch(e) {
+                showToast('❌ Erreur envoi', 'error');
+            }
+            btn.textContent = '🚫 Enregistrer la rupture';
+            btn.disabled = true;
+        }
+
+        // ─── PHOTOS TG / MISE EN AVANT ───
+        const tgState = { photos: [] };
+
+        function setupPhotosTg() {
+            const zone = document.getElementById('tgPhotoZone');
+            const input = document.getElementById('tgPhotoInput');
+            if (!zone || !input) return;
+            zone.addEventListener('click', () => input.click());
+            input.addEventListener('change', (e) => {
+                for (const f of e.target.files) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        tgState.photos.push({ name: f.name, data: ev.target.result });
+                        renderTgPhotos();
+                    };
+                    reader.readAsDataURL(f);
+                }
+                input.value = '';
+            });
+            // Date par défaut
+            const dateEl = document.getElementById('tgDate');
+            if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+            // Validation
+            ['tgLabo','tgOperation'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', checkTgReady);
+            });
+        }
+
+        function renderTgPhotos() {
+            const grid = document.getElementById('tgPhotosGrid');
+            grid.innerHTML = tgState.photos.map((p, i) => `
+                <div class="photo-item">
+                    <img src="${p.data}" alt="${p.name}">
+                    <button class="photo-remove" onclick="tgState.photos.splice(${i},1);renderTgPhotos();">✕</button>
+                </div>
+            `).join('');
+            checkTgReady();
+        }
+
+        function checkTgReady() {
+            const labo = document.getElementById('tgLabo')?.value.trim();
+            const op = document.getElementById('tgOperation')?.value.trim();
+            document.getElementById('btnTgSubmit').disabled = !(labo && op && tgState.photos.length);
+        }
+
+        async function submitPhotoTg() {
+            const btn = document.getElementById('btnTgSubmit');
+            btn.disabled = true;
+            btn.textContent = '⏳ Envoi en cours...';
+            try {
+                await fetch(PHARMA_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'photo_tg',
+                        id: genTodoId(),
+                        labo: document.getElementById('tgLabo').value.trim(),
+                        operation: document.getElementById('tgOperation').value.trim(),
+                        date_operation: document.getElementById('tgDate').value,
+                        photos: tgState.photos.map(p => p.data),
+                        nb_photos: tgState.photos.length,
+                        date_ajout: new Date().toISOString()
+                    })
+                });
+                showToast('📸 Photos TG envoyées !', 'success');
+                tgState.photos = [];
+                renderTgPhotos();
+                ['tgLabo','tgOperation'].forEach(id => document.getElementById(id).value = '');
+            } catch(e) {
+                showToast('❌ Erreur envoi', 'error');
+            }
+            btn.textContent = '📸 Envoyer sur Drive';
+            btn.disabled = true;
+        }
+
+        // ─── PÉRIMÉS ───
+        const perimState = { photoProduit: [], photoEan: [], photoLot: [] };
+
+        function setupPerimes() {
+            const zones = [
+                { zone: 'perimPhotoProduitZone', input: 'perimPhotoProduitInput', store: 'photoProduit', grid: 'perimPhotoProduitGrid' },
+                { zone: 'perimPhotoEanZone', input: 'perimPhotoEanInput', store: 'photoEan', grid: 'perimPhotoEanGrid' },
+                { zone: 'perimPhotoLotZone', input: 'perimPhotoLotInput', store: 'photoLot', grid: 'perimPhotoLotGrid' }
+            ];
+            zones.forEach(z => {
+                const zone = document.getElementById(z.zone);
+                const input = document.getElementById(z.input);
+                if (!zone || !input) return;
+                zone.addEventListener('click', () => input.click());
+                input.addEventListener('change', (e) => {
+                    for (const f of e.target.files) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            perimState[z.store].push({ name: f.name, data: ev.target.result });
+                            renderPerimPhotos(z.store, z.grid);
+                        };
+                        reader.readAsDataURL(f);
+                    }
+                    input.value = '';
+                });
+            });
+            // Date par défaut
+            const dateEl = document.getElementById('perimDate');
+            if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+            // Validation
+            document.getElementById('perimLabo')?.addEventListener('input', checkPerimReady);
+        }
+
+        function renderPerimPhotos(store, gridId) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = perimState[store].map((p, i) => `
+                <div class="photo-item">
+                    <img src="${p.data}" alt="${p.name}">
+                    <button class="photo-remove" onclick="perimState['${store}'].splice(${i},1);renderPerimPhotos('${store}','${gridId}');">✕</button>
+                </div>
+            `).join('');
+            checkPerimReady();
+        }
+
+        function addPerimProduit() {
+            const container = document.getElementById('perimProduitsList');
+            const idx = container.querySelectorAll('.perim-produit-row').length;
+            const row = document.createElement('div');
+            row.className = 'perim-produit-row';
+            row.dataset.idx = idx;
+            row.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">Produit ${idx + 1} *</label>
+                    <input type="text" class="input perim-nom" placeholder="Nom du produit">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantité</label>
+                    <input type="number" class="input perim-qty" placeholder="1" value="1" min="1" style="width:100px;">
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
+        function checkPerimReady() {
+            const labo = document.getElementById('perimLabo')?.value.trim();
+            const noms = document.querySelectorAll('.perim-nom');
+            const hasProduct = Array.from(noms).some(n => n.value.trim());
+            const hasPhotos = perimState.photoProduit.length && perimState.photoEan.length && perimState.photoLot.length;
+            document.getElementById('btnPerimSubmit').disabled = !(labo && hasProduct && hasPhotos);
+        }
+
+        async function submitPerime() {
+            const btn = document.getElementById('btnPerimSubmit');
+            btn.disabled = true;
+            btn.textContent = '⏳ Envoi en cours...';
+
+            // Collecter les produits
+            const rows = document.querySelectorAll('.perim-produit-row');
+            const produits = [];
+            rows.forEach(r => {
+                const nom = r.querySelector('.perim-nom')?.value.trim();
+                const qty = r.querySelector('.perim-qty')?.value || '1';
+                if (nom) produits.push({ nom, quantite: parseInt(qty) });
+            });
+
+            try {
+                await fetch(PHARMA_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'perime',
+                        id: genTodoId(),
+                        labo: document.getElementById('perimLabo').value.trim(),
+                        date_peremption: document.getElementById('perimDate').value,
+                        produits: JSON.stringify(produits),
+                        photos_produit: perimState.photoProduit.map(p => p.data),
+                        photos_ean: perimState.photoEan.map(p => p.data),
+                        photos_lot: perimState.photoLot.map(p => p.data),
+                        nb_photos: perimState.photoProduit.length + perimState.photoEan.length + perimState.photoLot.length,
+                        date_ajout: new Date().toISOString()
+                    })
+                });
+                showToast('⚠️ Périmés enregistrés !', 'success');
+                // Reset
+                perimState.photoProduit = [];
+                perimState.photoEan = [];
+                perimState.photoLot = [];
+                ['perimPhotoProduitGrid','perimPhotoEanGrid','perimPhotoLotGrid'].forEach(id => document.getElementById(id).innerHTML = '');
+                document.getElementById('perimLabo').value = '';
+                document.getElementById('perimProduitsList').innerHTML = `
+                    <div class="perim-produit-row" data-idx="0">
+                        <div class="form-group">
+                            <label class="form-label">Produit 1 *</label>
+                            <input type="text" class="input perim-nom" placeholder="Nom du produit">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Quantité</label>
+                            <input type="number" class="input perim-qty" placeholder="1" value="1" min="1" style="width:100px;">
+                        </div>
+                    </div>
+                `;
+            } catch(e) {
+                showToast('❌ Erreur envoi', 'error');
+            }
+            btn.textContent = '⚠️ Enregistrer les périmés';
+            btn.disabled = true;
+        }
 
         function loadLabos() {
             try { const s = getVal('mlp_labos'); state.labos = s ? JSON.parse(s) : DEFAULT_LABOS; } catch (e) { state.labos = DEFAULT_LABOS; }
