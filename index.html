@@ -1295,12 +1295,11 @@
                         Scanner un produit
                     </button>
                 </div>
-            </div>
-
+                </div><!-- /mlpSubTraiter -->
 
                 <!-- Panel TODO WEB -->
                 <div class="subtab-panel" id="mlpSubTodo">
-                    <button class="todo-add-btn" onclick="toggleTodoForm('todoFormWeb')">
+                    <button class="todo-add-btn" onclick="toggleTodoForm('web')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Nouvelle tâche
                     </button>
@@ -1314,7 +1313,7 @@
                         </select>
                         <div class="todo-form-btns">
                             <button class="btn-todo-save" onclick="saveTodoWeb()">Ajouter</button>
-                            <button class="btn-todo-cancel" onclick="toggleTodoForm('todoFormWeb')">Annuler</button>
+                            <button class="btn-todo-cancel" onclick="toggleTodoForm('web')">Annuler</button>
                         </div>
                     </div>
                     <div class="todo-filters">
@@ -1326,6 +1325,9 @@
                     <div id="todoWebStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
                     <div id="todoWebList"></div>
                 </div><!-- /mlpSubTodo -->
+
+            </div><!-- /tabMLP -->
+
             <!-- SCANNER OVERLAY (saisie manuelle uniquement) -->
             <div class="scanner-overlay" id="scannerOverlay">
                 <button class="scanner-close" onclick="stopScan()">✕ Fermer</button>
@@ -2816,9 +2818,9 @@
         }
 
         function toggleTodoForm(type) {
-            const formId = type === 'nast' ? 'todoFormNast' : 'todoFormWeb';
+            const formId = (type === 'nast' || type === 'todoFormNast') ? 'todoFormNast' : 'todoFormWeb';
             const form = document.getElementById(formId);
-            form.classList.toggle('visible');
+            if(form) form.classList.toggle('visible');
         }
 
         async function saveTodoGeneric(type, sheetId) {
@@ -2832,16 +2834,13 @@
             const webhookUrl = getVal('mlp_webhook_url').replace('reception-bl', 'todo-sheet');
             
             // Appel webhook n8n pour écrire dans le Sheet
-            const todoWebhook = getVal('todo_webhook_url');
-            if (todoWebhook) {
-                try {
-                    await fetch(todoWebhook, {
+            try {
+                    await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/todo-manager', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ sheet_id: sheetId, id, titre, priorite: prio, statut: 'todo', date_creation: date, notes })
                     });
                 } catch(e) {}
-            }
 
             // Ajout local immédiat
             const newTask = { id, titre, priorite: prio, statut: 'todo', date, notes };
