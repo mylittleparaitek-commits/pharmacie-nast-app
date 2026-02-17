@@ -1063,7 +1063,38 @@
                 <button class="btn-submit" id="btnSubmit" disabled>
                     ✓ Envoyer sur Google Drive
                 </button>
-            </div>
+                </div><!-- /mlpSubTraiter -->
+
+                <!-- Panel TODO WEB -->
+                <div class="subtab-panel" id="mlpSubTodo">
+                    <button class="todo-add-btn" onclick="toggleTodoForm('web')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Nouvelle tâche
+                    </button>
+                    <div class="todo-form" id="todoFormWeb">
+                        <input type="text" id="todoWebTitre" placeholder="Titre de la tâche *">
+                        <textarea id="todoWebNotes" placeholder="Notes / description (optionnel)" rows="2" style="resize:none;"></textarea>
+                        <select id="todoWebPrio">
+                            <option value="normal">🔵 Normal</option>
+                            <option value="urgent">🔴 Urgent</option>
+                            <option value="faible">🟣 Faible</option>
+                        </select>
+                        <div class="todo-form-btns">
+                            <button class="btn-todo-save" onclick="saveTodoWeb()">Ajouter</button>
+                            <button class="btn-todo-cancel" onclick="toggleTodoForm('web')">Annuler</button>
+                        </div>
+                    </div>
+                    <div class="todo-filters">
+                        <button class="todo-filter active" onclick="filterTodo('web','tous',this)">Tous</button>
+                        <button class="todo-filter" onclick="filterTodo('web','urgent',this)">🔴 Urgent</button>
+                        <button class="todo-filter" onclick="filterTodo('web','normal',this)">🔵 Normal</button>
+                        <button class="todo-filter" onclick="filterTodo('web','done',this)">✅ Résolus</button>
+                    </div>
+                    <div id="todoWebStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
+                    <div id="todoWebList"></div>
+                </div><!-- /mlpSubTodo -->
+
+            </div><!-- /tabMLP -->
 
             <!-- TAB: SAV MLP -->
             <div class="tab-content" id="tabSAV">
