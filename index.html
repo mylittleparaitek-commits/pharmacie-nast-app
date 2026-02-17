@@ -931,7 +931,7 @@
             padding:14px 16px; margin-bottom:8px; display:flex; align-items:flex-start; gap:12px;
             box-shadow:var(--shadow-sm); transition:all 0.2s;
         }
-        .todo-card.done { opacity:0.55; }
+        .todo-card.done { opacity:0.5; background:#f9fafb; border-color:#eee; }
         .todo-check {
             width:22px; height:22px; border-radius:50%; border:2px solid var(--border);
             flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center;
@@ -941,6 +941,7 @@
         .todo-body { flex:1; min-width:0; }
         .todo-titre { font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:4px; }
         .todo-card.done .todo-titre { text-decoration:line-through; color:var(--text-muted); }
+        .todo-card.done .todo-notes { text-decoration:line-through; opacity:0.6; }
         .todo-notes { font-size:12px; color:var(--text-secondary); margin-bottom:6px; }
         .todo-meta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
         .todo-prio { font-size:10px; font-weight:700; padding:2px 8px; border-radius:12px; text-transform:uppercase; }
@@ -2737,9 +2738,9 @@
                     .map(r => ({
                         id: r[0].trim(),
                         titre: r[1].trim(),
-                        priorite: r[2]?.trim() || 'normal',
+                        priorite: (r[2]?.trim() || 'normal').toLowerCase(),
                         notes: r[3]?.trim() || '',
-                        statut: r[4]?.trim() || 'todo',
+                        statut: (r[4]?.trim() || 'todo').toLowerCase(),
                         date: r[5]?.trim(),
                         date_resolution: r[6]?.trim() || '',
                         assigne_a: r[7]?.trim() || ''
