@@ -1063,38 +1063,7 @@
                 <button class="btn-submit" id="btnSubmit" disabled>
                     ✓ Envoyer sur Google Drive
                 </button>
-                </div><!-- /mlpSubTraiter -->
-
-                <!-- Panel TODO WEB -->
-                <div class="subtab-panel" id="mlpSubTodo">
-                    <button class="todo-add-btn" onclick="toggleTodoForm('web')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Nouvelle tâche
-                    </button>
-                    <div class="todo-form" id="todoFormWeb">
-                        <input type="text" id="todoWebTitre" placeholder="Titre de la tâche *">
-                        <textarea id="todoWebNotes" placeholder="Notes / description (optionnel)" rows="2" style="resize:none;"></textarea>
-                        <select id="todoWebPrio">
-                            <option value="normal">🔵 Normal</option>
-                            <option value="urgent">🔴 Urgent</option>
-                            <option value="faible">🟣 Faible</option>
-                        </select>
-                        <div class="todo-form-btns">
-                            <button class="btn-todo-save" onclick="saveTodoWeb()">Ajouter</button>
-                            <button class="btn-todo-cancel" onclick="toggleTodoForm('web')">Annuler</button>
-                        </div>
-                    </div>
-                    <div class="todo-filters">
-                        <button class="todo-filter active" onclick="filterTodo('web','tous',this)">Tous</button>
-                        <button class="todo-filter" onclick="filterTodo('web','urgent',this)">🔴 Urgent</button>
-                        <button class="todo-filter" onclick="filterTodo('web','normal',this)">🔵 Normal</button>
-                        <button class="todo-filter" onclick="filterTodo('web','done',this)">✅ Résolus</button>
-                    </div>
-                    <div id="todoWebStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
-                    <div id="todoWebList"></div>
-                </div><!-- /mlpSubTodo -->
-
-            </div><!-- /tabMLP -->
+            </div>
 
             <!-- TAB: SAV MLP -->
             <div class="tab-content" id="tabSAV">
@@ -1328,6 +1297,35 @@
                 </div>
             </div>
 
+
+                <!-- Panel TODO WEB -->
+                <div class="subtab-panel" id="mlpSubTodo">
+                    <button class="todo-add-btn" onclick="toggleTodoForm('todoFormWeb')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Nouvelle tâche
+                    </button>
+                    <div class="todo-form" id="todoFormWeb">
+                        <input type="text" id="todoWebTitre" placeholder="Titre de la tâche *">
+                        <textarea id="todoWebNotes" placeholder="Notes (optionnel)" rows="2" style="resize:none;"></textarea>
+                        <select id="todoWebPrio">
+                            <option value="normal">🔵 Normal</option>
+                            <option value="urgent">🔴 Urgent</option>
+                            <option value="faible">🟣 Faible</option>
+                        </select>
+                        <div class="todo-form-btns">
+                            <button class="btn-todo-save" onclick="saveTodoWeb()">Ajouter</button>
+                            <button class="btn-todo-cancel" onclick="toggleTodoForm('todoFormWeb')">Annuler</button>
+                        </div>
+                    </div>
+                    <div class="todo-filters">
+                        <button class="todo-filter active" onclick="filterTodoWeb('tous',this)">Tous</button>
+                        <button class="todo-filter" onclick="filterTodoWeb('urgent',this)">🔴 Urgent</button>
+                        <button class="todo-filter" onclick="filterTodoWeb('normal',this)">🔵 Normal</button>
+                        <button class="todo-filter" onclick="filterTodoWeb('done',this)">✅ Résolus</button>
+                    </div>
+                    <div id="todoWebStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
+                    <div id="todoWebList"></div>
+                </div><!-- /mlpSubTodo -->
             <!-- SCANNER OVERLAY (saisie manuelle uniquement) -->
             <div class="scanner-overlay" id="scannerOverlay">
                 <button class="scanner-close" onclick="stopScan()">✕ Fermer</button>
@@ -2824,34 +2822,37 @@
         }
 
         async function saveTodoGeneric(type, sheetId) {
-            const cap   = type === 'nast' ? 'Nast' : 'Web';
-            const titre = document.getElementById(`todo${cap}Titre`).value.trim();
-            const notes = document.getElementById(`todo${cap}Notes`).value.trim();
-            const prio  = document.getElementById(`todo${cap}Prio`).value;
+            const titre = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Titre`).value.trim();
+            const notes = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Notes`).value.trim();
+            const prio  = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Prio`).value;
             if (!titre) { showToast('⚠️ Le titre est obligatoire', 'error'); return; }
 
-            const id   = genTodoId();
+            const id = genTodoId();
             const date = new Date().toISOString();
-            const newTask = { id, titre, priorite: prio, statut: 'todo', date, notes };
+            const webhookUrl = getVal('mlp_webhook_url').replace('reception-bl', 'todo-sheet');
+            
+            // Appel webhook n8n pour écrire dans le Sheet
+            const todoWebhook = getVal('todo_webhook_url');
+            if (todoWebhook) {
+                try {
+                    await fetch(todoWebhook, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sheet_id: sheetId, id, titre, priorite: prio, statut: 'todo', date_creation: date, notes })
+                    });
+                } catch(e) {}
+            }
 
             // Ajout local immédiat
+            const newTask = { id, titre, priorite: prio, statut: 'todo', date, notes };
             if (type === 'nast') todoNastData.unshift(newTask);
             else todoWebData.unshift(newTask);
+            
             renderTodo(type);
             toggleTodoForm(type);
-            document.getElementById(`todo${cap}Titre`).value = '';
-            document.getElementById(`todo${cap}Notes`).value = '';
+            document.getElementById(`todo${type==='nast'?'Nast':'Web'}Titre`).value = '';
+            document.getElementById(`todo${type==='nast'?'Nast':'Web'}Notes`).value = '';
             showToast('✅ Tâche ajoutée !', 'success');
-
-            // Sync Sheet via webhook
-            const todoWebhook = 'https://n8n.srv1086994.hstgr.cloud/webhook/todo-manager';
-            try {
-                await fetch(todoWebhook, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type, id, titre, priorite: prio, statut: 'todo', date_creation: date, notes, _update: false })
-                });
-            } catch(e) { showToast('⚠️ Sync Sheet échouée', 'error'); }
         }
 
         function saveTodoNast() { saveTodoGeneric('nast', TODO_NAST_SHEET); }
@@ -2863,17 +2864,19 @@
             if (!task) return;
             task.statut = task.statut === 'done' ? 'todo' : 'done';
             renderTodo(type);
-            showToast(task.statut === 'done' ? '✅ Tâche résolue !' : '↩️ Tâche réouverte', 'success');
 
-            // Sync Sheet via webhook
-            const todoWebhook = 'https://n8n.srv1086994.hstgr.cloud/webhook/todo-manager';
-            try {
-                await fetch(todoWebhook, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type, id, statut: task.statut, _update: true })
-                });
-            } catch(e) {}
+            const todoWebhook = getVal('todo_webhook_url');
+            if (todoWebhook) {
+                const sheetId = type === 'nast' ? TODO_NAST_SHEET : TODO_WEB_SHEET;
+                try {
+                    await fetch(todoWebhook, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sheet_id: sheetId, id, statut: task.statut, _update: true })
+                    });
+                } catch(e) {}
+            }
+            showToast(task.statut === 'done' ? '✅ Tâche résolue !' : '↩️ Tâche réouverte', 'success');
         }
 
 
