@@ -1414,6 +1414,14 @@
                     <button class="btn-submit" id="btnRuptSubmit" disabled onclick="submitRupture()">
                         🚫 Enregistrer la rupture
                     </button>
+                    <div style="margin-top:16px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                            <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Ruptures en cours</div>
+                            <button onclick="loadRuptures()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;">🔄 Actualiser</button>
+                        </div>
+                        <div id="rupturesStatus" style="display:none;text-align:center;padding:12px;color:var(--text-muted);font-size:13px;">Chargement…</div>
+                        <div id="rupturesList"></div>
+                    </div>
                 </div>
 
                 <!-- Panel Photos TG / Mise en avant -->
@@ -1446,6 +1454,14 @@
                     <button class="btn-submit" id="btnTgSubmit" disabled onclick="submitPhotoTg()">
                         📸 Envoyer sur Drive
                     </button>
+                    <div style="margin-top:16px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                            <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Historique Photos TG</div>
+                            <button onclick="loadPhotosTg()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;">🔄 Actualiser</button>
+                        </div>
+                        <div id="photosTgStatus" style="display:none;text-align:center;padding:12px;color:var(--text-muted);font-size:13px;">Chargement…</div>
+                        <div id="photosTgList"></div>
+                    </div>
                 </div>
 
                 <!-- Panel Périmés -->
@@ -1514,6 +1530,14 @@
                     <button class="btn-submit" id="btnPerimSubmit" disabled onclick="submitPerime()">
                         ⚠️ Enregistrer les périmés
                     </button>
+                    <div style="margin-top:16px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                            <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Historique Périmés</div>
+                            <button onclick="loadPerimes()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;">🔄 Actualiser</button>
+                        </div>
+                        <div id="perimesStatus" style="display:none;text-align:center;padding:12px;color:var(--text-muted);font-size:13px;">Chargement…</div>
+                        <div id="perimesList"></div>
+                    </div>
                 </div>
 
                 <div class="section-panel" id="pharma_dashboard">
@@ -1955,6 +1979,9 @@
             if (panel === 'dashboard') loadSheetData();
             if (panel === 'traiter') loadCommandes();
             if (panel === 'traiterMlp') loadMLP();
+            if (panel === 'ruptures') loadRuptures();
+            if (panel === 'photosTg') loadPhotosTg();
+            if (panel === 'perimes') loadPerimes();
         }
 
         // Menu date
@@ -3084,6 +3111,14 @@
 
         const PHARMA_WEBHOOK = 'https://n8n.srv1086994.hstgr.cloud/webhook/pharma-tools';
 
+        // Sheets Pharmacie
+        const RUPTURES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRShPCgDibArnCFYaw3cKmcO8q8xPG6SriM0Y1OBDjqxkw1uYL8koVzGsVo3t3b9xvs6uC80FnUWbGX/pub?gid=0&single=true&output=csv';
+        const RUPTURES_SHEET = '1IX2FbiElAHjPI25lfLDZuZjIPTNPhDOzXRyQLPqiNSM';
+        const PHOTOS_TG_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDHyj-xqsYtdwDKeswW0lW5XcQjcLHZe9xmUzkPhtdpIJkU1At8IhX3g9tIZl30MN-5uX0SH6RhDGN/pub?gid=0&single=true&output=csv';
+        const PHOTOS_TG_SHEET = '1Ly5-uEA-Z5ZEK2ZUEj32yQcNZ-nD8Gbx2TgROBIdb04';
+        const PERIMES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSQWAOW63YGeNOIyob6m5kWbRQLNlYe6EyUMlJnze3aFNnV8hTqkgU_0NxDJ3uMAV3TRs6tgLeCMIG2/pub?gid=0&single=true&output=csv';
+        const PERIMES_SHEET = '1Fj-KqM_dc4DUNxAEqF4ZEuGmuLslwLPfoSn-sjMqGTI';
+
         let todoNastData = [];
         let todoWebData  = [];
         let todoPharmaData = [];
@@ -3588,6 +3623,99 @@
             }
             btn.textContent = '⚠️ Enregistrer les périmés';
             btn.disabled = true;
+        }
+
+        // ─── CHARGEMENT HISTORIQUES ───
+        async function loadRuptures() {
+            const status = document.getElementById('rupturesStatus');
+            const list = document.getElementById('rupturesList');
+            status.style.display = 'block';
+            list.innerHTML = '';
+            try {
+                const res = await fetch(RUPTURES_CSV + '&t=' + Date.now());
+                const text = await res.text();
+                const rows = parseCSV(text);
+                // Colonnes: id(0) produit(1) labo(2) date_rupture(3) patient_nom(4) patient_tel(5) date_ajout(6) statut(7)
+                const data = rows.slice(1).filter(r => r[0]?.trim() && r[1]?.trim()).reverse();
+                status.style.display = 'none';
+                if (!data.length) { list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune rupture</p></div>'; return; }
+                list.innerHTML = data.map(r => {
+                    const statut = (r[7] || '').trim().toLowerCase();
+                    const done = statut === 'résolu' || statut === 'resolu';
+                    const d = r[3] ? new Date(r[3]).toLocaleDateString('fr-FR', {day:'numeric',month:'short'}) : '';
+                    return `<div class="todo-card ${done ? 'done' : ''}" style="margin-bottom:8px;">
+                        <div class="todo-body">
+                            <div class="todo-titre">${r[1]?.trim()}</div>
+                            <div class="todo-meta">
+                                ${r[2]?.trim() ? `<span class="todo-prio todo-prio-normal">${r[2].trim()}</span>` : ''}
+                                ${d ? `<span class="todo-date">📅 ${d}</span>` : ''}
+                                ${r[4]?.trim() ? `<span class="todo-date">👤 ${r[4].trim()}</span>` : ''}
+                                ${r[5]?.trim() ? `<span class="todo-date">📞 ${r[5].trim()}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) { status.style.display = 'none'; list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px;">Erreur chargement</div>'; }
+        }
+
+        async function loadPhotosTg() {
+            const status = document.getElementById('photosTgStatus');
+            const list = document.getElementById('photosTgList');
+            status.style.display = 'block';
+            list.innerHTML = '';
+            try {
+                const res = await fetch(PHOTOS_TG_CSV + '&t=' + Date.now());
+                const text = await res.text();
+                const rows = parseCSV(text);
+                // Colonnes: id(0) labo(1) operation(2) date_operation(3) nb_photos(4) date_ajout(5)
+                const data = rows.slice(1).filter(r => r[0]?.trim()).reverse();
+                status.style.display = 'none';
+                if (!data.length) { list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">📸</div><p>Aucune photo TG</p></div>'; return; }
+                list.innerHTML = data.map(r => {
+                    const d = r[3] ? new Date(r[3]).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '';
+                    return `<div class="todo-card" style="margin-bottom:8px;">
+                        <div class="todo-body">
+                            <div class="todo-titre">${r[2]?.trim() || 'Photo TG'}</div>
+                            <div class="todo-meta">
+                                ${r[1]?.trim() ? `<span class="todo-prio todo-prio-normal">${r[1].trim()}</span>` : ''}
+                                ${d ? `<span class="todo-date">📅 ${d}</span>` : ''}
+                                ${r[4]?.trim() ? `<span class="todo-date">📷 ${r[4].trim()} photos</span>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) { status.style.display = 'none'; list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px;">Erreur chargement</div>'; }
+        }
+
+        async function loadPerimes() {
+            const status = document.getElementById('perimesStatus');
+            const list = document.getElementById('perimesList');
+            status.style.display = 'block';
+            list.innerHTML = '';
+            try {
+                const res = await fetch(PERIMES_CSV + '&t=' + Date.now());
+                const text = await res.text();
+                const rows = parseCSV(text);
+                // Colonnes: id(0) date_peremption(1) labo(2) produits(3) nb_photos(4) date_ajout(5)
+                const data = rows.slice(1).filter(r => r[0]?.trim()).reverse();
+                status.style.display = 'none';
+                if (!data.length) { list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucun périmé</p></div>'; return; }
+                list.innerHTML = data.map(r => {
+                    const d = r[1] ? new Date(r[1]).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '';
+                    let produits = r[3]?.trim() || '';
+                    try { const p = JSON.parse(produits); produits = p.map(x => `${x.nom} (x${x.quantite})`).join(', '); } catch(e) {}
+                    return `<div class="todo-card" style="margin-bottom:8px;">
+                        <div class="todo-body">
+                            <div class="todo-titre">${produits || 'Produits périmés'}</div>
+                            <div class="todo-meta">
+                                ${r[2]?.trim() ? `<span class="todo-prio todo-prio-urgent">${r[2].trim()}</span>` : ''}
+                                ${d ? `<span class="todo-date">📅 Pér. ${d}</span>` : ''}
+                                ${r[4]?.trim() ? `<span class="todo-date">📷 ${r[4].trim()} photos</span>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) { status.style.display = 'none'; list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px;">Erreur chargement</div>'; }
         }
 
         function loadLabos() {
