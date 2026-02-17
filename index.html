@@ -1317,10 +1317,10 @@
                         </div>
                     </div>
                     <div class="todo-filters">
-                        <button class="todo-filter active" onclick="filterTodoWeb('tous',this)">Tous</button>
-                        <button class="todo-filter" onclick="filterTodoWeb('urgent',this)">🔴 Urgent</button>
-                        <button class="todo-filter" onclick="filterTodoWeb('normal',this)">🔵 Normal</button>
-                        <button class="todo-filter" onclick="filterTodoWeb('done',this)">✅ Résolus</button>
+                        <button class="todo-filter active" onclick="filterTodo('web','tous',this)">Tous</button>
+                        <button class="todo-filter" onclick="filterTodo('web','urgent',this)">🔴 Urgent</button>
+                        <button class="todo-filter" onclick="filterTodo('web','normal',this)">🔵 Normal</button>
+                        <button class="todo-filter" onclick="filterTodo('web','done',this)">✅ Résolus</button>
                     </div>
                     <div id="todoWebStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
                     <div id="todoWebList"></div>
@@ -2731,24 +2731,29 @@
                 const res  = await fetch(csvUrl + '&t=' + Date.now());
                 const text = await res.text();
                 const rows = parseCSV(text);
-                // colonnes : id(0) titre(1) priorite(2) statut(3) date_creation(4) notes(5)
+                // Colonnes : id(0) titre(1) priorite(2) notes(3) statut(4) date_ajout(5) date_resolution(6) assigne_a(7)
                 const data = rows.slice(1)
                     .filter(r => r[0]?.trim() && r[1]?.trim())
                     .map(r => ({
                         id: r[0].trim(),
                         titre: r[1].trim(),
                         priorite: r[2]?.trim() || 'normal',
-                        statut: r[3]?.trim() || 'todo',
-                        date: r[4]?.trim(),
-                        notes: r[5]?.trim() || ''
+                        notes: r[3]?.trim() || '',
+                        statut: r[4]?.trim() || 'todo',
+                        date: r[5]?.trim(),
+                        date_resolution: r[6]?.trim() || '',
+                        assigne_a: r[7]?.trim() || ''
                     }))
                     .sort((a,b) => {
-                        // Urgent d'abord, puis par date
+                        // À faire en haut, résolues en bas
                         if (a.statut === 'done' && b.statut !== 'done') return 1;
                         if (a.statut !== 'done' && b.statut === 'done') return -1;
-                        if (a.priorite === 'urgent' && b.priorite !== 'urgent') return -1;
-                        if (a.priorite !== 'urgent' && b.priorite === 'urgent') return 1;
-                        return new Date(b.date) - new Date(a.date);
+                        // Parmi les à faire : urgent d'abord
+                        if (a.statut !== 'done' && b.statut !== 'done') {
+                            if (a.priorite === 'urgent' && b.priorite !== 'urgent') return -1;
+                            if (a.priorite !== 'urgent' && b.priorite === 'urgent') return 1;
+                        }
+                        return new Date(b.date || 0) - new Date(a.date || 0);
                     });
                 return data;
             } catch(e) {
@@ -2772,8 +2777,8 @@
         function filterTodo(type, filtre, btn) {
             if (type === 'nast') todoNastFiltre = filtre;
             else todoWebFiltre = filtre;
-            const prefix = type === 'nast' ? 'todoNast' : 'todoWeb';
-            document.querySelectorAll(`#tab${type === 'nast' ? 'TodoNast' : 'TodoWeb'} .todo-filter`).forEach(b => b.classList.remove('active'));
+            // Reset active sur les filtres du même panel
+            btn.closest('.todo-filters').querySelectorAll('.todo-filter').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             renderTodo(type);
         }
@@ -2786,8 +2791,10 @@
 
             let filtered = data;
             if (filtre === 'done')   filtered = data.filter(t => t.statut === 'done');
-            else if (filtre === 'tous') filtered = data.filter(t => t.statut !== 'done');
-            else filtered = data.filter(t => t.priorite === filtre && t.statut !== 'done');
+            else if (filtre === 'urgent') filtered = data.filter(t => t.priorite === 'urgent' && t.statut !== 'done');
+            else if (filtre === 'normal') filtered = data.filter(t => t.priorite === 'normal' && t.statut !== 'done');
+            // 'tous' = tout afficher, à faire en haut + résolues grisées en bas
+            // Le tri est déjà fait dans loadTodoGeneric
 
             if (!filtered.length) {
                 list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune tâche</p></div>';
@@ -2801,6 +2808,8 @@
                 const done = t.statut === 'done';
                 const d = new Date(t.date);
                 const dateStr = isNaN(d) ? '' : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'});
+                const resolDate = t.date_resolution ? new Date(t.date_resolution) : null;
+                const resolStr = resolDate && !isNaN(resolDate) ? resolDate.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + resolDate.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) : '';
                 return `<div class="todo-card ${done ? 'done' : ''}">
                     <div class="todo-check ${done ? 'checked' : ''}" onclick="toggleTodo('${type}','${t.id}')">
                         ${done ? '✓' : ''}
@@ -2810,7 +2819,9 @@
                         ${t.notes ? `<div class="todo-notes">${t.notes}</div>` : ''}
                         <div class="todo-meta">
                             <span class="todo-prio ${prioClass[t.priorite] || 'todo-prio-normal'}">${prioLabels[t.priorite] || t.priorite}</span>
+                            ${t.assigne_a ? `<span class="todo-date">👤 ${t.assigne_a}</span>` : ''}
                             ${dateStr ? `<span class="todo-date">📅 ${dateStr}</span>` : ''}
+                            ${done && resolStr ? `<span class="todo-date">✅ ${resolStr}</span>` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -2824,34 +2835,38 @@
         }
 
         async function saveTodoGeneric(type, sheetId) {
-            const titre = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Titre`).value.trim();
-            const notes = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Notes`).value.trim();
-            const prio  = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Prio`).value;
+            const cap   = type === 'nast' ? 'Nast' : 'Web';
+            const titre = document.getElementById(`todo${cap}Titre`).value.trim();
+            const notes = document.getElementById(`todo${cap}Notes`).value.trim();
+            const prio  = document.getElementById(`todo${cap}Prio`).value;
             if (!titre) { showToast('⚠️ Le titre est obligatoire', 'error'); return; }
 
-            const id = genTodoId();
+            const id   = genTodoId();
             const date = new Date().toISOString();
-            const webhookUrl = getVal('mlp_webhook_url').replace('reception-bl', 'todo-sheet');
-            
-            // Appel webhook n8n pour écrire dans le Sheet
-            try {
-                    await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/todo-manager', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sheet_id: sheetId, id, titre, priorite: prio, statut: 'todo', date_creation: date, notes })
-                    });
-                } catch(e) {}
+            const newTask = { id, titre, priorite: prio, notes, statut: 'todo', date, date_resolution: '', assigne_a: '' };
 
             // Ajout local immédiat
-            const newTask = { id, titre, priorite: prio, statut: 'todo', date, notes };
             if (type === 'nast') todoNastData.unshift(newTask);
             else todoWebData.unshift(newTask);
-            
             renderTodo(type);
             toggleTodoForm(type);
-            document.getElementById(`todo${type==='nast'?'Nast':'Web'}Titre`).value = '';
-            document.getElementById(`todo${type==='nast'?'Nast':'Web'}Notes`).value = '';
+            document.getElementById(`todo${cap}Titre`).value = '';
+            document.getElementById(`todo${cap}Notes`).value = '';
             showToast('✅ Tâche ajoutée !', 'success');
+            
+            // Sync Sheet via webhook
+            try {
+                await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/todo-manager', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        type, id, titre, priorite: prio, notes, 
+                        statut: 'todo', date_ajout: date, 
+                        date_resolution: '', assigne_a: '',
+                        _update: false 
+                    })
+                });
+            } catch(e) { showToast('⚠️ Sync Sheet échouée', 'error'); }
         }
 
         function saveTodoNast() { saveTodoGeneric('nast', TODO_NAST_SHEET); }
@@ -2861,21 +2876,28 @@
             const data = type === 'nast' ? todoNastData : todoWebData;
             const task = data.find(t => t.id === id);
             if (!task) return;
-            task.statut = task.statut === 'done' ? 'todo' : 'done';
+            
+            const newStatut = task.statut === 'done' ? 'todo' : 'done';
+            task.statut = newStatut;
+            task.date_resolution = newStatut === 'done' ? new Date().toISOString() : '';
             renderTodo(type);
 
-            const todoWebhook = getVal('todo_webhook_url');
-            if (todoWebhook) {
-                const sheetId = type === 'nast' ? TODO_NAST_SHEET : TODO_WEB_SHEET;
-                try {
-                    await fetch(todoWebhook, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sheet_id: sheetId, id, statut: task.statut, _update: true })
-                    });
-                } catch(e) {}
-            }
-            showToast(task.statut === 'done' ? '✅ Tâche résolue !' : '↩️ Tâche réouverte', 'success');
+            // Webhook n8n pour update le Sheet
+            try {
+                await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/todo-manager', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        type, 
+                        id, 
+                        statut: newStatut, 
+                        date_resolution: task.date_resolution,
+                        _update: true 
+                    })
+                });
+            } catch(e) { console.error('Erreur sync TODO:', e); }
+            
+            showToast(newStatut === 'done' ? '✅ Tâche résolue !' : '↩️ Tâche réouverte', 'success');
         }
 
 
