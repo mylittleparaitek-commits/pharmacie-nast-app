@@ -2793,37 +2793,34 @@
         }
 
         async function saveTodoGeneric(type, sheetId) {
-            const titre = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Titre`).value.trim();
-            const notes = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Notes`).value.trim();
-            const prio  = document.getElementById(`todo${type==='nast'?'Nast':'Web'}Prio`).value;
+            const cap   = type === 'nast' ? 'Nast' : 'Web';
+            const titre = document.getElementById(`todo${cap}Titre`).value.trim();
+            const notes = document.getElementById(`todo${cap}Notes`).value.trim();
+            const prio  = document.getElementById(`todo${cap}Prio`).value;
             if (!titre) { showToast('⚠️ Le titre est obligatoire', 'error'); return; }
 
-            const id = genTodoId();
+            const id   = genTodoId();
             const date = new Date().toISOString();
-            const webhookUrl = getVal('mlp_webhook_url').replace('reception-bl', 'todo-sheet');
-            
-            // Appel webhook n8n pour écrire dans le Sheet
-            const todoWebhook = getVal('todo_webhook_url');
-            if (todoWebhook) {
-                try {
-                    await fetch(todoWebhook, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sheet_id: sheetId, id, titre, priorite: prio, statut: 'todo', date_creation: date, notes })
-                    });
-                } catch(e) {}
-            }
+            const newTask = { id, titre, priorite: prio, statut: 'todo', date, notes };
 
             // Ajout local immédiat
-            const newTask = { id, titre, priorite: prio, statut: 'todo', date, notes };
             if (type === 'nast') todoNastData.unshift(newTask);
             else todoWebData.unshift(newTask);
-            
             renderTodo(type);
             toggleTodoForm(type);
-            document.getElementById(`todo${type==='nast'?'Nast':'Web'}Titre`).value = '';
-            document.getElementById(`todo${type==='nast'?'Nast':'Web'}Notes`).value = '';
+            document.getElementById(`todo${cap}Titre`).value = '';
+            document.getElementById(`todo${cap}Notes`).value = '';
             showToast('✅ Tâche ajoutée !', 'success');
+
+            // Sync Sheet via webhook
+            const todoWebhook = 'https://n8n.srv1086994.hstgr.cloud/webhook/todo-manager';
+            try {
+                await fetch(todoWebhook, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, id, titre, priorite: prio, statut: 'todo', date_creation: date, notes, _update: false })
+                });
+            } catch(e) { showToast('⚠️ Sync Sheet échouée', 'error'); }
         }
 
         function saveTodoNast() { saveTodoGeneric('nast', TODO_NAST_SHEET); }
@@ -2835,19 +2832,17 @@
             if (!task) return;
             task.statut = task.statut === 'done' ? 'todo' : 'done';
             renderTodo(type);
-
-            const todoWebhook = getVal('todo_webhook_url');
-            if (todoWebhook) {
-                const sheetId = type === 'nast' ? TODO_NAST_SHEET : TODO_WEB_SHEET;
-                try {
-                    await fetch(todoWebhook, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sheet_id: sheetId, id, statut: task.statut, _update: true })
-                    });
-                } catch(e) {}
-            }
             showToast(task.statut === 'done' ? '✅ Tâche résolue !' : '↩️ Tâche réouverte', 'success');
+
+            // Sync Sheet via webhook
+            const todoWebhook = 'https://n8n.srv1086994.hstgr.cloud/webhook/todo-manager';
+            try {
+                await fetch(todoWebhook, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, id, statut: task.statut, _update: true })
+                });
+            } catch(e) {}
         }
 
 
