@@ -928,14 +928,14 @@
 
         .todo-card {
             background:var(--bg-card); border-radius:var(--radius); border:1.5px solid var(--border);
-            padding:14px 16px; margin-bottom:8px; display:flex; align-items:flex-start; gap:12px;
+            padding:14px 16px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px;
             box-shadow:var(--shadow-sm); transition:all 0.2s;
         }
         .todo-card.done { opacity:0.5; background:#f9fafb; border-color:#eee; }
         .todo-check {
-            width:22px; height:22px; border-radius:50%; border:2px solid var(--border);
+            width:32px; height:32px; min-width:32px; border-radius:50%; border:2px solid var(--border);
             flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center;
-            font-size:12px; transition:all 0.2s; margin-top:1px;
+            font-size:14px; transition:all 0.2s; margin-top:0px; -webkit-tap-highlight-color: rgba(233,30,99,0.15);
         }
         .todo-check.checked { background:var(--nast-pink); border-color:var(--nast-pink); color:white; }
         .todo-body { flex:1; min-width:0; }
@@ -2812,7 +2812,7 @@
                 const resolDate = t.date_resolution ? new Date(t.date_resolution) : null;
                 const resolStr = resolDate && !isNaN(resolDate) ? resolDate.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + resolDate.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) : '';
                 return `<div class="todo-card ${done ? 'done' : ''}">
-                    <div class="todo-check ${done ? 'checked' : ''}" onclick="toggleTodo('${type}','${t.id}')">
+                    <div class="todo-check ${done ? 'checked' : ''}" data-todo-type="${type}" data-todo-id="${t.id}">
                         ${done ? '✓' : ''}
                     </div>
                     <div class="todo-body">
@@ -2827,6 +2827,16 @@
                     </div>
                 </div>`;
             }).join('');
+
+            // Event delegation pour les checks
+            list.querySelectorAll('.todo-check').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const todoType = el.dataset.todoType;
+                    const todoId = el.dataset.todoId;
+                    if (todoType && todoId) toggleTodo(todoType, todoId);
+                });
+            });
         }
 
         function toggleTodoForm(type) {
