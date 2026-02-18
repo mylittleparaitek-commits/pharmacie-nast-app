@@ -1150,6 +1150,70 @@
         .perim-produit-row .form-group { margin-bottom: 0; flex:1; }
         .perim-produit-row .form-group:last-child { flex: 0 0 100px; }
 
+        /* Picking groupé */
+        .pick-item {
+            background: var(--bg-card);
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border);
+            margin-bottom: 8px;
+            overflow: hidden;
+            transition: opacity 0.3s, background 0.3s;
+        }
+        .pick-item.picked {
+            opacity: 0.45;
+            background: #f0f0f0;
+        }
+        .pick-item.picked .pick-main { text-decoration: line-through; color: var(--text-muted); }
+        .pick-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            cursor: pointer;
+        }
+        .pick-check {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 50%;
+            border: 2.5px solid #1976D2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .pick-item.picked .pick-check {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: white;
+        }
+        .pick-body { flex: 1; min-width: 0; }
+        .pick-nom { font-weight: 600; font-size: 14px; line-height: 1.3; }
+        .pick-ean { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+        .pick-qty-total {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1976D2;
+            min-width: 36px;
+            text-align: center;
+        }
+        .pick-item.picked .pick-qty-total { color: var(--text-muted); }
+        .pick-cmds {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 0 12px 10px 50px;
+        }
+        .pick-cmd-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            color: white;
+            white-space: nowrap;
+        }
+
         /* Menu greeting */
         .menu-greeting {
             margin-bottom: 20px;
@@ -1590,7 +1654,9 @@
                 </div>
                 <div class="section-subtabs" id="nastcomSubtabs">
                     <button class="section-subtab active-blue" onclick="switchSection('nastcom','traiter',this,'blue')">📦 À traiter</button>
+                    <button class="section-subtab" onclick="switchSection('nastcom','picking',this,'blue')">📋 Picking</button>
                     <button class="section-subtab" onclick="switchSection('nastcom','todoNast',this,'blue')">✅ Todo</button>
+                    <button class="section-subtab" onclick="switchSection('nastcom','savNast',this,'blue')">💬 SAV</button>
                 </div>
 
                 <div class="section-panel active" id="nastcom_traiter">
@@ -1656,6 +1722,39 @@
                 </div>
                 </div>
 
+                <div class="section-panel" id="nastcom_picking">
+                    <div class="commandes-header">
+                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Picking du jour</div>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span class="commandes-count" id="pickingGlobalCount"></span>
+                            <button onclick="loadPicking()" style="background:none;border:none;cursor:pointer;color:#1976D2;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                Actualiser
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Barre de progression -->
+                    <div class="picking-progress" style="margin-bottom:14px;">
+                        <div class="picking-progress-top">
+                            <span class="picking-label">Progression picking</span>
+                            <span class="picking-count" id="pickingGlobalProgress">0 / 0</span>
+                        </div>
+                        <div class="picking-bar-bg">
+                            <div class="picking-bar-fill" id="pickingGlobalBar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Légende couleurs commandes -->
+                    <div id="pickingLegend" style="display:none;margin-bottom:12px;padding:10px 12px;background:var(--bg-card);border-radius:var(--radius-xs);border:1px solid var(--border);"></div>
+
+                    <div id="pickingStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+                        Chargement…
+                    </div>
+                    <div id="pickingGroupedList"></div>
+                </div>
+
                 <div class="section-panel" id="nastcom_todoNast">
                     <button class="todo-add-btn" onclick="toggleTodoForm('nast')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1683,6 +1782,64 @@
                     <div id="todoNastStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
                     <div id="todoNastList"></div>
                 </div><!-- /nastcom_todoNast -->
+
+                <!-- Panel SAV Nast.com -->
+                <div class="section-panel" id="nastcom_savNast">
+                    <div class="sav-list-view" id="savNastListView">
+                        <div class="commandes-header">
+                            <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>SAV Nast.com</div>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <span class="commandes-count" id="savNastCount"></span>
+                                <button onclick="loadSavNast()" style="background:none;border:none;cursor:pointer;color:#1976D2;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                    Actualiser
+                                </button>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+                            <button class="sav-filter active" data-filter="tous" onclick="filterSavNast('tous',this)">Tous</button>
+                            <button class="sav-filter" data-filter="nouveau" onclick="filterSavNast('nouveau',this)">🔴 Nouveaux</button>
+                            <button class="sav-filter" data-filter="en_cours" onclick="filterSavNast('en_cours',this)">🟠 En cours</button>
+                            <button class="sav-filter" data-filter="résolu" onclick="filterSavNast('résolu',this)">✅ Résolus</button>
+                        </div>
+                        <div id="savNastStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+                            Chargement…
+                        </div>
+                        <div id="savNastList"></div>
+                    </div>
+
+                    <div class="sav-detail-view" id="savNastDetailView">
+                        <div class="detail-header" style="margin-bottom:12px;">
+                            <div class="detail-header-top">
+                                <button class="detail-back" onclick="closeSavNastDetail()">←</button>
+                                <div style="flex:1;min-width:0;">
+                                    <div class="detail-ref" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="savNastDetailSujet"></div>
+                                </div>
+                            </div>
+                            <div class="detail-client" id="savNastDetailFrom"></div>
+                            <div class="detail-date" id="savNastDetailDate"></div>
+                        </div>
+
+                        <div class="sav-fil" id="savNastFil"></div>
+
+                        <div class="sav-reply-box">
+                            <button class="btn-resolu" id="savNastBtnResolu" onclick="marquerResoluNast()">✅ Marquer comme résolu</button>
+                            <textarea class="sav-reply-area" id="savNastReplyArea" placeholder="Votre réponse…"></textarea>
+                            <div class="sav-btns">
+                                <button class="btn-ia" onclick="suggererReponseIANast()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                                    Réponse IA
+                                </button>
+                                <button class="btn-send" onclick="envoyerReponseNast()">Envoyer →</button>
+                            </div>
+                            <div class="ia-loading" id="iaNastLoading" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:4px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+                                Claude rédige une réponse…
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div><!-- /sectionNastcom -->
 
             <!-- ═══ SECTION MLP ═══ -->
@@ -1897,6 +2054,21 @@
                     </div>
                 </div>
 
+                <div class="settings-group">
+                    <div class="settings-item">
+                        <span class="settings-item-label">Statut SAV Nast</span>
+                        <span class="webhook-status disconnected" id="webhookSavNastStatus">
+                            <span class="webhook-dot"></span>
+                            Non configuré
+                        </span>
+                    </div>
+                    <div style="padding: 14px 16px;">
+                        <label class="form-label">URL webhook — Réponse SAV Nast.com</label>
+                        <input type="url" class="settings-input" id="webhookSavNastInput" placeholder="https://n8n.example.com/webhook/sav-reply-nast">
+                        <button class="btn-save" id="btnSaveSavNastWebhook">Sauvegarder</button>
+                    </div>
+                </div>
+
                 <div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Liste des laboratoires</div>
                 <div class="settings-group">
                     <div style="padding: 14px 16px;">
@@ -2013,6 +2185,8 @@
             if (panel === 'ruptures') loadRuptures();
             if (panel === 'photosTg') loadPhotosTg();
             if (panel === 'perimes') loadPerimes();
+            if (panel === 'savNast') loadSavNast();
+            if (panel === 'picking') loadPicking();
         }
 
         // Menu date
@@ -2455,6 +2629,132 @@
                     </div>
                 </div>`;
             }).join('');
+        }
+
+        // ─── PICKING GROUPÉ ───
+        const PICKING_COLORS = [
+            '#1976D2','#e91e63','#4caf50','#ff9800','#9c27b0',
+            '#00bcd4','#f44336','#8bc34a','#ff5722','#3f51b5',
+            '#009688','#cddc39','#673ab7','#ffc107','#795548',
+            '#607d8b','#e91e7b','#00c9b0','#ff6f00','#5e35b1'
+        ];
+        let pickingGroupedData = [];
+        let pickingChecked = {};
+
+        async function loadPicking() {
+            const status = document.getElementById('pickingStatus');
+            const list = document.getElementById('pickingGroupedList');
+            status.style.display = 'block';
+            list.innerHTML = '';
+
+            try {
+                // Réutiliser commandesData si déjà chargé, sinon fetch
+                if (!commandesData.length) {
+                    const res = await fetch(COMMANDES_CSV + '&t=' + Date.now());
+                    const text = await res.text();
+                    const rows = parseCSV(text);
+                    if (rows.length < 2) {
+                        list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande</p></div>';
+                        status.style.display = 'none'; return;
+                    }
+                    const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13 };
+                    const map = {};
+                    let lastNum = null;
+                    for (let i = 1; i < rows.length; i++) {
+                        const r = rows[i];
+                        const num = r[IDX.num]?.trim();
+                        if (num) {
+                            lastNum = num;
+                            const statut = (r[IDX.statut] || '').trim().toLowerCase();
+                            if (STATUTS_TRAITES.some(s => statut.includes(s))) { lastNum = null; continue; }
+                            map[num] = { num, ref: r[IDX.ref], date: r[IDX.date], client: r[IDX.client], ville: r[IDX.ville], statut: r[IDX.statut], total: r[IDX.total], produits: [] };
+                        }
+                        if (lastNum && map[lastNum] && r[IDX.ean]?.trim()) {
+                            map[lastNum].produits.push({ ean: r[IDX.ean].trim(), nom: r[IDX.nom]?.trim(), qty: parseInt(r[IDX.qty]) || 1 });
+                        }
+                    }
+                    commandesData = Object.values(map).sort((a, b) => new Date(b.date) - new Date(a.date));
+                }
+
+                // Attribuer une couleur à chaque commande
+                const cmdColorMap = {};
+                commandesData.forEach((c, i) => {
+                    cmdColorMap[c.num] = PICKING_COLORS[i % PICKING_COLORS.length];
+                });
+
+                // Grouper par EAN
+                const grouped = {};
+                commandesData.forEach(c => {
+                    c.produits.forEach(p => {
+                        const key = p.ean || p.nom;
+                        if (!grouped[key]) {
+                            grouped[key] = { ean: p.ean, nom: p.nom, totalQty: 0, commandes: [] };
+                        }
+                        grouped[key].totalQty += p.qty;
+                        grouped[key].commandes.push({ num: c.num, client: c.client, qty: p.qty, color: cmdColorMap[c.num] });
+                    });
+                });
+
+                // Trier par nom produit
+                pickingGroupedData = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+
+                // Restaurer état checked depuis localStorage
+                const savedPicking = getVal('picking_checked_' + new Date().toISOString().split('T')[0]);
+                pickingChecked = savedPicking ? JSON.parse(savedPicking) : {};
+
+                // Légende couleurs
+                const legend = document.getElementById('pickingLegend');
+                legend.style.display = 'flex';
+                legend.style.flexWrap = 'wrap';
+                legend.style.gap = '6px';
+                legend.innerHTML = commandesData.map(c => {
+                    return `<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;color:white;background:${cmdColorMap[c.num]}">#${c.num} ${(c.client || '').split(' ')[0]}</span>`;
+                }).join('');
+
+                document.getElementById('pickingGlobalCount').textContent = pickingGroupedData.length + ' produit' + (pickingGroupedData.length > 1 ? 's' : '');
+                renderPickingGrouped();
+            } catch(e) {
+                list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Erreur chargement picking</p></div>';
+            }
+            status.style.display = 'none';
+        }
+
+        function renderPickingGrouped() {
+            const list = document.getElementById('pickingGroupedList');
+            const total = pickingGroupedData.length;
+            const done = pickingGroupedData.filter(p => pickingChecked[p.ean || p.nom]).length;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+            document.getElementById('pickingGlobalProgress').textContent = `${done} / ${total}`;
+            document.getElementById('pickingGlobalBar').style.width = pct + '%';
+
+            list.innerHTML = pickingGroupedData.map((item, idx) => {
+                const key = item.ean || item.nom;
+                const isPicked = pickingChecked[key];
+                const cmdsHtml = item.commandes.map(c => 
+                    `<span class="pick-cmd-tag" style="background:${c.color}">#${c.num} × ${c.qty}</span>`
+                ).join('');
+
+                return `<div class="pick-item ${isPicked ? 'picked' : ''}" id="pickItem_${idx}">
+                    <div class="pick-main" onclick="togglePickItem('${key}',${idx})">
+                        <div class="pick-check">${isPicked ? '✓' : ''}</div>
+                        <div class="pick-body">
+                            <div class="pick-nom">${item.nom || 'Produit inconnu'}</div>
+                            <div class="pick-ean">${item.ean}</div>
+                        </div>
+                        <div class="pick-qty-total">${item.totalQty}</div>
+                    </div>
+                    <div class="pick-cmds">${cmdsHtml}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function togglePickItem(key, idx) {
+            pickingChecked[key] = !pickingChecked[key];
+            // Sauvegarder en localStorage par date
+            const today = new Date().toISOString().split('T')[0];
+            setVal('picking_checked_' + today, JSON.stringify(pickingChecked));
+            renderPickingGrouped();
         }
 
         function openCommandeDetail(idx) {
@@ -3116,6 +3416,194 @@
             }
             currentTicket.statut = 'résolu';
             document.getElementById('savBtnResolu').style.display = 'none';
+            showToast('✅ Ticket marqué comme résolu', 'success');
+        }
+
+        // ─── SAV NAST.COM ───
+        const SAV_NAST_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR7moh88k82pn3qnqJOyeUJ0NaAdBfHjgz0EQ6L-tGeGKpsTArb-z2yzVIaeidx0IAvhSQ0443E4Vcz/pub?gid=0&single=true&output=csv';
+
+        let savNastData = [];
+        let savNastFiltre = 'tous';
+        let currentNastTicket = null;
+
+        async function loadSavNast() {
+            const status = document.getElementById('savNastStatus');
+            const list   = document.getElementById('savNastList');
+            status.style.display = 'block';
+            list.innerHTML = '';
+            try {
+                const res  = await fetch(SAV_NAST_CSV_URL + '&t=' + Date.now());
+                const text = await res.text();
+                const rows = parseCSV(text);
+                if (rows.length < 2) {
+                    list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">💬</div><p>Aucun ticket SAV</p></div>';
+                    status.style.display = 'none'; return;
+                }
+                const uniqueMap = {};
+                rows.slice(1)
+                    .filter(r => r[0]?.trim())
+                    .filter(r => {
+                        const exp = r[2]?.trim() || '';
+                        const sujet = r[3]?.trim() || '';
+                        return exp !== 'undefined' && sujet !== 'undefined' && exp.includes('@');
+                    })
+                    .forEach(r => {
+                        const id = r[0].trim();
+                        const date = new Date(r[1]?.trim());
+                        if (!uniqueMap[id] || date > new Date(uniqueMap[id].date)) {
+                            uniqueMap[id] = {
+                                id, date: r[1]?.trim(), expediteur: r[2]?.trim(),
+                                sujet: r[3]?.trim() || '(sans objet)',
+                                corps: r[4]?.trim().replace(/\\n/g, '\n'),
+                                statut: r[5]?.trim() || 'nouveau',
+                                thread_id: r[6]?.trim(),
+                                historique: (() => { try { const h = JSON.parse(r[7] || '[]'); return h.map(m => ({ ...m, message: (m.message || '').replace(/\\n/g, '\n') })); } catch(e) { return []; } })()
+                            };
+                        }
+                    });
+                savNastData = Object.values(uniqueMap).sort((a, b) => new Date(b.date) - new Date(a.date));
+                const nouveaux = savNastData.filter(t => t.statut === 'nouveau').length;
+                document.getElementById('savNastCount').textContent = savNastData.length + ' ticket' + (savNastData.length > 1 ? 's' : '') + (nouveaux ? ` · ${nouveaux} 🔴` : '');
+                renderSavNastList();
+            } catch(e) {
+                list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Impossible de charger le SAV<br><small>Vérifiez que le Sheet est publié</small></p></div>';
+            }
+            status.style.display = 'none';
+        }
+
+        function filterSavNast(filtre, btn) {
+            savNastFiltre = filtre;
+            btn.closest('div').querySelectorAll('.sav-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderSavNastList();
+        }
+
+        function renderSavNastList() {
+            const list = document.getElementById('savNastList');
+            const filtered = savNastFiltre === 'tous' ? savNastData : savNastData.filter(t => t.statut === savNastFiltre);
+            if (!filtered.length) { list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">💬</div><p>Aucun ticket</p></div>'; return; }
+            list.innerHTML = filtered.map((t, i) => {
+                const idx = savNastData.indexOf(t);
+                const d = new Date(t.date);
+                const dateStr = isNaN(d) ? t.date : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+                const badgeClass = `sav-badge-${t.statut.replace('é','e').replace('û','u')}`;
+                let preview = t.corps || '';
+                const lines = preview.split('\n').filter(l => !l.startsWith('📧') && !l.startsWith('📦'));
+                preview = lines.join(' ').substring(0, 100);
+                return `<div class="sav-ticket" onclick="openSavNastDetail(${idx})">
+                    <div class="sav-ticket-top">
+                        <div class="sav-ticket-sujet">${t.sujet}</div>
+                        <span class="sav-badge ${badgeClass}">${t.statut}</span>
+                    </div>
+                    <div class="sav-ticket-from">✉ ${t.expediteur}</div>
+                    <div class="sav-ticket-preview">${preview}…</div>
+                    <div class="sav-ticket-date">🕐 ${dateStr}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function openSavNastDetail(idx) {
+            currentNastTicket = savNastData[idx];
+            document.getElementById('savNastListView').classList.add('hidden');
+            document.getElementById('savNastDetailView').classList.add('active');
+            const d = new Date(currentNastTicket.date);
+            const dateStr = isNaN(d) ? currentNastTicket.date : d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'long'}) + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('savNastDetailSujet').textContent = currentNastTicket.sujet;
+            document.getElementById('savNastDetailFrom').textContent = '✉ ' + currentNastTicket.expediteur;
+            document.getElementById('savNastDetailDate').textContent = '🕐 ' + dateStr;
+            document.getElementById('savNastReplyArea').value = '';
+            document.getElementById('savNastBtnResolu').style.display = currentNastTicket.statut === 'résolu' ? 'none' : 'block';
+            renderSavNastFil();
+        }
+
+        function closeSavNastDetail() {
+            currentNastTicket = null;
+            document.getElementById('savNastListView').classList.remove('hidden');
+            document.getElementById('savNastDetailView').classList.remove('active');
+        }
+
+        function renderSavNastFil() {
+            const fil = document.getElementById('savNastFil');
+            if (!currentNastTicket) return;
+            const msgs = currentNastTicket.historique.length > 0
+                ? currentNastTicket.historique
+                : [{ role: 'client', date: currentNastTicket.date, de: currentNastTicket.expediteur, message: currentNastTicket.corps }];
+            fil.innerHTML = msgs.map(m => {
+                const isNous = m.role === 'nous';
+                const d = new Date(m.date);
+                const dateStr = isNaN(d) ? '' : d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + ' · ' + d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+                let msg = m.message || '';
+                msg = msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                msg = msg.replace(/\\n/g,'\n').replace(/\n/g,'<br>');
+                return `<div style="display:flex;flex-direction:column;align-items:${isNous ? 'flex-end' : 'flex-start'};">
+                    <div class="sav-msg ${isNous ? 'sav-msg-nous' : 'sav-msg-client'}">
+                        ${msg}
+                        <div class="sav-msg-meta">${isNous ? 'Vous' : (m.de || 'Client')} · ${dateStr}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            setTimeout(() => fil.scrollTop = fil.scrollHeight, 100);
+        }
+
+        async function suggererReponseIANast() {
+            if (!currentNastTicket) return;
+            const webhookUrl = getVal('sav_nast_webhook_url');
+            if (!webhookUrl) { showToast('⚠️ Webhook SAV Nast non configuré', 'error'); return; }
+            const iaWebhookUrl = webhookUrl.replace('sav-reply-nast', 'sav-ia-nast');
+            const loading = document.getElementById('iaNastLoading');
+            const area = document.getElementById('savNastReplyArea');
+            loading.style.display = 'block';
+            area.value = '';
+            try {
+                const response = await fetch(iaWebhookUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ expediteur: currentNastTicket.expediteur, sujet: currentNastTicket.sujet, corps: currentNastTicket.corps })
+                });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const data = await response.json();
+                area.value = data.reponse || 'Erreur lors de la génération';
+            } catch(e) { area.value = 'Erreur de connexion à l\'IA : ' + e.message; }
+            loading.style.display = 'none';
+        }
+
+        async function envoyerReponseNast() {
+            const area = document.getElementById('savNastReplyArea');
+            const msg = area.value.trim();
+            if (!msg || !currentNastTicket) return;
+            const webhookUrl = getVal('sav_nast_webhook_url');
+            if (!webhookUrl) { showToast('⚠️ Webhook SAV Nast non configuré dans les Réglages', 'error'); return; }
+            const btnSend = document.querySelector('#nastcom_savNast .btn-send');
+            btnSend.textContent = 'Envoi…';
+            btnSend.disabled = true;
+            try {
+                const res = await fetch(webhookUrl, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_mail: currentNastTicket.id, thread_id: currentNastTicket.thread_id, expediteur: currentNastTicket.expediteur, sujet: currentNastTicket.sujet, reponse: msg })
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                currentNastTicket.historique.push({ role: 'nous', date: new Date().toISOString(), de: 'Nast.com', message: msg });
+                currentNastTicket.statut = 'en_cours';
+                renderSavNastFil();
+                area.value = '';
+                showToast('✅ Réponse envoyée !', 'success');
+            } catch(e) { showToast('❌ Erreur envoi : ' + e.message, 'error'); }
+            btnSend.textContent = 'Envoyer →';
+            btnSend.disabled = false;
+        }
+
+        async function marquerResoluNast() {
+            if (!currentNastTicket) return;
+            const webhookUrl = getVal('sav_nast_webhook_url');
+            if (webhookUrl) {
+                try {
+                    await fetch(webhookUrl, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_mail: currentNastTicket.id, thread_id: currentNastTicket.thread_id, expediteur: currentNastTicket.expediteur, sujet: currentNastTicket.sujet, reponse: null, statut: 'résolu' })
+                    });
+                } catch(e) {}
+            }
+            currentNastTicket.statut = 'résolu';
+            document.getElementById('savNastBtnResolu').style.display = 'none';
             showToast('✅ Ticket marqué comme résolu', 'success');
         }
 
@@ -3782,7 +4270,12 @@
             document.getElementById('btnSaveSavWebhook').addEventListener('click', () => {
                 setVal('sav_webhook_url', document.getElementById('webhookSavInput').value.trim());
                 updateSavWebhookStatus();
-                showToast('Webhook SAV sauvegardé', 'success');
+                showToast('Webhook SAV MLP sauvegardé', 'success');
+            });
+            document.getElementById('btnSaveSavNastWebhook').addEventListener('click', () => {
+                setVal('sav_nast_webhook_url', document.getElementById('webhookSavNastInput').value.trim());
+                updateSavNastWebhookStatus();
+                showToast('Webhook SAV Nast sauvegardé', 'success');
             });
             document.getElementById('btnSaveLabos').addEventListener('click', () => {
                 state.labos = document.getElementById('labosListInput').value.split('\n').map(l => l.trim()).filter(Boolean).sort();
@@ -3796,15 +4289,29 @@
             const blUrl = getVal('mlp_webhook_url') || 'https://n8n.srv1086994.hstgr.cloud/webhook/reception-bl';
             const delpechUrl = getVal('mlp_delpech_webhook_url') || 'https://n8n.srv1086994.hstgr.cloud/webhook/delpech-preparatoire';
             const savUrl = getVal('sav_webhook_url') || 'https://n8n.srv1086994.hstgr.cloud/webhook/sav-reply-mlp';
+            const savNastUrl = getVal('sav_nast_webhook_url') || '';
             if (!getVal('mlp_webhook_url')) setVal('mlp_webhook_url', blUrl);
             if (!getVal('mlp_delpech_webhook_url')) setVal('mlp_delpech_webhook_url', delpechUrl);
             if (!getVal('sav_webhook_url')) setVal('sav_webhook_url', savUrl);
             document.getElementById('webhookUrlInput').value = blUrl;
             document.getElementById('webhookDelpechInput').value = delpechUrl;
             document.getElementById('webhookSavInput').value = savUrl;
+            document.getElementById('webhookSavNastInput').value = savNastUrl;
             updateWebhookStatus();
             updateDelpechWebhookStatus();
             updateSavWebhookStatus();
+            updateSavNastWebhookStatus();
+        }
+
+        function updateSavNastWebhookStatus() {
+            const s = document.getElementById('webhookSavNastStatus');
+            if (getVal('sav_nast_webhook_url')) {
+                s.className = 'webhook-status connected';
+                s.innerHTML = '<span class="webhook-dot"></span>Connecté';
+            } else {
+                s.className = 'webhook-status disconnected';
+                s.innerHTML = '<span class="webhook-dot"></span>Non configuré';
+            }
         }
 
         function updateSavWebhookStatus() {
