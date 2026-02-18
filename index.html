@@ -1622,10 +1622,41 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="commande-detail-view" id="commandeDetailView">
+                    <div class="detail-header" id="detailHeader">
+                        <div class="detail-header-top">
+                            <button class="detail-back" onclick="closeCommandeDetail()">←</button>
+                            <div>
+                                <div class="detail-ref" id="detailRef"></div>
+                            </div>
+                        </div>
+                        <div class="detail-client" id="detailClient"></div>
+                        <div class="detail-date" id="detailDate"></div>
+                    </div>
+
+                    <div class="picking-progress">
+                        <div class="picking-progress-top">
+                            <span class="picking-label">Picking en cours</span>
+                            <span class="picking-count" id="pickingCount">0 / 0</span>
+                        </div>
+                        <div class="picking-bar-bg">
+                            <div class="picking-bar-fill" id="pickingBar" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="produits-list" id="produitsList"></div>
+
+                    <input type="file" accept="image/*" capture="environment" id="scannerInput" style="display:none" onchange="handleScannerInput(event)">
+
+                    <button class="btn-scan" id="btnScan" onclick="startScan()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
+                        Scanner un produit
+                    </button>
+                </div>
                 </div>
 
                 <div class="section-panel" id="nastcom_todoNast">
-
                     <button class="todo-add-btn" onclick="toggleTodoForm('nast')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Nouvelle tâche
