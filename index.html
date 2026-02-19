@@ -3268,26 +3268,33 @@
             list.innerHTML = filtered.map((t, i) => {
                 const idx = savData.indexOf(t);
                 const d = new Date(t.date);
-                const dateStr = isNaN(d) ? t.date : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+                const dateStr = isNaN(d) ? t.date : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
                 const badgeClass = `sav-badge-${t.statut.replace('é','e').replace('û','u')}` || 'sav-badge-nouveau';
-                let preview = t.resume || '';
-                if (!preview) {
-                    preview = (t.corps_clean || t.corps || '');
-                    const lines = preview.split('\n').filter(l => !l.startsWith('📧') && !l.startsWith('📦'));
-                    preview = lines.join(' ').substring(0, 100);
-                }
                 const catIcon = catIcons[t.categorie] || '';
                 const urgColor = urgColors[t.urgence] || '';
                 const urgDot = urgColor ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${urgColor};margin-right:4px;"></span>` : '';
+                // Extraire le nom de l'expéditeur (avant <email>)
+                let fromName = t.expediteur || '';
+                if (fromName.includes('<')) fromName = fromName.split('<')[0].trim();
+                if (fromName.includes('@')) fromName = fromName.split('@')[0];
+                // Corps : afficher un aperçu plus long
+                let preview = t.resume || '';
+                if (!preview) {
+                    preview = (t.corps_clean || t.corps || '');
+                    preview = preview.replace(/\\n/g, ' ').replace(/\n/g, ' ');
+                }
+                preview = preview.substring(0, 120);
                 return `<div class="sav-ticket" onclick="openSavDetail(${idx})">
                     <div class="sav-ticket-top">
-                        <div class="sav-ticket-sujet">${t.sujet}</div>
+                        <div class="sav-ticket-sujet">${urgDot}${t.sujet}</div>
                         <span class="sav-badge ${badgeClass}">${t.statut}</span>
                     </div>
-                    <div class="sav-ticket-from">${urgDot}✉ ${t.expediteur}</div>
-                    ${t.categorie ? `<div style="margin:4px 0;"><span style="font-size:11px;background:#f0f2f5;padding:2px 8px;border-radius:8px;color:#555;">${catIcon} ${t.categorie.replace('_',' ')}</span></div>` : ''}
-                    <div class="sav-ticket-preview">${preview}${preview.length >= 80 ? '…' : ''}</div>
-                    <div class="sav-ticket-date">🕐 ${dateStr}</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 2px;">
+                        <div class="sav-ticket-from" style="margin:0;">✉ ${fromName}</div>
+                        <div class="sav-ticket-date" style="margin:0;white-space:nowrap;">🕐 ${dateStr}</div>
+                    </div>
+                    ${t.categorie ? `<div style="margin:4px 0 2px;"><span style="font-size:11px;background:#f0f2f5;padding:2px 8px;border-radius:8px;color:#555;">${catIcon} ${t.categorie.replace('_',' ')}</span></div>` : ''}
+                    <div class="sav-ticket-preview" style="margin-top:6px;color:#444;font-size:13px;line-height:1.4;">${preview}${preview.length >= 120 ? '…' : ''}</div>
                 </div>`;
             }).join('');
         }
@@ -3298,8 +3305,18 @@
             document.getElementById('savDetailView').classList.add('active');
             const d = new Date(currentTicket.date);
             const dateStr = isNaN(d) ? currentTicket.date : d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'long'}) + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+            // Extraire le nom de l'expéditeur
+            let fromName = currentTicket.expediteur || '';
+            let fromEmail = '';
+            if (fromName.includes('<')) {
+                fromEmail = fromName.match(/<(.+?)>/)?.[1] || '';
+                fromName = fromName.split('<')[0].trim();
+            } else if (fromName.includes('@')) {
+                fromEmail = fromName;
+                fromName = fromName.split('@')[0];
+            }
             document.getElementById('savDetailSujet').textContent = currentTicket.sujet;
-            document.getElementById('savDetailFrom').textContent = '✉ ' + currentTicket.expediteur;
+            document.getElementById('savDetailFrom').innerHTML = '✉ <strong>' + fromName + '</strong>' + (fromEmail ? ' <span style="color:#888;font-size:12px;">&lt;' + fromEmail + '&gt;</span>' : '');
             document.getElementById('savDetailDate').textContent = '🕐 ' + dateStr;
             document.getElementById('savReplyArea').value = '';
             document.getElementById('savBtnResolu').style.display = currentTicket.statut === 'résolu' ? 'none' : 'block';
@@ -3315,13 +3332,21 @@
         function renderSavFil() {
             const fil = document.getElementById('savFil');
             if (!currentTicket) return;
-            const msgs = currentTicket.historique.length > 0
-                ? currentTicket.historique
-                : [{ role: 'client', date: currentTicket.date, de: currentTicket.expediteur, message: currentTicket.corps_clean || currentTicket.corps }];
+            // Construire les messages : d'abord le mail original (corps complet E), puis l'historique
+            const msgs = [];
+            // Message original du client (corps complet)
+            msgs.push({ role: 'client', date: currentTicket.date, de: currentTicket.expediteur, message: currentTicket.corps || '' });
+            // Historique des échanges
+            if (currentTicket.historique && currentTicket.historique.length > 0) {
+                currentTicket.historique.forEach(m => msgs.push(m));
+            }
             fil.innerHTML = msgs.map(m => {
                 const isNous = m.role === 'nous';
                 const d = new Date(m.date);
                 const dateStr = isNaN(d) ? '' : d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + ' · ' + d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+                // Nom de l'expéditeur
+                let deName = m.de || 'Client';
+                if (deName.includes('<')) deName = deName.split('<')[0].trim();
                 // Convertir \n en <br> pour l'affichage
                 let msg = m.message || '';
                 msg = msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -3329,7 +3354,7 @@
                 return `<div style="display:flex;flex-direction:column;align-items:${isNous ? 'flex-end' : 'flex-start'};">
                     <div class="sav-msg ${isNous ? 'sav-msg-nous' : 'sav-msg-client'}">
                         ${msg}
-                        <div class="sav-msg-meta">${isNous ? 'Vous' : (m.de || 'Client')} · ${dateStr}</div>
+                        <div class="sav-msg-meta">${isNous ? 'Vous' : deName} · ${dateStr}</div>
                     </div>
                 </div>`;
             }).join('');
