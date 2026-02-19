@@ -3201,8 +3201,10 @@
                     list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">💬</div><p>Aucun ticket SAV</p></div>';
                     status.style.display = 'none'; return;
                 }
-                // Colonnes : id_mail(0) date(1) expediteur(2) sujet(3) corps(4) statut(5) thread_id(6) historique(7)
-                // Dédupliquer par id_mail (garder le plus récent)
+                // Colonnes enrichies IA :
+                // A:id_mail(0) B:date(1) C:expediteur(2) D:sujet(3) E:corps(4)
+                // F:corps_clean(5) G:resume(6) H:categorie(7) I:urgence(8)
+                // J:statut(9) K:thread_id(10) L:historique(11)
                 const uniqueMap = {};
                 rows.slice(1)
                     .filter(r => r[0]?.trim())
@@ -3221,11 +3223,15 @@
                                 expediteur: r[2]?.trim(),
                                 sujet: r[3]?.trim() || '(sans objet)',
                                 corps: r[4]?.trim().replace(/\\n/g, '\n'),
-                                statut: r[5]?.trim() || 'nouveau',
-                                thread_id: r[6]?.trim(),
+                                corps_clean: r[5]?.trim() || '',
+                                resume: r[6]?.trim() || '',
+                                categorie: r[7]?.trim() || '',
+                                urgence: r[8]?.trim() || '',
+                                statut: r[9]?.trim() || 'nouveau',
+                                thread_id: r[10]?.trim(),
                                 historique: (() => {
                                     try {
-                                        const h = JSON.parse(r[7] || '[]');
+                                        const h = JSON.parse(r[11] || '[]');
                                         return h.map(m => ({ ...m, message: (m.message || '').replace(/\\n/g, '\n') }));
                                     } catch(e) { return []; }
                                 })()
@@ -3257,24 +3263,30 @@
                 list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">💬</div><p>Aucun ticket</p></div>';
                 return;
             }
+            const catIcons = { retour:'↩️', reclamation:'😤', produit_manquant:'📦', suivi_livraison:'🚚', question:'❓', demande_remboursement:'💰', erreur_produit:'⚠️', autre:'📋' };
+            const urgColors = { haute:'#f44336', moyenne:'#ff9800', basse:'#4caf50' };
             list.innerHTML = filtered.map((t, i) => {
                 const idx = savData.indexOf(t);
                 const d = new Date(t.date);
                 const dateStr = isNaN(d) ? t.date : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
                 const badgeClass = `sav-badge-${t.statut.replace('é','e').replace('û','u')}` || 'sav-badge-nouveau';
-                
-                // Extraire le vrai message sans les icônes et labels
-                let preview = t.corps || '';
-                const lines = preview.split('\n').filter(l => !l.startsWith('📧') && !l.startsWith('📦'));
-                preview = lines.join(' ').substring(0, 100);
-                
+                let preview = t.resume || '';
+                if (!preview) {
+                    preview = (t.corps_clean || t.corps || '');
+                    const lines = preview.split('\n').filter(l => !l.startsWith('📧') && !l.startsWith('📦'));
+                    preview = lines.join(' ').substring(0, 100);
+                }
+                const catIcon = catIcons[t.categorie] || '';
+                const urgColor = urgColors[t.urgence] || '';
+                const urgDot = urgColor ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${urgColor};margin-right:4px;"></span>` : '';
                 return `<div class="sav-ticket" onclick="openSavDetail(${idx})">
                     <div class="sav-ticket-top">
                         <div class="sav-ticket-sujet">${t.sujet}</div>
                         <span class="sav-badge ${badgeClass}">${t.statut}</span>
                     </div>
-                    <div class="sav-ticket-from">✉ ${t.expediteur}</div>
-                    <div class="sav-ticket-preview">${preview}…</div>
+                    <div class="sav-ticket-from">${urgDot}✉ ${t.expediteur}</div>
+                    ${t.categorie ? `<div style="margin:4px 0;"><span style="font-size:11px;background:#f0f2f5;padding:2px 8px;border-radius:8px;color:#555;">${catIcon} ${t.categorie.replace('_',' ')}</span></div>` : ''}
+                    <div class="sav-ticket-preview">${preview}${preview.length >= 80 ? '…' : ''}</div>
                     <div class="sav-ticket-date">🕐 ${dateStr}</div>
                 </div>`;
             }).join('');
@@ -3305,7 +3317,7 @@
             if (!currentTicket) return;
             const msgs = currentTicket.historique.length > 0
                 ? currentTicket.historique
-                : [{ role: 'client', date: currentTicket.date, de: currentTicket.expediteur, message: currentTicket.corps }];
+                : [{ role: 'client', date: currentTicket.date, de: currentTicket.expediteur, message: currentTicket.corps_clean || currentTicket.corps }];
             fil.innerHTML = msgs.map(m => {
                 const isNous = m.role === 'nous';
                 const d = new Date(m.date);
