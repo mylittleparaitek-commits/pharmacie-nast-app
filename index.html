@@ -1059,6 +1059,31 @@
         .menu-card-settings { border-bottom: 3px solid #78909C; }
         .menu-card-photos .menu-card-icon { background: #fff3e0; }
         .menu-card-photos { border-bottom: 3px solid #FF9800; }
+        .menu-card-stats .menu-card-icon { background: #e8f5e9; }
+        .menu-card-stats { border-bottom: 3px solid #43A047; }
+
+        .stat-kpi { padding: 14px 16px; border-radius: 12px; }
+        .stat-kpi-value { font-size: 22px; font-weight: 800; color: #1a1a1a; }
+        .stat-kpi-label { font-size: 11px; color: #666; margin-top: 2px; font-weight: 500; }
+
+        .stat-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .stat-bar-label { width: 80px; font-size: 12px; font-weight: 700; color: #333; flex-shrink: 0; }
+        .stat-bar-track { flex: 1; height: 28px; background: #f0f2f5; border-radius: 8px; overflow: hidden; position: relative; }
+        .stat-bar-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; font-size: 11px; font-weight: 700; color: white; min-width: 30px; transition: width 0.6s ease; }
+        .stat-bar-count { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 600; color: #666; }
+
+        .stat-product-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f2f5; }
+        .stat-product-rank { width: 26px; height: 26px; border-radius: 50%; background: #f0f2f5; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #666; flex-shrink: 0; }
+        .stat-product-rank.top3 { background: #FF9800; color: white; }
+        .stat-product-name { flex: 1; font-size: 13px; color: #333; line-height: 1.3; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .stat-product-qty { font-size: 14px; font-weight: 800; color: #1976D2; flex-shrink: 0; }
+        .stat-product-bar { width: 60px; height: 6px; background: #e0e0e0; border-radius: 3px; flex-shrink: 0; overflow: hidden; }
+        .stat-product-bar-fill { height: 100%; border-radius: 3px; }
+
+        .stat-platform-card { display: flex; justify-content: space-between; padding: 10px 14px; background: #f8f9fa; border-radius: 10px; margin-bottom: 6px; }
+        .stat-platform-card-name { font-weight: 700; font-size: 13px; }
+        .stat-platform-card-values { display: flex; gap: 16px; font-size: 12px; color: #666; }
+        .stat-platform-card-values span { font-weight: 600; color: #333; }
 
         .photo-platform-check {
             display: flex; align-items: center; gap: 10px; padding: 12px 14px;
@@ -1291,6 +1316,11 @@
                         <div class="menu-card-title">Photos</div>
                         <div class="menu-card-sub">Preuves commandes</div>
                     </div>
+                    <div class="menu-card menu-card-stats" onclick="openSection('stats')">
+                        <div class="menu-card-icon">📊</div>
+                        <div class="menu-card-title">Stats</div>
+                        <div class="menu-card-sub">Ventes · Plateformes</div>
+                    </div>
                     <div class="menu-card menu-card-pharma" onclick="openSection('pharma')">
                         <div class="menu-card-icon">🏥</div>
                         <div class="menu-card-title">Pharmacie</div>
@@ -1313,6 +1343,85 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ═══ SECTION STATS ═══ -->
+            <div class="section-view" id="sectionStats">
+                <div class="section-back">
+                    <button class="btn-back" onclick="goHome()">←</button>
+                    <div class="section-title">📊 Statistiques</div>
+                </div>
+
+                <div class="section-panel active" id="stats_main" style="padding:16px;">
+                    
+                    <div id="statsLoading" style="text-align:center;padding:40px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#43A047" stroke-width="2" style="animation:spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+                        <p style="color:#888;margin-top:8px;">Chargement des données…</p>
+                    </div>
+
+                    <div id="statsContent" style="display:none;">
+
+                        <!-- KPI Cards -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+                            <div class="stat-kpi" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-left:4px solid #1976D2;">
+                                <div class="stat-kpi-value" id="statTotalCommandes">0</div>
+                                <div class="stat-kpi-label">Commandes totales</div>
+                            </div>
+                            <div class="stat-kpi" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-left:4px solid #43A047;">
+                                <div class="stat-kpi-value" id="statTotalProduits">0</div>
+                                <div class="stat-kpi-label">Produits vendus</div>
+                            </div>
+                            <div class="stat-kpi" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-left:4px solid #FF9800;">
+                                <div class="stat-kpi-value" id="statTotalCA">0 €</div>
+                                <div class="stat-kpi-label">CA total</div>
+                            </div>
+                            <div class="stat-kpi" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);border-left:4px solid #E91E63;">
+                                <div class="stat-kpi-value" id="statPanierMoyen">0 €</div>
+                                <div class="stat-kpi-label">Panier moyen</div>
+                            </div>
+                        </div>
+
+                        <!-- Répartition par plateforme -->
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-title"><span class="card-title-dot" style="background:#43A047;"></span>Répartition par plateforme</div>
+                            <div id="statPlatformBars"></div>
+                            <div id="statPlatformDetails" style="margin-top:12px;"></div>
+                        </div>
+
+                        <!-- Commandes par jour (7 derniers jours) -->
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-title"><span class="card-title-dot" style="background:#1976D2;"></span>Commandes par jour (7j)</div>
+                            <div id="statDailyChart" style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:8px 0;"></div>
+                        </div>
+
+                        <!-- Top produits global -->
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-title"><span class="card-title-dot" style="background:#FF9800;"></span>Top 15 produits (toutes plateformes)</div>
+                            <div id="statTopProduitsGlobal"></div>
+                        </div>
+
+                        <!-- Top produits par plateforme -->
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-title"><span class="card-title-dot" style="background:#0D47A1;"></span>Top 10 — DocMorris</div>
+                            <div id="statTopDocmorris"></div>
+                        </div>
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-title"><span class="card-title-dot" style="background:#1976D2;"></span>Top 10 — NAST.COM</div>
+                            <div id="statTopNast"></div>
+                        </div>
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-title"><span class="card-title-dot" style="background:#9C27B0;"></span>Top 10 — MLP</div>
+                            <div id="statTopMlp"></div>
+                        </div>
+
+                        <!-- Top clients -->
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-title"><span class="card-title-dot" style="background:#E91E63;"></span>Top 10 clients</div>
+                            <div id="statTopClients"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div><!-- /sectionStats -->
 
             <!-- ═══ SECTION PHOTOS COMMANDES ═══ -->
             <div class="section-view" id="sectionPhotos">
@@ -2266,7 +2375,8 @@
                 'nastcom': 'sectionNastcom',
                 'mlp': 'sectionMlp',
                 'settings': 'sectionSettings',
-                'photos': 'sectionPhotos'
+                'photos': 'sectionPhotos',
+                'stats': 'sectionStats'
             };
             
             const titles = {
@@ -2274,7 +2384,8 @@
                 'nastcom': '🛒 Nast.com',
                 'mlp': '💜 My Little Para',
                 'settings': '⚙️ Réglages',
-                'photos': '📸 Photos'
+                'photos': '📸 Photos',
+                'stats': '📊 Stats'
             };
             
             const el = document.getElementById(sectionMap[section]);
@@ -2286,6 +2397,7 @@
             if (section === 'nastcom') loadCommandes();
             if (section === 'mlp') loadMLP();
             if (section === 'photos') initPhotoSection();
+            if (section === 'stats') loadStats();
             if (section === 'pharma') {
                 // Check quel panel est actif
                 const activePanel = document.querySelector('#sectionPharma .section-panel.active');
@@ -4713,6 +4825,219 @@
         }
 
         init();
+
+        // ═══════════════════════════════════════════
+        // 📊 STATISTIQUES
+        // ═══════════════════════════════════════════
+
+        async function loadStats() {
+            document.getElementById('statsLoading').style.display = 'block';
+            document.getElementById('statsContent').style.display = 'none';
+
+            try {
+                // Charger toutes les données en parallèle
+                const [nastRes, mlpRes] = await Promise.all([
+                    fetch(COMMANDES_CSV + '&t=' + Date.now()),
+                    fetch(MLP_CSV + '&t=' + Date.now())
+                ]);
+                const nastText = await nastRes.text();
+                const mlpText = await mlpRes.text();
+                const nastRows = parseCSV(nastText);
+                const mlpRows = parseCSV(mlpText);
+
+                const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13 };
+
+                // Parser les commandes
+                function parseAllCommandes(rows, source) {
+                    const map = {};
+                    let lastNum = null;
+                    for (let i = 1; i < rows.length; i++) {
+                        const r = rows[i];
+                        const num = r[IDX.num]?.trim();
+                        if (num) {
+                            lastNum = num;
+                            const statut = (r[IDX.statut] || '').trim();
+                            const totalStr = (r[IDX.total] || '0').replace(',', '.').replace(/[^0-9.]/g, '');
+                            let platform = source;
+                            if (source === 'nast') {
+                                if (statut.toLowerCase().includes('docmorris')) platform = 'docmorris';
+                                else platform = 'nast';
+                            }
+                            map[source + '_' + num] = {
+                                num, date: r[IDX.date], client: r[IDX.client]?.trim(),
+                                total: parseFloat(totalStr) || 0,
+                                statut, platform, produits: []
+                            };
+                        }
+                        const key = source + '_' + lastNum;
+                        if (lastNum && map[key] && r[IDX.ean]?.trim()) {
+                            map[key].produits.push({
+                                ean: r[IDX.ean].trim(),
+                                nom: r[IDX.nom]?.trim() || 'Produit inconnu',
+                                qty: parseInt(r[IDX.qty]) || 1
+                            });
+                        }
+                    }
+                    return Object.values(map);
+                }
+
+                const nastCommandes = parseAllCommandes(nastRows, 'nast');
+                const mlpCommandes = parseAllCommandes(mlpRows, 'mlp');
+                const allCommandes = [...nastCommandes, ...mlpCommandes];
+
+                renderStats(allCommandes);
+
+            } catch (e) {
+                document.getElementById('statsLoading').innerHTML = '<p style="color:#c62828;">❌ Erreur de chargement : ' + e.message + '</p>';
+            }
+        }
+
+        function renderStats(commandes) {
+            // === KPI ===
+            const totalCmd = commandes.length;
+            let totalProduits = 0;
+            let totalCA = 0;
+            commandes.forEach(c => {
+                totalCA += c.total;
+                c.produits.forEach(p => totalProduits += p.qty);
+            });
+            document.getElementById('statTotalCommandes').textContent = totalCmd.toLocaleString('fr-FR');
+            document.getElementById('statTotalProduits').textContent = totalProduits.toLocaleString('fr-FR');
+            document.getElementById('statTotalCA').textContent = totalCA.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €';
+            document.getElementById('statPanierMoyen').textContent = totalCmd ? (totalCA / totalCmd).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' €' : '0 €';
+
+            // === Répartition par plateforme ===
+            const platforms = {};
+            commandes.forEach(c => {
+                const p = c.platform;
+                if (!platforms[p]) platforms[p] = { count: 0, ca: 0, produits: 0 };
+                platforms[p].count++;
+                platforms[p].ca += c.total;
+                c.produits.forEach(pr => platforms[p].produits += pr.qty);
+            });
+
+            const platformColors = { docmorris: '#0D47A1', nast: '#1976D2', mlp: '#9C27B0' };
+            const platformNames = { docmorris: 'DocMorris', nast: 'NAST.COM', mlp: 'MLP' };
+            const maxCount = Math.max(...Object.values(platforms).map(p => p.count), 1);
+
+            let barsHtml = '';
+            let detailsHtml = '';
+            Object.keys(platforms).sort((a, b) => platforms[b].count - platforms[a].count).forEach(key => {
+                const p = platforms[key];
+                const pct = ((p.count / totalCmd) * 100).toFixed(0);
+                const width = ((p.count / maxCount) * 100).toFixed(0);
+                const color = platformColors[key] || '#666';
+                barsHtml += `<div class="stat-bar-row">
+                    <div class="stat-bar-label">${platformNames[key] || key}</div>
+                    <div class="stat-bar-track">
+                        <div class="stat-bar-fill" style="width:${width}%;background:${color};">${p.count}</div>
+                    </div>
+                    <div style="font-size:12px;font-weight:700;color:${color};width:40px;text-align:right;">${pct}%</div>
+                </div>`;
+                detailsHtml += `<div class="stat-platform-card" style="border-left:3px solid ${color};">
+                    <div class="stat-platform-card-name" style="color:${color};">${platformNames[key] || key}</div>
+                    <div class="stat-platform-card-values">
+                        <div>📦 <span>${p.count}</span> cmd</div>
+                        <div>🛍️ <span>${p.produits}</span> prod</div>
+                        <div>💰 <span>${p.ca.toLocaleString('fr-FR', {maximumFractionDigits:0})} €</span></div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('statPlatformBars').innerHTML = barsHtml;
+            document.getElementById('statPlatformDetails').innerHTML = detailsHtml;
+
+            // === Commandes par jour (7 derniers jours) ===
+            const dailyMap = {};
+            const today = new Date();
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                const key = d.toISOString().slice(0, 10);
+                dailyMap[key] = { total: 0, docmorris: 0, nast: 0, mlp: 0 };
+            }
+            commandes.forEach(c => {
+                try {
+                    const d = new Date(c.date);
+                    const key = d.toISOString().slice(0, 10);
+                    if (dailyMap[key]) {
+                        dailyMap[key].total++;
+                        if (dailyMap[key][c.platform] !== undefined) dailyMap[key][c.platform]++;
+                    }
+                } catch(e) {}
+            });
+
+            const dailyMax = Math.max(...Object.values(dailyMap).map(d => d.total), 1);
+            const dayNames = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
+            let chartHtml = '';
+            Object.keys(dailyMap).forEach(key => {
+                const d = new Date(key);
+                const dayName = dayNames[d.getDay()];
+                const dayNum = d.getDate();
+                const val = dailyMap[key];
+                const h = val.total ? Math.max((val.total / dailyMax) * 100, 8) : 4;
+                const isToday = key === today.toISOString().slice(0, 10);
+                chartHtml += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+                    <div style="font-size:12px;font-weight:800;color:${isToday ? '#43A047' : '#333'};">${val.total}</div>
+                    <div style="width:100%;height:${h}px;border-radius:6px;background:${isToday ? 'linear-gradient(#66BB6A,#43A047)' : 'linear-gradient(#90CAF9,#1976D2)'};transition:height 0.5s;"></div>
+                    <div style="font-size:10px;color:#888;font-weight:600;">${dayName}</div>
+                    <div style="font-size:10px;color:#aaa;">${dayNum}</div>
+                </div>`;
+            });
+            document.getElementById('statDailyChart').innerHTML = chartHtml;
+
+            // === Top produits ===
+            function getTopProducts(commandes, limit) {
+                const map = {};
+                commandes.forEach(c => {
+                    c.produits.forEach(p => {
+                        const key = p.ean || p.nom;
+                        if (!map[key]) map[key] = { nom: p.nom, ean: p.ean, qty: 0 };
+                        map[key].qty += p.qty;
+                    });
+                });
+                return Object.values(map).sort((a, b) => b.qty - a.qty).slice(0, limit);
+            }
+
+            function renderTopProducts(containerId, products, color) {
+                const maxQty = products[0]?.qty || 1;
+                document.getElementById(containerId).innerHTML = products.length ? products.map((p, i) => `
+                    <div class="stat-product-row">
+                        <div class="stat-product-rank ${i < 3 ? 'top3' : ''}" ${i < 3 ? `style="background:${color};"` : ''}>${i + 1}</div>
+                        <div class="stat-product-name" title="${p.nom}">${p.nom}</div>
+                        <div class="stat-product-bar"><div class="stat-product-bar-fill" style="width:${(p.qty/maxQty*100).toFixed(0)}%;background:${color};"></div></div>
+                        <div class="stat-product-qty">×${p.qty}</div>
+                    </div>
+                `).join('') : '<p style="color:#aaa;font-size:13px;text-align:center;padding:12px;">Aucune donnée</p>';
+            }
+
+            renderTopProducts('statTopProduitsGlobal', getTopProducts(commandes, 15), '#FF9800');
+            renderTopProducts('statTopDocmorris', getTopProducts(commandes.filter(c => c.platform === 'docmorris'), 10), '#0D47A1');
+            renderTopProducts('statTopNast', getTopProducts(commandes.filter(c => c.platform === 'nast'), 10), '#1976D2');
+            renderTopProducts('statTopMlp', getTopProducts(commandes.filter(c => c.platform === 'mlp'), 10), '#9C27B0');
+
+            // === Top clients ===
+            const clientMap = {};
+            commandes.forEach(c => {
+                const name = c.client || 'Inconnu';
+                if (!clientMap[name]) clientMap[name] = { count: 0, ca: 0 };
+                clientMap[name].count++;
+                clientMap[name].ca += c.total;
+            });
+            const topClients = Object.entries(clientMap).sort((a, b) => b[1].count - a[1].count).slice(0, 10);
+            document.getElementById('statTopClients').innerHTML = topClients.map((entry, i) => {
+                const [name, data] = entry;
+                return `<div class="stat-product-row">
+                    <div class="stat-product-rank ${i < 3 ? 'top3' : ''}" ${i < 3 ? 'style="background:#E91E63;"' : ''}>${i + 1}</div>
+                    <div class="stat-product-name">${name}</div>
+                    <div style="font-size:11px;color:#888;flex-shrink:0;">${data.ca.toLocaleString('fr-FR', {maximumFractionDigits:0})} €</div>
+                    <div class="stat-product-qty">×${data.count}</div>
+                </div>`;
+            }).join('');
+
+            // Show
+            document.getElementById('statsLoading').style.display = 'none';
+            document.getElementById('statsContent').style.display = 'block';
+        }
 
         // ═══════════════════════════════════════════
         // 📸 PHOTOS COMMANDES
