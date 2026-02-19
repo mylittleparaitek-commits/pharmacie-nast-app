@@ -1057,6 +1057,35 @@
         .menu-card-mlp { border-bottom: 3px solid #9C27B0; }
         .menu-card-settings .menu-card-icon { background: #f5f5f5; }
         .menu-card-settings { border-bottom: 3px solid #78909C; }
+        .menu-card-photos .menu-card-icon { background: #fff3e0; }
+        .menu-card-photos { border-bottom: 3px solid #FF9800; }
+
+        .photo-platform-check {
+            display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+            background: #f8f9fa; border-radius: 10px; cursor: pointer; user-select: none;
+            border: 2px solid transparent; transition: all 0.2s;
+            font-weight: 600; font-size: 14px; color: #333;
+        }
+        .photo-platform-check.selected {
+            background: #fff3e0; border-color: #FF9800; color: #E65100;
+        }
+        .photo-check-box {
+            width: 24px; height: 24px; border-radius: 6px; border: 2px solid #ccc;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; transition: all 0.2s; flex-shrink: 0;
+        }
+        .photo-platform-check.selected .photo-check-box {
+            background: #FF9800; border-color: #FF9800; color: white;
+        }
+        .photo-platform-check.selected .photo-check-box::after { content: '✓'; }
+
+        .photo-history-item {
+            display: flex; align-items: center; gap: 12px; padding: 10px;
+            background: #f8f9fa; border-radius: 10px; margin-bottom: 8px;
+        }
+        .photo-history-thumb {
+            width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
+        }
 
         /* ─── SECTION HEADER (retour + titre + sub-tabs) ─── */
         .section-back {
@@ -1257,6 +1286,11 @@
                     <div class="menu-greeting-sub" id="menuDate"></div>
                 </div>
                 <div class="menu-grid">
+                    <div class="menu-card menu-card-photos" onclick="openSection('photos')">
+                        <div class="menu-card-icon">📸</div>
+                        <div class="menu-card-title">Photos</div>
+                        <div class="menu-card-sub">Preuves commandes</div>
+                    </div>
                     <div class="menu-card menu-card-pharma" onclick="openSection('pharma')">
                         <div class="menu-card-icon">🏥</div>
                         <div class="menu-card-title">Pharmacie</div>
@@ -1279,6 +1313,94 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ═══ SECTION PHOTOS COMMANDES ═══ -->
+            <div class="section-view" id="sectionPhotos">
+                <div class="section-back">
+                    <button class="btn-back" onclick="goHome()">←</button>
+                    <div class="section-title">📸 Photos Commandes</div>
+                </div>
+
+                <div class="section-panel active" id="photos_main" style="padding:16px;">
+
+                    <!-- Numéro de commande -->
+                    <div class="card" style="margin-bottom:16px;">
+                        <div class="card-title"><span class="card-title-dot" style="background:#FF9800;"></span>Nouvelle photo commande</div>
+
+                        <div class="form-group" style="margin-bottom:14px;">
+                            <label class="form-label">N° de commande</label>
+                            <input type="text" class="input" id="photoNumCommande" placeholder="Ex: #1075" style="font-size:18px;font-weight:700;text-align:center;letter-spacing:1px;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:14px;">
+                            <label class="form-label">Date</label>
+                            <input type="text" class="input" id="photoDate" readonly style="background:#f8f9fa;text-align:center;font-weight:600;">
+                        </div>
+
+                        <!-- Cases à cocher plateforme -->
+                        <div class="form-group" style="margin-bottom:14px;">
+                            <label class="form-label">Plateforme</label>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
+                                <label class="photo-platform-check" id="labelDocmorris" onclick="togglePlatform('docmorris')">
+                                    <span class="photo-check-box" id="checkDocmorris"></span>
+                                    <span>DocMorris</span>
+                                </label>
+                                <label class="photo-platform-check" id="labelNast" onclick="togglePlatform('nast')">
+                                    <span class="photo-check-box" id="checkNast"></span>
+                                    <span>NAST.COM</span>
+                                </label>
+                                <label class="photo-platform-check" id="labelMlp" onclick="togglePlatform('mlp')">
+                                    <span class="photo-check-box" id="checkMlp"></span>
+                                    <span>MLP</span>
+                                </label>
+                                <label class="photo-platform-check" id="labelLcdp" onclick="togglePlatform('lcdp')">
+                                    <span class="photo-check-box" id="checkLcdp"></span>
+                                    <span>LCDP</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Commentaire optionnel -->
+                        <div class="form-group" style="margin-bottom:14px;">
+                            <label class="form-label">Commentaire <span style="color:#aaa;font-weight:400;">(optionnel)</span></label>
+                            <textarea class="input" id="photoCommentaire" rows="2" placeholder="Ex: 3 boîtes dans le colis..." style="resize:vertical;min-height:50px;"></textarea>
+                        </div>
+
+                        <!-- Zone photo -->
+                        <div class="form-group" style="margin-bottom:14px;">
+                            <label class="form-label">Photo de la commande</label>
+                            <div id="photoPreviewZone" style="display:none;margin-bottom:10px;position:relative;">
+                                <img id="photoPreviewImg" style="width:100%;border-radius:12px;max-height:300px;object-fit:cover;">
+                                <button onclick="removePhoto()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+                            </div>
+                            <div style="display:flex;gap:10px;">
+                                <button onclick="document.getElementById('photoCaptureInput').click()" style="flex:1;padding:14px;border:2px dashed #FF9800;border-radius:12px;background:#fff8f0;color:#FF9800;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                                    📷 Prendre une photo
+                                </button>
+                                <button onclick="document.getElementById('photoFileInput').click()" style="flex:1;padding:14px;border:2px dashed #ccc;border-radius:12px;background:#fafafa;color:#666;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                                    📁 Importer
+                                </button>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" id="photoCaptureInput" style="display:none" onchange="handlePhotoSelect(event)">
+                            <input type="file" accept="image/*" id="photoFileInput" style="display:none" onchange="handlePhotoSelect(event)">
+                        </div>
+
+                        <!-- Bouton envoyer -->
+                        <button id="btnEnvoyerPhoto" onclick="envoyerPhotoCommande()" style="width:100%;padding:16px;background:linear-gradient(135deg,#FF9800,#F57C00);color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(255,152,0,0.3);">
+                            📸 Envoyer la photo
+                        </button>
+                        <div id="photoUploadStatus" style="display:none;text-align:center;padding:12px;margin-top:10px;border-radius:10px;font-weight:600;font-size:14px;"></div>
+                    </div>
+
+                    <!-- Historique -->
+                    <div class="card">
+                        <div class="card-title"><span class="card-title-dot" style="background:#FF9800;"></span>Historique du jour</div>
+                        <div id="photoHistorique" style="min-height:40px;">
+                            <div class="commande-empty" style="padding:20px;"><div class="commande-empty-icon">📷</div><p>Aucune photo aujourd'hui</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /sectionPhotos -->
 
             <!-- ═══ SECTION PHARMACIE NAST ═══ -->
             <div class="section-view" id="sectionPharma">
@@ -2069,6 +2191,21 @@
                     </div>
                 </div>
 
+                <div class="settings-group">
+                    <div class="settings-item">
+                        <span class="settings-item-label">📸 Webhook Photos Commandes</span>
+                        <span class="webhook-status disconnected" id="webhookPhotoStatus">
+                            <span class="webhook-dot"></span>
+                            Non configuré
+                        </span>
+                    </div>
+                    <div style="padding: 14px 16px;">
+                        <label class="form-label">URL webhook — Upload Photos</label>
+                        <input type="url" class="settings-input" id="webhookPhotoInput" placeholder="https://n8n.example.com/webhook/photo-commande">
+                        <button class="btn-save" id="btnSavePhotoWebhook">Sauvegarder</button>
+                    </div>
+                </div>
+
                 <div class="card-title" style="margin-bottom:10px;"><span class="card-title-dot"></span>Liste des laboratoires</div>
                 <div class="settings-group">
                     <div style="padding: 14px 16px;">
@@ -2125,14 +2262,16 @@
                 'pharma': 'sectionPharma',
                 'nastcom': 'sectionNastcom',
                 'mlp': 'sectionMlp',
-                'settings': 'sectionSettings'
+                'settings': 'sectionSettings',
+                'photos': 'sectionPhotos'
             };
             
             const titles = {
                 'pharma': '🏥 Pharmacie Nast',
                 'nastcom': '🛒 Nast.com',
                 'mlp': '💜 My Little Para',
-                'settings': '⚙️ Réglages'
+                'settings': '⚙️ Réglages',
+                'photos': '📸 Photos'
             };
             
             const el = document.getElementById(sectionMap[section]);
@@ -2143,6 +2282,7 @@
             // Auto-load data
             if (section === 'nastcom') loadCommandes();
             if (section === 'mlp') loadMLP();
+            if (section === 'photos') initPhotoSection();
             if (section === 'pharma') {
                 // Check quel panel est actif
                 const activePanel = document.querySelector('#sectionPharma .section-panel.active');
@@ -4332,6 +4472,13 @@
                 updateSavNastWebhookStatus();
                 showToast('Webhook SAV Nast sauvegardé', 'success');
             });
+            document.getElementById('btnSavePhotoWebhook').addEventListener('click', () => {
+                const url = document.getElementById('webhookPhotoInput').value.trim();
+                setVal('webhookPhotoCommande', url);
+                localStorage.setItem('webhookPhotoCommande', url);
+                updatePhotoWebhookStatus();
+                showToast('Webhook Photos sauvegardé', 'success');
+            });
             document.getElementById('btnSaveLabos').addEventListener('click', () => {
                 state.labos = document.getElementById('labosListInput').value.split('\n').map(l => l.trim()).filter(Boolean).sort();
                 setVal('mlp_labos', JSON.stringify(state.labos));
@@ -4352,15 +4499,30 @@
             document.getElementById('webhookDelpechInput').value = delpechUrl;
             document.getElementById('webhookSavInput').value = savUrl;
             document.getElementById('webhookSavNastInput').value = savNastUrl;
+            const photoUrl = getVal('webhookPhotoCommande') || '';
+            document.getElementById('webhookPhotoInput').value = photoUrl;
+            localStorage.setItem('webhookPhotoCommande', photoUrl);
             updateWebhookStatus();
             updateDelpechWebhookStatus();
             updateSavWebhookStatus();
             updateSavNastWebhookStatus();
+            updatePhotoWebhookStatus();
         }
 
         function updateSavNastWebhookStatus() {
             const s = document.getElementById('webhookSavNastStatus');
             if (getVal('sav_nast_webhook_url')) {
+                s.className = 'webhook-status connected';
+                s.innerHTML = '<span class="webhook-dot"></span>Connecté';
+            } else {
+                s.className = 'webhook-status disconnected';
+                s.innerHTML = '<span class="webhook-dot"></span>Non configuré';
+            }
+        }
+
+        function updatePhotoWebhookStatus() {
+            const s = document.getElementById('webhookPhotoStatus');
+            if (getVal('webhookPhotoCommande')) {
                 s.className = 'webhook-status connected';
                 s.innerHTML = '<span class="webhook-dot"></span>Connecté';
             } else {
@@ -4547,6 +4709,213 @@
         }
 
         init();
+
+        // ═══════════════════════════════════════════
+        // 📸 PHOTOS COMMANDES
+        // ═══════════════════════════════════════════
+
+        const PHOTO_FOLDERS = {
+            docmorris: '1bJ5eOQ3fqv3ux_ePg0yUFoxURXXaQPpF',
+            nast: '1eEsAypU1hZE2m8YTvsZHmkvgiXGNDZsS',
+            mlp: '1wTgsjRgKssS6c_gc-FrJH5A-F9aj2hSI',
+            lcdp: '1xh3M7zwb7xBsGKUxF1xa2moY4aScihGu'
+        };
+
+        let selectedPlatform = null;
+        let photoFile = null;
+        let photoHistory = [];
+
+        function initPhotoSection() {
+            // Date du jour
+            const now = new Date();
+            document.getElementById('photoDate').value = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            // Reset form
+            document.getElementById('photoNumCommande').value = '';
+            document.getElementById('photoCommentaire').value = '';
+            selectedPlatform = null;
+            photoFile = null;
+            document.getElementById('photoPreviewZone').style.display = 'none';
+            document.querySelectorAll('.photo-platform-check').forEach(l => l.classList.remove('selected'));
+            document.getElementById('photoUploadStatus').style.display = 'none';
+            // Charger historique du jour
+            loadPhotoHistory();
+        }
+
+        function togglePlatform(platform) {
+            const label = document.getElementById('label' + platform.charAt(0).toUpperCase() + platform.slice(1));
+            if (selectedPlatform === platform) {
+                selectedPlatform = null;
+                label.classList.remove('selected');
+            } else {
+                document.querySelectorAll('.photo-platform-check').forEach(l => l.classList.remove('selected'));
+                selectedPlatform = platform;
+                label.classList.add('selected');
+            }
+        }
+
+        function handlePhotoSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            photoFile = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('photoPreviewImg').src = e.target.result;
+                document.getElementById('photoPreviewZone').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removePhoto() {
+            photoFile = null;
+            document.getElementById('photoPreviewZone').style.display = 'none';
+            document.getElementById('photoCaptureInput').value = '';
+            document.getElementById('photoFileInput').value = '';
+        }
+
+        async function envoyerPhotoCommande() {
+            const numCommande = document.getElementById('photoNumCommande').value.trim();
+            const commentaire = document.getElementById('photoCommentaire').value.trim();
+            const statusEl = document.getElementById('photoUploadStatus');
+
+            // Validations
+            if (!numCommande) {
+                showPhotoStatus('⚠️ Entrez le numéro de commande', '#fff3e0', '#E65100');
+                document.getElementById('photoNumCommande').focus();
+                return;
+            }
+            if (!selectedPlatform) {
+                showPhotoStatus('⚠️ Sélectionnez une plateforme', '#fff3e0', '#E65100');
+                return;
+            }
+            if (!photoFile) {
+                showPhotoStatus('⚠️ Prenez ou importez une photo', '#fff3e0', '#E65100');
+                return;
+            }
+
+            const btn = document.getElementById('btnEnvoyerPhoto');
+            btn.disabled = true;
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg> Envoi en cours…';
+
+            try {
+                // Convertir la photo en base64
+                const base64 = await fileToBase64(photoFile);
+
+                // Construire le nom du fichier
+                const platformNames = { docmorris: 'DocMorris', nast: 'NAST', mlp: 'MLP', lcdp: 'LCDP' };
+                const dateStr = new Date().toISOString().slice(0, 10);
+                const timeStr = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
+                const fileName = `${numCommande}_${platformNames[selectedPlatform]}_${dateStr}_${timeStr}.jpg`;
+
+                // Envoyer via webhook n8n
+                const webhookUrl = localStorage.getItem('webhookPhotoCommande') || '';
+                if (!webhookUrl) {
+                    showPhotoStatus('⚠️ Configurez le webhook Photos dans Réglages', '#ffebee', '#c62828');
+                    btn.disabled = false;
+                    btn.innerHTML = '📸 Envoyer la photo';
+                    return;
+                }
+
+                const payload = {
+                    numCommande,
+                    platform: selectedPlatform,
+                    folderId: PHOTO_FOLDERS[selectedPlatform],
+                    fileName,
+                    commentaire,
+                    date: new Date().toISOString(),
+                    image: base64
+                };
+
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    showPhotoStatus('✅ Photo envoyée ! → ' + platformNames[selectedPlatform], '#e8f5e9', '#2e7d32');
+
+                    // Ajouter à l'historique local
+                    const historyItem = {
+                        numCommande,
+                        platform: platformNames[selectedPlatform],
+                        commentaire,
+                        time: timeStr,
+                        thumb: document.getElementById('photoPreviewImg').src
+                    };
+                    photoHistory.unshift(historyItem);
+                    savePhotoHistory();
+                    renderPhotoHistory();
+
+                    // Reset le formulaire après 1s
+                    setTimeout(() => {
+                        document.getElementById('photoNumCommande').value = '';
+                        document.getElementById('photoCommentaire').value = '';
+                        removePhoto();
+                        selectedPlatform = null;
+                        document.querySelectorAll('.photo-platform-check').forEach(l => l.classList.remove('selected'));
+                        document.getElementById('photoNumCommande').focus();
+                    }, 1000);
+                } else {
+                    showPhotoStatus('❌ Erreur envoi : ' + response.status, '#ffebee', '#c62828');
+                }
+            } catch (e) {
+                showPhotoStatus('❌ Erreur : ' + e.message, '#ffebee', '#c62828');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '📸 Envoyer la photo';
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function showPhotoStatus(msg, bg, color) {
+            const el = document.getElementById('photoUploadStatus');
+            el.style.display = 'block';
+            el.style.background = bg;
+            el.style.color = color;
+            el.textContent = msg;
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+
+        function loadPhotoHistory() {
+            const today = new Date().toISOString().slice(0, 10);
+            const stored = localStorage.getItem('photoHistory_' + today);
+            photoHistory = stored ? JSON.parse(stored) : [];
+            renderPhotoHistory();
+        }
+
+        function savePhotoHistory() {
+            const today = new Date().toISOString().slice(0, 10);
+            localStorage.setItem('photoHistory_' + today, JSON.stringify(photoHistory));
+        }
+
+        function renderPhotoHistory() {
+            const container = document.getElementById('photoHistorique');
+            if (!photoHistory.length) {
+                container.innerHTML = '<div class="commande-empty" style="padding:20px;"><div class="commande-empty-icon">📷</div><p>Aucune photo aujourd\'hui</p></div>';
+                return;
+            }
+            container.innerHTML = photoHistory.map((h, i) => `
+                <div class="photo-history-item">
+                    <img src="${h.thumb}" class="photo-history-thumb" alt="">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:700;font-size:14px;color:#333;">${h.numCommande}</div>
+                        <div style="font-size:12px;color:#888;margin-top:2px;">
+                            <span style="background:#fff3e0;padding:2px 8px;border-radius:6px;color:#E65100;font-weight:600;">${h.platform}</span>
+                            · ${h.time}
+                        </div>
+                        ${h.commentaire ? `<div style="font-size:12px;color:#666;margin-top:4px;">💬 ${h.commentaire}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
     </script>
 </body>
 </html>
