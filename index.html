@@ -4499,7 +4499,8 @@
             document.getElementById('webhookDelpechInput').value = delpechUrl;
             document.getElementById('webhookSavInput').value = savUrl;
             document.getElementById('webhookSavNastInput').value = savNastUrl;
-            const photoUrl = getVal('webhookPhotoCommande') || '';
+            const photoUrl = getVal('webhookPhotoCommande') || 'https://n8n.srv1086994.hstgr.cloud/webhook/photo-commande';
+            if (!getVal('webhookPhotoCommande')) setVal('webhookPhotoCommande', photoUrl);
             document.getElementById('webhookPhotoInput').value = photoUrl;
             localStorage.setItem('webhookPhotoCommande', photoUrl);
             updateWebhookStatus();
