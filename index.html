@@ -1366,13 +1366,16 @@
                             <textarea class="input" id="photoCommentaire" rows="2" placeholder="Ex: 3 boîtes dans le colis..." style="resize:vertical;min-height:50px;"></textarea>
                         </div>
 
-                        <!-- Zone photo -->
+                        <!-- Zone photos (multi) -->
                         <div class="form-group" style="margin-bottom:14px;">
-                            <label class="form-label">Photo de la commande</label>
-                            <div id="photoPreviewZone" style="display:none;margin-bottom:10px;position:relative;">
-                                <img id="photoPreviewImg" style="width:100%;border-radius:12px;max-height:300px;object-fit:cover;">
-                                <button onclick="removePhoto()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+                            <label class="form-label">Photos de la commande <span id="photoCountBadge" style="background:#FF9800;color:white;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:700;display:none;">0</span></label>
+                            
+                            <!-- Galerie des photos prises -->
+                            <div id="photoGallery" style="display:none;margin-bottom:12px;">
+                                <div id="photoThumbs" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
                             </div>
+
+                            <!-- Boutons ajouter -->
                             <div style="display:flex;gap:10px;">
                                 <button onclick="document.getElementById('photoCaptureInput').click()" style="flex:1;padding:14px;border:2px dashed #FF9800;border-radius:12px;background:#fff8f0;color:#FF9800;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
                                     📷 Prendre une photo
@@ -1382,12 +1385,12 @@
                                 </button>
                             </div>
                             <input type="file" accept="image/*" capture="environment" id="photoCaptureInput" style="display:none" onchange="handlePhotoSelect(event)">
-                            <input type="file" accept="image/*" id="photoFileInput" style="display:none" onchange="handlePhotoSelect(event)">
+                            <input type="file" accept="image/*" multiple id="photoFileInput" style="display:none" onchange="handlePhotoSelect(event)">
                         </div>
 
                         <!-- Bouton envoyer -->
                         <button id="btnEnvoyerPhoto" onclick="envoyerPhotoCommande()" style="width:100%;padding:16px;background:linear-gradient(135deg,#FF9800,#F57C00);color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(255,152,0,0.3);">
-                            📸 Envoyer la photo
+                            📸 Envoyer les photos
                         </button>
                         <div id="photoUploadStatus" style="display:none;text-align:center;padding:12px;margin-top:10px;border-radius:10px;font-weight:600;font-size:14px;"></div>
                     </div>
@@ -4723,22 +4726,19 @@
         };
 
         let selectedPlatform = null;
-        let photoFile = null;
+        let photoFiles = []; // tableau de {file, dataUrl}
         let photoHistory = [];
 
         function initPhotoSection() {
-            // Date du jour
             const now = new Date();
             document.getElementById('photoDate').value = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-            // Reset form
             document.getElementById('photoNumCommande').value = '';
             document.getElementById('photoCommentaire').value = '';
             selectedPlatform = null;
-            photoFile = null;
-            document.getElementById('photoPreviewZone').style.display = 'none';
+            photoFiles = [];
+            renderPhotoGallery();
             document.querySelectorAll('.photo-platform-check').forEach(l => l.classList.remove('selected'));
             document.getElementById('photoUploadStatus').style.display = 'none';
-            // Charger historique du jour
             loadPhotoHistory();
         }
 
@@ -4755,30 +4755,53 @@
         }
 
         function handlePhotoSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            photoFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('photoPreviewImg').src = e.target.result;
-                document.getElementById('photoPreviewZone').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    photoFiles.push({ file, dataUrl: e.target.result });
+                    renderPhotoGallery();
+                };
+                reader.readAsDataURL(file);
+            });
+            // Reset input pour pouvoir reprendre la même photo
+            event.target.value = '';
         }
 
-        function removePhoto() {
-            photoFile = null;
-            document.getElementById('photoPreviewZone').style.display = 'none';
-            document.getElementById('photoCaptureInput').value = '';
-            document.getElementById('photoFileInput').value = '';
+        function removePhotoCmd(index) {
+            photoFiles.splice(index, 1);
+            renderPhotoGallery();
+        }
+
+        function renderPhotoGallery() {
+            const gallery = document.getElementById('photoGallery');
+            const thumbs = document.getElementById('photoThumbs');
+            const badge = document.getElementById('photoCountBadge');
+            
+            if (!photoFiles.length) {
+                gallery.style.display = 'none';
+                badge.style.display = 'none';
+                return;
+            }
+            
+            gallery.style.display = 'block';
+            badge.style.display = 'inline';
+            badge.textContent = photoFiles.length;
+            
+            thumbs.innerHTML = photoFiles.map((p, i) => `
+                <div style="position:relative;width:90px;height:90px;flex-shrink:0;">
+                    <img src="${p.dataUrl}" style="width:90px;height:90px;border-radius:10px;object-fit:cover;border:2px solid #FF9800;">
+                    <button onclick="removePhotoCmd(${i})" style="position:absolute;top:-6px;right:-6px;background:#f44336;color:white;border:none;border-radius:50%;width:24px;height:24px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.3);">×</button>
+                    <div style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.6);color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;">${i + 1}</div>
+                </div>
+            `).join('');
         }
 
         async function envoyerPhotoCommande() {
             const numCommande = document.getElementById('photoNumCommande').value.trim();
             const commentaire = document.getElementById('photoCommentaire').value.trim();
-            const statusEl = document.getElementById('photoUploadStatus');
 
-            // Validations
             if (!numCommande) {
                 showPhotoStatus('⚠️ Entrez le numéro de commande', '#fff3e0', '#E65100');
                 document.getElementById('photoNumCommande').focus();
@@ -4788,83 +4811,95 @@
                 showPhotoStatus('⚠️ Sélectionnez une plateforme', '#fff3e0', '#E65100');
                 return;
             }
-            if (!photoFile) {
-                showPhotoStatus('⚠️ Prenez ou importez une photo', '#fff3e0', '#E65100');
+            if (!photoFiles.length) {
+                showPhotoStatus('⚠️ Prenez ou importez au moins une photo', '#fff3e0', '#E65100');
                 return;
             }
 
             const btn = document.getElementById('btnEnvoyerPhoto');
             btn.disabled = true;
-            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg> Envoi en cours…';
-
-            try {
-                // Convertir la photo en base64
-                const base64 = await fileToBase64(photoFile);
-
-                // Construire le nom du fichier
-                const platformNames = { docmorris: 'DocMorris', nast: 'NAST', mlp: 'MLP', lcdp: 'LCDP' };
-                const dateStr = new Date().toISOString().slice(0, 10);
-                const timeStr = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
-                const fileName = `${numCommande}_${platformNames[selectedPlatform]}_${dateStr}_${timeStr}.jpg`;
-
-                // Envoyer via webhook n8n
-                const webhookUrl = localStorage.getItem('webhookPhotoCommande') || '';
-                if (!webhookUrl) {
-                    showPhotoStatus('⚠️ Configurez le webhook Photos dans Réglages', '#ffebee', '#c62828');
-                    btn.disabled = false;
-                    btn.innerHTML = '📸 Envoyer la photo';
-                    return;
-                }
-
-                const payload = {
-                    numCommande,
-                    platform: selectedPlatform,
-                    folderId: PHOTO_FOLDERS[selectedPlatform],
-                    fileName,
-                    commentaire,
-                    date: new Date().toISOString(),
-                    image: base64
-                };
-
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    showPhotoStatus('✅ Photo envoyée ! → ' + platformNames[selectedPlatform], '#e8f5e9', '#2e7d32');
-
-                    // Ajouter à l'historique local
-                    const historyItem = {
-                        numCommande,
-                        platform: platformNames[selectedPlatform],
-                        commentaire,
-                        time: timeStr,
-                        thumb: document.getElementById('photoPreviewImg').src
-                    };
-                    photoHistory.unshift(historyItem);
-                    savePhotoHistory();
-                    renderPhotoHistory();
-
-                    // Reset le formulaire après 1s
-                    setTimeout(() => {
-                        document.getElementById('photoNumCommande').value = '';
-                        document.getElementById('photoCommentaire').value = '';
-                        removePhoto();
-                        selectedPlatform = null;
-                        document.querySelectorAll('.photo-platform-check').forEach(l => l.classList.remove('selected'));
-                        document.getElementById('photoNumCommande').focus();
-                    }, 1000);
-                } else {
-                    showPhotoStatus('❌ Erreur envoi : ' + response.status, '#ffebee', '#c62828');
-                }
-            } catch (e) {
-                showPhotoStatus('❌ Erreur : ' + e.message, '#ffebee', '#c62828');
+            const totalPhotos = photoFiles.length;
+            
+            const platformNames = { docmorris: 'DocMorris', nast: 'NAST', mlp: 'MLP', lcdp: 'LCDP' };
+            const dateStr = new Date().toISOString().slice(0, 10);
+            const timeStr = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
+            const webhookUrl = localStorage.getItem('webhookPhotoCommande') || '';
+            
+            if (!webhookUrl) {
+                showPhotoStatus('⚠️ Configurez le webhook Photos dans Réglages', '#ffebee', '#c62828');
+                btn.disabled = false;
+                return;
             }
 
+            let sent = 0;
+            let errors = 0;
+            let firstThumb = photoFiles[0]?.dataUrl || '';
+
+            for (let i = 0; i < photoFiles.length; i++) {
+                btn.innerHTML = `⏳ Envoi ${i + 1}/${totalPhotos}…`;
+                
+                try {
+                    const base64 = await fileToBase64(photoFiles[i].file);
+                    const suffix = totalPhotos > 1 ? `_${i + 1}de${totalPhotos}` : '';
+                    const fileName = `${numCommande}_${platformNames[selectedPlatform]}_${dateStr}_${timeStr}${suffix}.jpg`;
+
+                    const payload = {
+                        numCommande,
+                        platform: selectedPlatform,
+                        folderId: PHOTO_FOLDERS[selectedPlatform],
+                        fileName,
+                        commentaire: i === 0 ? commentaire : '',
+                        date: new Date().toISOString(),
+                        image: base64,
+                        photoIndex: i + 1,
+                        totalPhotos
+                    };
+
+                    const response = await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) sent++;
+                    else errors++;
+                } catch (e) {
+                    errors++;
+                }
+            }
+
+            if (errors === 0) {
+                showPhotoStatus(`✅ ${sent} photo${sent > 1 ? 's' : ''} envoyée${sent > 1 ? 's' : ''} → ${platformNames[selectedPlatform]}`, '#e8f5e9', '#2e7d32');
+            } else {
+                showPhotoStatus(`⚠️ ${sent} envoyée${sent > 1 ? 's' : ''}, ${errors} erreur${errors > 1 ? 's' : ''}`, '#fff3e0', '#E65100');
+            }
+
+            // Historique
+            const historyItem = {
+                numCommande,
+                platform: platformNames[selectedPlatform],
+                commentaire,
+                time: timeStr,
+                thumb: firstThumb,
+                count: totalPhotos
+            };
+            photoHistory.unshift(historyItem);
+            savePhotoHistory();
+            renderPhotoHistory();
+
+            // Reset après 1s
+            setTimeout(() => {
+                document.getElementById('photoNumCommande').value = '';
+                document.getElementById('photoCommentaire').value = '';
+                photoFiles = [];
+                renderPhotoGallery();
+                selectedPlatform = null;
+                document.querySelectorAll('.photo-platform-check').forEach(l => l.classList.remove('selected'));
+                document.getElementById('photoNumCommande').focus();
+            }, 1000);
+
             btn.disabled = false;
-            btn.innerHTML = '📸 Envoyer la photo';
+            btn.innerHTML = '📸 Envoyer les photos';
         }
 
         function fileToBase64(file) {
@@ -4907,15 +4942,14 @@
                 <div class="photo-history-item">
                     <img src="${h.thumb}" class="photo-history-thumb" alt="">
                     <div style="flex:1;min-width:0;">
-                        <div style="font-weight:700;font-size:14px;color:#333;">${h.numCommande}</div>
+                        <div style="font-weight:700;font-size:14px;color:#333;">${h.numCommande} ${h.count > 1 ? `<span style="font-size:11px;color:#FF9800;font-weight:600;">(${h.count} photos)</span>` : ''}</div>
                         <div style="font-size:12px;color:#888;margin-top:2px;">
                             <span style="background:#fff3e0;padding:2px 8px;border-radius:6px;color:#E65100;font-weight:600;">${h.platform}</span>
                             · ${h.time}
                         </div>
                         ${h.commentaire ? `<div style="font-size:12px;color:#666;margin-top:4px;">💬 ${h.commentaire}</div>` : ''}
                     </div>
-                </div>
-            `).join('');
+                </div>`).join('');
         }
     </script>
 </body>
