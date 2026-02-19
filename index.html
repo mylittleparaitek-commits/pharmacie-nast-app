@@ -868,11 +868,11 @@
         .sav-list-view { display: block; }
         .sav-list-view.hidden { display: none; }
         .sav-detail-view { display: none; }
-        .sav-detail-view.active { display: flex; flex-direction: column; height: 100%; }
+        .sav-detail-view.active { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
 
-        .sav-fil { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+        .sav-fil { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; flex: 1; overflow-y: auto; min-height: 0; padding: 4px; }
         .sav-msg {
-            max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.5;
+            max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;
         }
         .sav-msg-client { background: var(--bg-secondary); color: var(--text-primary); align-self: flex-start; border-bottom-left-radius: 4px; }
         .sav-msg-nous { background: var(--nast-pink); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
