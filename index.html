@@ -5527,6 +5527,9 @@
                             if (!tgInstructions[numCmd]) tgInstructions[numCmd] = [];
                             tgInstructions[numCmd].push({ message, reponse, statut, type, id });
                         } else if (type === 'tache') {
+                            // Vérifier si déjà marqué fait localement
+                            const localState = ecranState['tg_' + id];
+                            if (localState && localState.status === 'expedie') continue;
                             // Tâche indépendante = affiché en tête d'écran
                             const dateTs = new Date(r[1]?.trim()).getTime() || Date.now();
                             all.push({
@@ -5553,15 +5556,21 @@
                     const numClean = c.num?.replace('#', '').replace('📋 TÂCHE', '').trim();
                     if (numClean && tgInstructions[numClean]) {
                         const instructions = tgInstructions[numClean];
-                        // Prendre la dernière instruction/réponse
-                        const last = instructions[instructions.length - 1];
-                        if (last.type === 'probleme') {
-                            c.tgReponse = last.reponse;
-                        } else if (last.type === 'instruction') {
-                            c.tgReponse = last.message;
+                        // Ignorer les instructions marquées fait localement
+                        const active = instructions.filter(instr => {
+                            const ls = ecranState['tg_' + instr.id];
+                            return !(ls && ls.status === 'expedie');
+                        });
+                        if (active.length) {
+                            const last = active[active.length - 1];
+                            if (last.type === 'probleme') {
+                                c.tgReponse = last.reponse;
+                            } else if (last.type === 'instruction') {
+                                c.tgReponse = last.message;
+                            }
+                            c.tgStatut = last.statut;
+                            c.tgId = last.id;
                         }
-                        c.tgStatut = last.statut;
-                        c.tgId = last.id;
                     }
                 });
 
