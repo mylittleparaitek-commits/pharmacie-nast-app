@@ -5439,25 +5439,32 @@
 
         async function loadEcranData() {
             try {
-                // Charger commandes + tâches manuelles Telegram
-                const TACHES_CSV = 'https://docs.google.com/spreadsheets/d/e/' + (localStorage.getItem('ecranTachesSheetId') || 'PLACEHOLDER') + '/pub?gid=0&single=true&output=csv';
-                
-                const fetches = [
-                    fetch(COMMANDES_CSV + '&t=' + Date.now()),
-                    fetch(MLP_CSV + '&t=' + Date.now())
-                ];
-                // Tenter de charger les tâches manuelles (sans bloquer si pas configuré)
+                // Charger tâches Telegram via webhook n8n (temps réel, pas de cache)
                 let tachesRows = [];
                 try {
-                    const tachesSheetCsv = localStorage.getItem('ecranTachesCsvUrl');
-                    if (tachesSheetCsv) {
-                        const tRes = await fetch(tachesSheetCsv + '&t=' + Date.now());
-                        const tText = await tRes.text();
-                        tachesRows = parseCSV(tText);
+                    const TACHES_WEBHOOK = 'https://n8n.srv1086994.hstgr.cloud/webhook/ecran-taches';
+                    const tRes = await fetch(TACHES_WEBHOOK + '?t=' + Date.now());
+                    const tJson = await tRes.json();
+                    // Convertir le JSON en format compatible avec le parser
+                    // Le webhook retourne [{id, date, type, numCommande, message, reponse, statut}, ...]
+                    if (Array.isArray(tJson) && tJson.length > 0) {
+                        // Créer un tableau rows compatible parseCSV : row[0]=id, row[1]=date, etc.
+                        const header = ['id', 'date', 'type', 'numCommande', 'message', 'reponse', 'statut'];
+                        tachesRows = [header];
+                        tJson.forEach(row => {
+                            tachesRows.push([
+                                row.id || '', row.date || '', row.type || '',
+                                row.numCommande || '', row.message || '',
+                                row.reponse || '', row.statut || ''
+                            ]);
+                        });
                     }
-                } catch(e) {}
+                } catch(e) { console.log('Tâches webhook error:', e); }
 
-                const [nastRes, mlpRes] = await Promise.all(fetches);
+                const [nastRes, mlpRes] = await Promise.all([
+                    fetch(COMMANDES_CSV + '&t=' + Date.now()),
+                    fetch(MLP_CSV + '&t=' + Date.now())
+                ]);
                 const nastText = await nastRes.text();
                 const mlpText = await mlpRes.text();
                 const nastRows = parseCSV(nastText);
