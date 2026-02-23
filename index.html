@@ -5507,7 +5507,10 @@
 
                 // Parser les tâches/problèmes du Sheet Telegram
                 // Colonnes : A:id B:date C:type D:numCommande E:message F:reponse G:statut
-                const tgReponses = {}; // map numCommande → reponse (pour enrichir les commandes)
+                // type=probleme + numCommande → instruction rattachée à une commande
+                // type=instruction + numCommande → instruction rattachée (envoyée depuis Telegram "1234 : texte")
+                // type=tache → tâche indépendante affichée en tête d'écran
+                const tgInstructions = {}; // map numCommande → { message, reponse }
                 if (tachesRows.length > 1) {
                     for (let i = 1; i < tachesRows.length; i++) {
                         const r = tachesRows[i];
@@ -5519,11 +5522,12 @@
                         const message = r[4]?.trim() || '';
                         const reponse = r[5]?.trim() || '';
 
-                        if (type === 'probleme' && numCmd) {
-                            // Rattacher la réponse à la commande existante
-                            tgReponses[numCmd] = { reponse, message, statut };
+                        if ((type === 'probleme' || type === 'instruction') && numCmd) {
+                            // Rattacher à la commande existante
+                            if (!tgInstructions[numCmd]) tgInstructions[numCmd] = [];
+                            tgInstructions[numCmd].push({ message, reponse, statut, type, id });
                         } else if (type === 'tache') {
-                            // Tâche manuelle = nouvel élément sur l'écran
+                            // Tâche indépendante = affiché en tête d'écran
                             const dateTs = new Date(r[1]?.trim()).getTime() || Date.now();
                             all.push({
                                 key: 'tg_' + id,
@@ -5535,7 +5539,8 @@
                                 produits: [],
                                 nbProduits: 0,
                                 isTache: true,
-                                tgReponse: reponse,
+                                tgId: id,
+                                tgReponse: '',
                                 tgStatut: statut,
                                 tgNumCommande: ''
                             });
@@ -5543,12 +5548,20 @@
                     }
                 }
 
-                // Enrichir les commandes avec les réponses du Sheet
+                // Enrichir les commandes avec les instructions du Sheet
                 all.forEach(c => {
-                    const numClean = c.num?.replace('#', '').trim();
-                    if (numClean && tgReponses[numClean]) {
-                        c.tgReponse = tgReponses[numClean].reponse;
-                        c.tgStatut = tgReponses[numClean].statut;
+                    const numClean = c.num?.replace('#', '').replace('📋 TÂCHE', '').trim();
+                    if (numClean && tgInstructions[numClean]) {
+                        const instructions = tgInstructions[numClean];
+                        // Prendre la dernière instruction/réponse
+                        const last = instructions[instructions.length - 1];
+                        if (last.type === 'probleme') {
+                            c.tgReponse = last.reponse;
+                        } else if (last.type === 'instruction') {
+                            c.tgReponse = last.message;
+                        }
+                        c.tgStatut = last.statut;
+                        c.tgId = last.id;
                     }
                 });
 
@@ -5696,6 +5709,18 @@
             if (!ecranState[key]) return;
             ecranState[key].status = 'expedie';
             saveEcranState();
+
+            // Si c'est une tâche Telegram ou un problème avec tgId → mettre à jour le Sheet
+            const cmd = ecranData.find(c => c.key === key);
+            if (cmd && (cmd.isTache || cmd.tgId)) {
+                const tgId = cmd.tgId || key.replace('tg_', '');
+                fetch('https://n8n.srv1086994.hstgr.cloud/webhook/ecran-fait', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: tgId, statut: 'fait' })
+                }).catch(e => console.log('Webhook fait error:', e));
+            }
+
             // Animation de disparition
             const el = document.getElementById('ecran_' + key);
             if (el) {
