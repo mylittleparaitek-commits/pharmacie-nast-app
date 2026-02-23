@@ -2449,6 +2449,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
                 <div class="ecran-clock" id="ecranClock">00:00</div>
+                <button class="ecran-sound-btn" onclick="loadEcranData()" title="Rafraîchir">🔄</button>
                 <button class="ecran-sound-btn" id="ecranSoundBtn" onclick="toggleEcranSound()">🔔</button>
                 <div class="ecran-count" id="ecranCount">0</div>
             </div>
@@ -5652,7 +5653,7 @@
                     conversationHtml += `<div style="color:#f44336;font-size:14px;font-weight:800;margin-top:8px;padding:10px 12px;background:#2a0000;border-radius:8px;border-left:4px solid #f44336;">👷 ÉQUIPE : ${st.comment}</div>`;
                 }
                 if (c.tgReponse) {
-                    conversationHtml += `<div style="color:#000;font-size:16px;font-weight:900;margin-top:8px;padding:12px 14px;background:#26A5E4;border-radius:8px;border-left:4px solid #fff;letter-spacing:0.5px;">👔 PATRON : ${c.tgReponse}</div>`;
+                    conversationHtml += `<div style="color:#000;font-size:16px;font-weight:900;margin-top:8px;padding:12px 14px;background:#26A5E4;border-radius:8px;border-left:4px solid #fff;letter-spacing:0.5px;">📌 À FAIRE : ${c.tgReponse}</div>`;
                 } else if (st.status === 'probleme' && !c.isTache) {
                     conversationHtml += `<div style="color:#666;font-size:12px;margin-top:6px;font-style:italic;animation:blink 2s infinite;">⏳ En attente de réponse du patron…</div>`;
                 }
@@ -5662,7 +5663,7 @@
                         <div style="display:flex;align-items:center;gap:10px;">
                             <div class="ecran-cmd-num">${c.isTache ? '📋' : '#'}${c.num.replace('#','').replace('📋 ','')}</div>
                             <span class="ecran-cmd-platform ${platClass[c.platform] || ''}">${platNames[c.platform] || c.platform}</span>
-                            ${c.tgReponse ? '<span style="background:#26A5E4;color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:800;">💬 RÉPONDU</span>' : ''}
+                            ${c.tgReponse ? '<span style="background:#26A5E4;color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:800;">📌 INSTRUCTION</span>' : ''}
                         </div>
                         <div class="ecran-cmd-timer" id="timer_${c.key}" data-orderts="${c.dateTs}">--:--</div>
                     </div>
