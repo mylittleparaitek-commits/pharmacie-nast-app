@@ -2506,6 +2506,8 @@
             if (el) el.classList.add('active');
             document.getElementById('headerTitle').textContent = titles[section] || '';
             currentSection = section;
+            // Persister la section pour survivre au refresh
+            localStorage.setItem('currentSection', section);
             
             // Auto-load data
             if (section === 'nastcom') loadCommandes();
@@ -2525,6 +2527,7 @@
             document.getElementById('menuHome').classList.remove('hidden');
             document.getElementById('headerTitle').textContent = 'Accueil';
             currentSection = null;
+            localStorage.removeItem('currentSection');
         }
 
         function switchSection(section, panel, btn, color) {
@@ -2585,6 +2588,11 @@
             setupRuptures();
             setupPhotosTg();
             setupPerimes();
+            // Restaurer la section si on était quelque part avant le refresh
+            const savedSection = localStorage.getItem('currentSection');
+            if (savedSection) {
+                openSection(savedSection);
+            }
         }
 
         function updateDate() {
@@ -5426,8 +5434,8 @@
         function closeEcranMode() {
             document.getElementById('ecranOverlay').classList.remove('active');
             document.body.style.overflow = '';
-            if (ecranInterval) clearInterval(ecranInterval);
-            if (ecranTimerInterval) clearInterval(ecranTimerInterval);
+            if (ecranInterval) { clearInterval(ecranInterval); ecranInterval = null; }
+            if (ecranTimerInterval) { clearInterval(ecranTimerInterval); ecranTimerInterval = null; }
             goHome();
         }
 
