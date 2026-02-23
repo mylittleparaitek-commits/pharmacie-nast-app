@@ -5457,7 +5457,6 @@
                 } catch(e) {}
 
                 const [nastRes, mlpRes] = await Promise.all(fetches);
-                ]);
                 const nastText = await nastRes.text();
                 const mlpText = await mlpRes.text();
                 const nastRows = parseCSV(nastText);
