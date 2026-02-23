@@ -5439,26 +5439,12 @@
 
         async function loadEcranData() {
             try {
-                // Charger tâches Telegram via webhook n8n (temps réel, pas de cache)
+                // Charger tâches Telegram via webhook n8n (temps réel)
                 let tachesRows = [];
                 try {
-                    const TACHES_WEBHOOK = 'https://n8n.srv1086994.hstgr.cloud/webhook/ecran-taches';
-                    const tRes = await fetch(TACHES_WEBHOOK + '?t=' + Date.now());
+                    const tRes = await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/ecran-taches?t=' + Date.now());
                     const tJson = await tRes.json();
-                    // Convertir le JSON en format compatible avec le parser
-                    // Le webhook retourne [{id, date, type, numCommande, message, reponse, statut}, ...]
-                    if (Array.isArray(tJson) && tJson.length > 0) {
-                        // Créer un tableau rows compatible parseCSV : row[0]=id, row[1]=date, etc.
-                        const header = ['id', 'date', 'type', 'numCommande', 'message', 'reponse', 'statut'];
-                        tachesRows = [header];
-                        tJson.forEach(row => {
-                            tachesRows.push([
-                                row.id || '', row.date || '', row.type || '',
-                                row.numCommande || '', row.message || '',
-                                row.reponse || '', row.statut || ''
-                            ]);
-                        });
-                    }
+                    if (Array.isArray(tJson)) tachesRows = tJson;
                 } catch(e) { console.log('Tâches webhook error:', e); }
 
                 const [nastRes, mlpRes] = await Promise.all([
@@ -5512,49 +5498,42 @@
 
                 const all = [...parseForEcran(nastRows, 'nast'), ...parseForEcran(mlpRows, 'mlp')];
 
-                // Parser les tâches/problèmes du Sheet Telegram
-                // Colonnes : A:id B:date C:type D:numCommande E:message F:reponse G:statut
-                // type=probleme + numCommande → instruction rattachée à une commande
-                // type=instruction + numCommande → instruction rattachée (envoyée depuis Telegram "1234 : texte")
-                // type=tache → tâche indépendante affichée en tête d'écran
-                const tgInstructions = {}; // map numCommande → { message, reponse }
-                if (tachesRows.length > 1) {
-                    for (let i = 1; i < tachesRows.length; i++) {
-                        const r = tachesRows[i];
-                        const id = r[0]?.trim();
-                        const statut = (r[6] || '').trim().toLowerCase();
-                        if (!id || statut === 'fait') continue;
-                        const type = (r[2] || '').trim().toLowerCase();
-                        const numCmd = r[3]?.trim() || '';
-                        const message = r[4]?.trim() || '';
-                        const reponse = r[5]?.trim() || '';
+                // Parser les tâches/instructions du Sheet Telegram (format JSON du webhook)
+                const tgInstructions = {};
+                for (let i = 0; i < tachesRows.length; i++) {
+                    const r = tachesRows[i];
+                    if (!r || !r.id) continue;
+                    const id = String(r.id).trim();
+                    const statut = String(r.statut || '').trim().toLowerCase();
+                    if (statut === 'fait') continue;
+                    const type = String(r.type || '').trim().toLowerCase();
+                    const numCmd = String(r.numCommande || '').trim();
+                    const message = String(r.message || '').trim();
+                    const reponse = String(r.reponse || '').trim();
+                    const dateStr = String(r.date || '');
 
-                        if ((type === 'probleme' || type === 'instruction') && numCmd) {
-                            // Rattacher à la commande existante
-                            if (!tgInstructions[numCmd]) tgInstructions[numCmd] = [];
-                            tgInstructions[numCmd].push({ message, reponse, statut, type, id });
-                        } else if (type === 'tache') {
-                            // Vérifier si déjà marqué fait localement
-                            const localState = ecranState['tg_' + id];
-                            if (localState && localState.status === 'expedie') continue;
-                            // Tâche indépendante = affiché en tête d'écran
-                            const dateTs = new Date(r[1]?.trim()).getTime() || Date.now();
-                            all.push({
-                                key: 'tg_' + id,
-                                num: '📋 TÂCHE',
-                                date: r[1]?.trim(),
-                                dateTs,
-                                client: message,
-                                platform: 'telegram',
-                                produits: [],
-                                nbProduits: 0,
-                                isTache: true,
-                                tgId: id,
-                                tgReponse: '',
-                                tgStatut: statut,
-                                tgNumCommande: ''
-                            });
-                        }
+                    if ((type === 'probleme' || type === 'instruction') && numCmd) {
+                        if (!tgInstructions[numCmd]) tgInstructions[numCmd] = [];
+                        tgInstructions[numCmd].push({ message, reponse, statut, type, id });
+                    } else if (type === 'tache') {
+                        const localState = ecranState['tg_' + id];
+                        if (localState && localState.status === 'expedie') continue;
+                        const dateTs = new Date(dateStr).getTime() || Date.now();
+                        all.push({
+                            key: 'tg_' + id,
+                            num: '📋 TÂCHE',
+                            date: dateStr,
+                            dateTs,
+                            client: message,
+                            platform: 'telegram',
+                            produits: [],
+                            nbProduits: 0,
+                            isTache: true,
+                            tgId: id,
+                            tgReponse: '',
+                            tgStatut: statut,
+                            tgNumCommande: ''
+                        });
                     }
                 }
 
