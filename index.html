@@ -1087,6 +1087,12 @@
         .ecran-cmd.en-cours { background: #1a1700; border-color: #FF9800; }
         .ecran-cmd.probleme { background: #1a0000; border-color: #f44336; }
         .ecran-cmd.expedie { opacity: 0.15; transform: scale(0.98); }
+        .ecran-cmd.urgence-rouge { border-color: #ff1744; background: #1a0000; }
+        .ecran-cmd.urgence-orange { border-color: #FF9800; }
+        .ecran-cmd.urgence-jaune { border-color: #FFEB3B30; }
+        .ecran-cmd.urgence-rouge .ecran-cmd-num { color: #ff1744; }
+        .ecran-cmd.urgence-rouge::before { content: '🔥 URGENT'; position: absolute; top: -10px; right: 12px; background: #ff1744; color: #fff; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 4px; letter-spacing: 1px; }
+        .ecran-cmd { position: relative; }
         .ecran-cmd-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
         .ecran-cmd-num { color: #fff; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
         .ecran-cmd-platform {
@@ -1095,14 +1101,15 @@
         }
         .ecran-plat-docmorris { background: #0D47A1; color: #fff; }
         .ecran-plat-nast { background: #1976D2; color: #fff; }
-        .ecran-plat-mlp { background: #9C27B0; color: #fff; }
+        .ecran-plat-mlp { background: #E91E63; color: #fff; }
         .ecran-plat-lcdp { background: #FF6F00; color: #fff; }
         .ecran-cmd-client { color: #aaa; font-size: 14px; font-weight: 600; }
         .ecran-cmd-produits { color: #666; font-size: 12px; margin-top: 4px; }
         .ecran-cmd-timer { font-family: monospace; font-weight: 900; font-size: 16px; }
-        .ecran-cmd-timer.warn { color: #FF9800; }
-        .ecran-cmd-timer.danger { color: #f44336; animation: blink 1s infinite; }
-        .ecran-cmd-timer.ok { color: #4caf50; }
+        .ecran-cmd-timer.vert { color: #4caf50; }
+        .ecran-cmd-timer.jaune { color: #FFEB3B; }
+        .ecran-cmd-timer.orange { color: #FF9800; animation: blink 2s infinite; }
+        .ecran-cmd-timer.rouge { color: #ff1744; animation: blink 0.7s infinite; font-size: 18px; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
         .ecran-cmd-actions { display: flex; gap: 8px; margin-top: 10px; }
         .ecran-btn {
@@ -5429,15 +5436,22 @@
                         if (num) {
                             lastNum = num;
                             const statut = (r[IDX.statut] || '').trim();
+                            // Skip commandes déjà expédiées dans le sheet
+                            const statutLow = statut.toLowerCase();
+                            if (STATUTS_TRAITES.some(s => statutLow.includes(s))) { lastNum = null; continue; }
                             // Déterminer la plateforme
                             let platform = source;
                             if (source === 'nast') {
-                                if (statut.toLowerCase().includes('docmorris')) platform = 'docmorris';
+                                if (statutLow.includes('docmorris')) platform = 'docmorris';
                                 else platform = 'nast';
                             }
+                            // Parser la date de commande
+                            const dateCmd = new Date(r[IDX.date]);
+                            const dateTs = isNaN(dateCmd.getTime()) ? Date.now() : dateCmd.getTime();
                             map[source + '_' + num] = {
                                 key: source + '_' + num,
-                                num, date: r[IDX.date], client: r[IDX.client]?.trim() || '—',
+                                num, date: r[IDX.date], dateTs,
+                                client: r[IDX.client]?.trim() || '—',
                                 platform, produits: [], nbProduits: 0
                             };
                         }
@@ -5460,7 +5474,7 @@
                     newKeys.forEach(k => {
                         if (!ecranPrevKeys.has(k) && !ecranState[k]) {
                             hasNew = true;
-                            ecranState[k] = { status: 'attente', comment: '', takenAt: null, arrivedAt: Date.now() };
+                            ecranState[k] = { status: 'attente', comment: '' };
                         }
                     });
                     if (hasNew) {
@@ -5468,23 +5482,29 @@
                         saveEcranState();
                     }
                 } else {
-                    // Premier chargement — initialiser les états manquants
                     all.forEach(c => {
                         if (!ecranState[c.key]) {
-                            ecranState[c.key] = { status: 'attente', comment: '', takenAt: null, arrivedAt: Date.now() };
+                            ecranState[c.key] = { status: 'attente', comment: '' };
                         }
                     });
                     saveEcranState();
                 }
                 ecranPrevKeys = newKeys;
 
-                ecranData = all.sort((a, b) => {
-                    // Trier : attente en premier, puis en_cours, puis problème, expédié à la fin
-                    const order = { attente: 0, en_cours: 1, probleme: 2, expedie: 3 };
-                    const sa = ecranState[a.key]?.status || 'attente';
-                    const sb = ecranState[b.key]?.status || 'attente';
-                    return (order[sa] || 0) - (order[sb] || 0);
-                });
+                // Filtrer les expédiés et trier par priorité (plus ancien = plus urgent = en haut)
+                ecranData = all
+                    .filter(c => {
+                        const st = ecranState[c.key]?.status || 'attente';
+                        return st !== 'expedie';
+                    })
+                    .sort((a, b) => {
+                        // Problèmes en premier, puis par ancienneté (plus vieux en haut)
+                        const sa = ecranState[a.key]?.status || 'attente';
+                        const sb = ecranState[b.key]?.status || 'attente';
+                        if (sa === 'probleme' && sb !== 'probleme') return -1;
+                        if (sb === 'probleme' && sa !== 'probleme') return 1;
+                        return a.dateTs - b.dateTs; // plus ancien en haut
+                    });
 
                 renderEcran();
             } catch (e) {
@@ -5494,25 +5514,34 @@
 
         function renderEcran() {
             const list = document.getElementById('ecranList');
-            const visible = ecranData.filter(c => {
-                const st = ecranState[c.key]?.status || 'attente';
-                return st !== 'expedie';
-            });
+            // ecranData est déjà filtré (pas d'expédiés)
+            document.getElementById('ecranCount').textContent = ecranData.length;
 
-            document.getElementById('ecranCount').textContent = visible.length;
-
-            if (!visible.length) {
+            if (!ecranData.length) {
                 list.innerHTML = '<div class="ecran-empty">TOUT EST EXPÉDIÉ ✅<br>BEAU TRAVAIL</div>';
                 return;
             }
 
             const platClass = { docmorris: 'ecran-plat-docmorris', nast: 'ecran-plat-nast', mlp: 'ecran-plat-mlp', lcdp: 'ecran-plat-lcdp' };
-            const platNames = { docmorris: 'DOCMORRIS', nast: 'NAST.COM', mlp: 'MLP', lcdp: 'LCDP' };
+            const platNames = { docmorris: 'DOCMORRIS', nast: 'NAST.COM', mlp: 'MY LITTLE PARA', lcdp: 'LCDP' };
+            const now = Date.now();
 
-            list.innerHTML = visible.map(c => {
-                const st = ecranState[c.key] || { status: 'attente', comment: '', arrivedAt: Date.now() };
+            list.innerHTML = ecranData.map(c => {
+                const st = ecranState[c.key] || { status: 'attente', comment: '' };
                 const statusClass = st.status === 'en_cours' ? 'en-cours' : st.status === 'probleme' ? 'probleme' : '';
+                
+                // Calcul urgence basée sur date de commande
+                const diffH = (now - c.dateTs) / (1000 * 60 * 60);
+                let urgenceClass = '';
+                if (diffH >= 48) urgenceClass = 'urgence-rouge';
+                else if (diffH >= 24) urgenceClass = 'urgence-orange';
+                else if (diffH >= 6) urgenceClass = 'urgence-jaune';
+
                 const prodStr = c.produits.map(p => `${p.nom} ×${p.qty}`).join(' · ');
+
+                // Date de commande formatée
+                const dCmd = new Date(c.dateTs);
+                const dateCmdStr = dCmd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' ' + dCmd.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
                 let actions = '';
                 if (st.status === 'attente') {
@@ -5526,16 +5555,19 @@
                                <button class="ecran-btn ecran-btn-expedie" onclick="ecranExpedier('${c.key}')">✅ EXPÉDIÉ</button>`;
                 }
 
-                return `<div class="ecran-cmd ${statusClass}" id="ecran_${c.key}">
+                return `<div class="ecran-cmd ${statusClass} ${urgenceClass}" id="ecran_${c.key}">
                     <div class="ecran-cmd-top">
                         <div style="display:flex;align-items:center;gap:10px;">
                             <div class="ecran-cmd-num">#${c.num}</div>
                             <span class="ecran-cmd-platform ${platClass[c.platform] || ''}">${platNames[c.platform] || c.platform}</span>
                         </div>
-                        <div class="ecran-cmd-timer" id="timer_${c.key}" data-arrived="${st.arrivedAt || Date.now()}">--:--</div>
+                        <div class="ecran-cmd-timer" id="timer_${c.key}" data-orderts="${c.dateTs}">--:--</div>
                     </div>
-                    <div class="ecran-cmd-client">👤 ${c.client}</div>
-                    <div class="ecran-cmd-produits">📦 ${c.nbProduits} article${c.nbProduits > 1 ? 's' : ''} — ${prodStr.substring(0, 80)}${prodStr.length > 80 ? '…' : ''}</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div class="ecran-cmd-client">👤 ${c.client}</div>
+                        <div style="color:#555;font-size:11px;font-family:monospace;">📅 ${dateCmdStr}</div>
+                    </div>
+                    <div class="ecran-cmd-produits">📦 ${c.nbProduits} article${c.nbProduits > 1 ? 's' : ''} — ${prodStr.substring(0, 100)}${prodStr.length > 100 ? '…' : ''}</div>
                     ${st.comment ? `<div class="ecran-comment-text">⚠ ${st.comment}</div>` : ''}
                     <div class="ecran-cmd-actions">${actions}</div>
                     <div class="ecran-comment-zone" id="comment_${c.key}">
@@ -5549,7 +5581,7 @@
         }
 
         function ecranPrendre(key) {
-            if (!ecranState[key]) ecranState[key] = { status: 'attente', comment: '', arrivedAt: Date.now() };
+            if (!ecranState[key]) ecranState[key] = { status: 'attente', comment: '' };
             ecranState[key].status = 'en_cours';
             ecranState[key].takenAt = Date.now();
             saveEcranState();
@@ -5584,7 +5616,7 @@
             const input = document.getElementById('commentInput_' + key);
             const comment = input?.value?.trim();
             if (!comment) return;
-            if (!ecranState[key]) ecranState[key] = { status: 'attente', arrivedAt: Date.now() };
+            if (!ecranState[key]) ecranState[key] = { status: 'attente', comment: '' };
             ecranState[key].status = 'probleme';
             ecranState[key].comment = comment;
             saveEcranState();
@@ -5594,21 +5626,24 @@
         function updateEcranTimers() {
             const now = Date.now();
             document.querySelectorAll('.ecran-cmd-timer').forEach(el => {
-                const arrived = parseInt(el.dataset.arrived) || now;
-                const diff = Math.floor((now - arrived) / 1000);
-                const mins = Math.floor(diff / 60);
-                const secs = diff % 60;
-                const hours = Math.floor(mins / 60);
+                const orderTs = parseInt(el.dataset.orderts) || now;
+                const diffMs = now - orderTs;
+                const diffSec = Math.floor(diffMs / 1000);
+                const diffMin = Math.floor(diffSec / 60);
+                const diffH = Math.floor(diffMin / 60);
+                const diffDays = Math.floor(diffH / 24);
 
                 let display = '';
-                if (hours > 0) display = `${hours}h${String(mins % 60).padStart(2, '0')}`;
-                else display = `${mins}:${String(secs).padStart(2, '0')}`;
+                if (diffDays > 0) display = `${diffDays}j ${diffH % 24}h${String(diffMin % 60).padStart(2, '0')}`;
+                else if (diffH > 0) display = `${diffH}h${String(diffMin % 60).padStart(2, '0')}`;
+                else display = `${diffMin}m${String(diffSec % 60).padStart(2, '0')}s`;
 
                 el.textContent = '⏱ ' + display;
                 el.className = 'ecran-cmd-timer';
-                if (mins >= 30) el.classList.add('danger');
-                else if (mins >= 15) el.classList.add('warn');
-                else el.classList.add('ok');
+                if (diffH >= 48) el.classList.add('rouge');
+                else if (diffH >= 24) el.classList.add('orange');
+                else if (diffH >= 6) el.classList.add('jaune');
+                else el.classList.add('vert');
             });
         }
 
