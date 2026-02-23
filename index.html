@@ -5506,34 +5506,50 @@
 
                 // Parser les tâches/problèmes du Sheet Telegram
                 // Colonnes : A:id B:date C:type D:numCommande E:message F:reponse G:statut
+                const tgReponses = {}; // map numCommande → reponse (pour enrichir les commandes)
                 if (tachesRows.length > 1) {
                     for (let i = 1; i < tachesRows.length; i++) {
                         const r = tachesRows[i];
                         const id = r[0]?.trim();
                         const statut = (r[6] || '').trim().toLowerCase();
                         if (!id || statut === 'fait') continue;
-                        const type = (r[2] || '').trim().toLowerCase(); // 'tache' ou 'probleme'
-                        const dateTs = new Date(r[1]?.trim()).getTime() || Date.now();
+                        const type = (r[2] || '').trim().toLowerCase();
                         const numCmd = r[3]?.trim() || '';
                         const message = r[4]?.trim() || '';
                         const reponse = r[5]?.trim() || '';
-                        all.push({
-                            key: 'tg_' + id,
-                            num: type === 'tache' ? '📋 TÂCHE' : (numCmd ? '#' + numCmd : '⚠️ PROBLÈME'),
-                            date: r[1]?.trim(),
-                            dateTs,
-                            client: message,
-                            platform: 'telegram',
-                            produits: [],
-                            nbProduits: 0,
-                            isTache: type === 'tache',
-                            isProbleme: type === 'probleme',
-                            tgReponse: reponse,
-                            tgStatut: statut,
-                            tgNumCommande: numCmd
-                        });
+
+                        if (type === 'probleme' && numCmd) {
+                            // Rattacher la réponse à la commande existante
+                            tgReponses[numCmd] = { reponse, message, statut };
+                        } else if (type === 'tache') {
+                            // Tâche manuelle = nouvel élément sur l'écran
+                            const dateTs = new Date(r[1]?.trim()).getTime() || Date.now();
+                            all.push({
+                                key: 'tg_' + id,
+                                num: '📋 TÂCHE',
+                                date: r[1]?.trim(),
+                                dateTs,
+                                client: message,
+                                platform: 'telegram',
+                                produits: [],
+                                nbProduits: 0,
+                                isTache: true,
+                                tgReponse: reponse,
+                                tgStatut: statut,
+                                tgNumCommande: ''
+                            });
+                        }
                     }
                 }
+
+                // Enrichir les commandes avec les réponses du Sheet
+                all.forEach(c => {
+                    const numClean = c.num?.replace('#', '').trim();
+                    if (numClean && tgReponses[numClean]) {
+                        c.tgReponse = tgReponses[numClean].reponse;
+                        c.tgStatut = tgReponses[numClean].statut;
+                    }
+                });
 
                 // Détecter nouvelles commandes
                 const newKeys = new Set(all.map(c => c.key));
