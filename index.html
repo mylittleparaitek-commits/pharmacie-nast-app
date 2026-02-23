@@ -1092,6 +1092,9 @@
         .ecran-cmd.urgence-jaune { border-color: #FFEB3B30; }
         .ecran-cmd.urgence-rouge .ecran-cmd-num { color: #ff1744; }
         .ecran-cmd.urgence-rouge::before { content: '🔥 URGENT'; position: absolute; top: -10px; right: 12px; background: #ff1744; color: #fff; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 4px; letter-spacing: 1px; }
+        .ecran-cmd.urgence-tache { border-color: #26A5E4; background: #0a1929; }
+        .ecran-cmd.urgence-tache::before { content: '⭐ PRIORITÉ'; position: absolute; top: -10px; right: 12px; background: #26A5E4; color: #fff; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 4px; letter-spacing: 1px; }
+        .ecran-cmd.urgence-tache .ecran-cmd-num { color: #26A5E4; }
         .ecran-cmd { position: relative; }
         .ecran-cmd-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
         .ecran-cmd-num { color: #fff; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
@@ -1103,6 +1106,7 @@
         .ecran-plat-nast { background: #1976D2; color: #fff; }
         .ecran-plat-mlp { background: #E91E63; color: #fff; }
         .ecran-plat-lcdp { background: #FF6F00; color: #fff; }
+        .ecran-plat-telegram { background: #26A5E4; color: #fff; }
         .ecran-cmd-client { color: #aaa; font-size: 14px; font-weight: 600; }
         .ecran-cmd-produits { color: #666; font-size: 12px; margin-top: 4px; }
         .ecran-cmd-timer { font-family: monospace; font-weight: 900; font-size: 16px; }
@@ -2391,6 +2395,17 @@
                         <label class="form-label">URL webhook — Upload Photos</label>
                         <input type="url" class="settings-input" id="webhookPhotoInput" placeholder="https://n8n.example.com/webhook/photo-commande">
                         <button class="btn-save" id="btnSavePhotoWebhook">Sauvegarder</button>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-item">
+                        <span class="settings-item-label">📱 Tâches Telegram (Écran)</span>
+                    </div>
+                    <div style="padding: 14px 16px;">
+                        <label class="form-label">URL CSV publié — Sheet Tâches Telegram</label>
+                        <input type="url" class="settings-input" id="ecranTachesCsvInput" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?gid=0&single=true&output=csv">
+                        <button class="btn-save" id="btnSaveEcranTaches">Sauvegarder</button>
                     </div>
                 </div>
 
@@ -4694,6 +4709,11 @@
                 updatePhotoWebhookStatus();
                 showToast('Webhook Photos sauvegardé', 'success');
             });
+            document.getElementById('btnSaveEcranTaches').addEventListener('click', () => {
+                const url = document.getElementById('ecranTachesCsvInput').value.trim();
+                localStorage.setItem('ecranTachesCsvUrl', url);
+                showToast('URL Tâches Telegram sauvegardée', 'success');
+            });
             document.getElementById('btnSaveLabos').addEventListener('click', () => {
                 state.labos = document.getElementById('labosListInput').value.split('\n').map(l => l.trim()).filter(Boolean).sort();
                 setVal('mlp_labos', JSON.stringify(state.labos));
@@ -4718,6 +4738,8 @@
             if (!getVal('webhookPhotoCommande')) setVal('webhookPhotoCommande', photoUrl);
             document.getElementById('webhookPhotoInput').value = photoUrl;
             localStorage.setItem('webhookPhotoCommande', photoUrl);
+            document.getElementById('ecranTachesCsvInput').value = localStorage.getItem('ecranTachesCsvUrl') || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPwSVWYfZ_NA0EXM330PAwSO2WCGeJrR2qFtNfn2qS-NDvUrDJxQD6NfqFXeR26BtlPKb21bqXHd33/pub?gid=0&single=true&output=csv';
+            if (!localStorage.getItem('ecranTachesCsvUrl')) localStorage.setItem('ecranTachesCsvUrl', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPwSVWYfZ_NA0EXM330PAwSO2WCGeJrR2qFtNfn2qS-NDvUrDJxQD6NfqFXeR26BtlPKb21bqXHd33/pub?gid=0&single=true&output=csv');
             updateWebhookStatus();
             updateDelpechWebhookStatus();
             updateSavWebhookStatus();
@@ -5416,9 +5438,25 @@
 
         async function loadEcranData() {
             try {
-                const [nastRes, mlpRes] = await Promise.all([
+                // Charger commandes + tâches manuelles Telegram
+                const TACHES_CSV = 'https://docs.google.com/spreadsheets/d/e/' + (localStorage.getItem('ecranTachesSheetId') || 'PLACEHOLDER') + '/pub?gid=0&single=true&output=csv';
+                
+                const fetches = [
                     fetch(COMMANDES_CSV + '&t=' + Date.now()),
                     fetch(MLP_CSV + '&t=' + Date.now())
+                ];
+                // Tenter de charger les tâches manuelles (sans bloquer si pas configuré)
+                let tachesRows = [];
+                try {
+                    const tachesSheetCsv = localStorage.getItem('ecranTachesCsvUrl');
+                    if (tachesSheetCsv) {
+                        const tRes = await fetch(tachesSheetCsv + '&t=' + Date.now());
+                        const tText = await tRes.text();
+                        tachesRows = parseCSV(tText);
+                    }
+                } catch(e) {}
+
+                const [nastRes, mlpRes] = await Promise.all(fetches);
                 ]);
                 const nastText = await nastRes.text();
                 const mlpText = await mlpRes.text();
@@ -5467,6 +5505,37 @@
 
                 const all = [...parseForEcran(nastRows, 'nast'), ...parseForEcran(mlpRows, 'mlp')];
 
+                // Parser les tâches/problèmes du Sheet Telegram
+                // Colonnes : A:id B:date C:type D:numCommande E:message F:reponse G:statut
+                if (tachesRows.length > 1) {
+                    for (let i = 1; i < tachesRows.length; i++) {
+                        const r = tachesRows[i];
+                        const id = r[0]?.trim();
+                        const statut = (r[6] || '').trim().toLowerCase();
+                        if (!id || statut === 'fait') continue;
+                        const type = (r[2] || '').trim().toLowerCase(); // 'tache' ou 'probleme'
+                        const dateTs = new Date(r[1]?.trim()).getTime() || Date.now();
+                        const numCmd = r[3]?.trim() || '';
+                        const message = r[4]?.trim() || '';
+                        const reponse = r[5]?.trim() || '';
+                        all.push({
+                            key: 'tg_' + id,
+                            num: type === 'tache' ? '📋 TÂCHE' : (numCmd ? '#' + numCmd : '⚠️ PROBLÈME'),
+                            date: r[1]?.trim(),
+                            dateTs,
+                            client: message,
+                            platform: 'telegram',
+                            produits: [],
+                            nbProduits: 0,
+                            isTache: type === 'tache',
+                            isProbleme: type === 'probleme',
+                            tgReponse: reponse,
+                            tgStatut: statut,
+                            tgNumCommande: numCmd
+                        });
+                    }
+                }
+
                 // Détecter nouvelles commandes
                 const newKeys = new Set(all.map(c => c.key));
                 if (ecranPrevKeys.size > 0) {
@@ -5491,19 +5560,23 @@
                 }
                 ecranPrevKeys = newKeys;
 
-                // Filtrer les expédiés et trier par priorité (plus ancien = plus urgent = en haut)
+                // Filtrer les expédiés et trier par priorité
                 ecranData = all
                     .filter(c => {
                         const st = ecranState[c.key]?.status || 'attente';
                         return st !== 'expedie';
                     })
                     .sort((a, b) => {
-                        // Problèmes en premier, puis par ancienneté (plus vieux en haut)
+                        // 1. Tâches Telegram TOUJOURS en tête
+                        if (a.isTache && !b.isTache) return -1;
+                        if (b.isTache && !a.isTache) return 1;
+                        // 2. Problèmes (signalés par équipe) ensuite
                         const sa = ecranState[a.key]?.status || 'attente';
                         const sb = ecranState[b.key]?.status || 'attente';
                         if (sa === 'probleme' && sb !== 'probleme') return -1;
                         if (sb === 'probleme' && sa !== 'probleme') return 1;
-                        return a.dateTs - b.dateTs; // plus ancien en haut
+                        // 3. Par ancienneté (plus vieux en haut = plus urgent)
+                        return a.dateTs - b.dateTs;
                     });
 
                 renderEcran();
@@ -5522,8 +5595,8 @@
                 return;
             }
 
-            const platClass = { docmorris: 'ecran-plat-docmorris', nast: 'ecran-plat-nast', mlp: 'ecran-plat-mlp', lcdp: 'ecran-plat-lcdp' };
-            const platNames = { docmorris: 'DOCMORRIS', nast: 'NAST.COM', mlp: 'MY LITTLE PARA', lcdp: 'LCDP' };
+            const platClass = { docmorris: 'ecran-plat-docmorris', nast: 'ecran-plat-nast', mlp: 'ecran-plat-mlp', lcdp: 'ecran-plat-lcdp', telegram: 'ecran-plat-telegram' };
+            const platNames = { docmorris: 'DOCMORRIS', nast: 'NAST.COM', mlp: 'MY LITTLE PARA', lcdp: 'LCDP', telegram: '📱 TELEGRAM' };
             const now = Date.now();
 
             list.innerHTML = ecranData.map(c => {
@@ -5533,7 +5606,8 @@
                 // Calcul urgence basée sur date de commande
                 const diffH = (now - c.dateTs) / (1000 * 60 * 60);
                 let urgenceClass = '';
-                if (diffH >= 48) urgenceClass = 'urgence-rouge';
+                if (c.isTache) urgenceClass = 'urgence-tache';
+                else if (diffH >= 48) urgenceClass = 'urgence-rouge';
                 else if (diffH >= 24) urgenceClass = 'urgence-orange';
                 else if (diffH >= 6) urgenceClass = 'urgence-jaune';
 
@@ -5544,31 +5618,45 @@
                 const dateCmdStr = dCmd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' ' + dCmd.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
                 let actions = '';
-                if (st.status === 'attente') {
+                if (c.isTache) {
+                    // Tâche Telegram : juste FAIT
+                    actions = `<button class="ecran-btn ecran-btn-expedie" onclick="ecranExpedier('${c.key}')" style="background:#26A5E4;">✅ FAIT</button>`;
+                } else if (st.status === 'attente') {
                     actions = `<button class="ecran-btn ecran-btn-prendre" onclick="ecranPrendre('${c.key}')">▶ PRENDRE EN CHARGE</button>
                                <button class="ecran-btn ecran-btn-probleme" onclick="ecranToggleComment('${c.key}')">⚠ PROBLÈME</button>`;
                 } else if (st.status === 'en_cours') {
                     actions = `<button class="ecran-btn ecran-btn-expedie" onclick="ecranExpedier('${c.key}')">✅ EXPÉDIÉ</button>
                                <button class="ecran-btn ecran-btn-probleme" onclick="ecranToggleComment('${c.key}')">⚠ PROBLÈME</button>`;
                 } else if (st.status === 'probleme') {
-                    actions = `<button class="ecran-btn ecran-btn-prendre" onclick="ecranPrendre('${c.key}')">▶ REPRENDRE</button>
-                               <button class="ecran-btn ecran-btn-expedie" onclick="ecranExpedier('${c.key}')">✅ EXPÉDIÉ</button>`;
+                    actions = `<button class="ecran-btn ecran-btn-expedie" onclick="ecranExpedier('${c.key}')">✅ EXPÉDIÉ</button>`;
+                }
+
+                // Fil de conversation (problème signalé + réponse patron)
+                let conversationHtml = '';
+                if (st.comment) {
+                    conversationHtml += `<div class="ecran-comment-text">👷 ÉQUIPE : ${st.comment}</div>`;
+                }
+                if (c.tgReponse) {
+                    conversationHtml += `<div style="color:#26A5E4;font-size:13px;font-weight:700;margin-top:6px;padding:6px 10px;background:#0a1929;border-radius:6px;border-left:3px solid #26A5E4;">👔 PATRON : ${c.tgReponse}</div>`;
+                } else if (st.status === 'probleme' && !c.isTache) {
+                    conversationHtml += `<div style="color:#555;font-size:11px;margin-top:4px;font-style:italic;">⏳ En attente de réponse du patron…</div>`;
                 }
 
                 return `<div class="ecran-cmd ${statusClass} ${urgenceClass}" id="ecran_${c.key}">
                     <div class="ecran-cmd-top">
                         <div style="display:flex;align-items:center;gap:10px;">
-                            <div class="ecran-cmd-num">#${c.num}</div>
+                            <div class="ecran-cmd-num">${c.isTache ? '📋' : '#'}${c.num.replace('#','').replace('📋 ','')}</div>
                             <span class="ecran-cmd-platform ${platClass[c.platform] || ''}">${platNames[c.platform] || c.platform}</span>
+                            ${c.tgReponse ? '<span style="background:#26A5E4;color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:800;">💬 RÉPONDU</span>' : ''}
                         </div>
                         <div class="ecran-cmd-timer" id="timer_${c.key}" data-orderts="${c.dateTs}">--:--</div>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <div class="ecran-cmd-client">👤 ${c.client}</div>
+                        <div class="ecran-cmd-client">${c.isTache ? '📝' : '👤'} ${c.client}</div>
                         <div style="color:#555;font-size:11px;font-family:monospace;">📅 ${dateCmdStr}</div>
                     </div>
-                    <div class="ecran-cmd-produits">📦 ${c.nbProduits} article${c.nbProduits > 1 ? 's' : ''} — ${prodStr.substring(0, 100)}${prodStr.length > 100 ? '…' : ''}</div>
-                    ${st.comment ? `<div class="ecran-comment-text">⚠ ${st.comment}</div>` : ''}
+                    ${!c.isTache && c.nbProduits ? `<div class="ecran-cmd-produits">📦 ${c.nbProduits} article${c.nbProduits > 1 ? 's' : ''} — ${prodStr.substring(0, 100)}${prodStr.length > 100 ? '…' : ''}</div>` : ''}
+                    ${conversationHtml}
                     <div class="ecran-cmd-actions">${actions}</div>
                     <div class="ecran-comment-zone" id="comment_${c.key}">
                         <input class="ecran-comment-input" id="commentInput_${c.key}" placeholder="Décrire le problème…" onkeydown="if(event.key==='Enter')ecranSaveComment('${c.key}')">
@@ -5621,6 +5709,24 @@
             ecranState[key].comment = comment;
             saveEcranState();
             renderEcran();
+            // Envoyer alerte Telegram + écrire dans Sheet via webhook
+            const cmd = ecranData.find(c => c.key === key);
+            if (cmd) {
+                fetch('https://n8n.srv1086994.hstgr.cloud/webhook/ecran-probleme', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'probleme',
+                        id: key,
+                        numCommande: cmd.num,
+                        client: cmd.client,
+                        platform: cmd.platform,
+                        nbProduits: cmd.nbProduits,
+                        commentaire: comment,
+                        date: new Date().toISOString()
+                    })
+                }).catch(e => console.log('Webhook error:', e));
+            }
         }
 
         function updateEcranTimers() {
