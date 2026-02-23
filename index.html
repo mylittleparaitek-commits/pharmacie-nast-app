@@ -2914,7 +2914,7 @@
         }
 
         // ─── COMMANDES NAST.COM ───
-        const COMMANDES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRPfBopRiUpB5ymhHY2QzkVirEzHGKVisetSjatLeYprTGq1_9NP3J_fTWlr-hfmHhl5qI264SMLEu7/pub?gid=0&single=true&output=csv';
+        const COMMANDES_WEBHOOK = 'https://n8n.srv1086994.hstgr.cloud/webhook/ecran-nast';
         const STATUTS_TRAITES = ['expédié','expédie','livré','livre','commande prête','commande prete','remboursé [payplug]','rembourse [payplug]','remboursement','itek'];
 
         let commandesData = [];
@@ -2923,51 +2923,49 @@
         let scannerInterval = null;
         let pickingState = {};
 
+        // Parser commandes depuis webhook JSON (objets avec noms de colonnes)
+        function parseWebhookCommandes(rows) {
+            const map = {};
+            let lastNum = null;
+            for (let i = 0; i < rows.length; i++) {
+                const r = rows[i];
+                const num = String(r['ID Commande'] || '').trim();
+                if (num) {
+                    lastNum = num;
+                    const statut = String(r['Statut'] || '').trim().toLowerCase();
+                    if (STATUTS_TRAITES.some(s => statut.includes(s))) { lastNum = null; continue; }
+                    map[num] = {
+                        num, ref: String(r['Référence'] || ''), date: String(r['Date'] || ''),
+                        client: String(r['Client'] || ''), ville: String(r['Ville'] || ''),
+                        statut: String(r['Statut'] || ''), total: String(r['Total TTC'] || ''),
+                        produits: []
+                    };
+                }
+                const ean = String(r['reference produit'] || '').trim();
+                if (lastNum && map[lastNum] && ean) {
+                    map[lastNum].produits.push({
+                        ean: ean,
+                        nom: String(r['Nom produit'] || '').trim(),
+                        qty: parseInt(r['Quantité']) || 1
+                    });
+                }
+            }
+            return Object.values(map).sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
         async function loadCommandes() {
             const status = document.getElementById('commandesStatus');
             const list   = document.getElementById('commandesList');
             status.style.display = 'block';
             list.innerHTML = '';
             try {
-                const res  = await fetch(COMMANDES_CSV + '&t=' + Date.now());
-                const text = await res.text();
-                const rows = parseCSV(text);
-                if (rows.length < 2) {
+                const res  = await fetch(COMMANDES_WEBHOOK + '?t=' + Date.now());
+                const rows = await res.json();
+                if (!rows || !rows.length) {
                     list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande à traiter</p></div>';
                     status.style.display = 'none'; return;
                 }
-                const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13 };
-                const map = {};
-                let lastNum = null; // garde le dernier numéro de commande vu
-
-                for (let i = 1; i < rows.length; i++) {
-                    const r = rows[i];
-                    const num = r[IDX.num]?.trim();
-
-                    // Ligne avec numéro de commande = nouvelle commande
-                    if (num) {
-                        lastNum = num;
-                        const statut = (r[IDX.statut] || '').trim().toLowerCase();
-                        if (STATUTS_TRAITES.some(s => statut.includes(s))) {
-                            lastNum = null; // marquer comme traitée, ignorer ses produits
-                            continue;
-                        }
-                        map[num] = {
-                            num, ref: r[IDX.ref], date: r[IDX.date], client: r[IDX.client],
-                            ville: r[IDX.ville], statut: r[IDX.statut], total: r[IDX.total], produits: []
-                        };
-                    }
-
-                    // Ligne produit (colonne A vide) : rattacher au dernier numéro connu
-                    if (lastNum && map[lastNum] && r[IDX.ean]?.trim()) {
-                        map[lastNum].produits.push({
-                            ean: r[IDX.ean].trim(),
-                            nom: r[IDX.nom]?.trim(),
-                            qty: parseInt(r[IDX.qty]) || 1
-                        });
-                    }
-                }
-                commandesData = Object.values(map).sort((a, b) => new Date(b.date) - new Date(a.date));
+                commandesData = parseWebhookCommandes(rows);
                 document.getElementById('commandesCount').textContent = commandesData.length + ' commande' + (commandesData.length > 1 ? 's' : '');
                 if (!commandesData.length) {
                     list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Toutes les commandes sont traitées !</p></div>';
@@ -3021,30 +3019,13 @@
             try {
                 // Réutiliser commandesData si déjà chargé, sinon fetch
                 if (!commandesData.length) {
-                    const res = await fetch(COMMANDES_CSV + '&t=' + Date.now());
-                    const text = await res.text();
-                    const rows = parseCSV(text);
-                    if (rows.length < 2) {
+                    const res = await fetch(COMMANDES_WEBHOOK + '?t=' + Date.now());
+                    const rows = await res.json();
+                    if (!rows || !rows.length) {
                         list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande</p></div>';
                         status.style.display = 'none'; return;
                     }
-                    const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13 };
-                    const map = {};
-                    let lastNum = null;
-                    for (let i = 1; i < rows.length; i++) {
-                        const r = rows[i];
-                        const num = r[IDX.num]?.trim();
-                        if (num) {
-                            lastNum = num;
-                            const statut = (r[IDX.statut] || '').trim().toLowerCase();
-                            if (STATUTS_TRAITES.some(s => statut.includes(s))) { lastNum = null; continue; }
-                            map[num] = { num, ref: r[IDX.ref], date: r[IDX.date], client: r[IDX.client], ville: r[IDX.ville], statut: r[IDX.statut], total: r[IDX.total], produits: [] };
-                        }
-                        if (lastNum && map[lastNum] && r[IDX.ean]?.trim()) {
-                            map[lastNum].produits.push({ ean: r[IDX.ean].trim(), nom: r[IDX.nom]?.trim(), qty: parseInt(r[IDX.qty]) || 1 });
-                        }
-                    }
-                    commandesData = Object.values(map).sort((a, b) => new Date(b.date) - new Date(a.date));
+                    commandesData = parseWebhookCommandes(rows);
                 }
 
                 // Attribuer une couleur à chaque commande
@@ -3343,7 +3324,7 @@
 
 
         // ─── COMMANDES MLP ───
-        const MLP_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXlvAmyixl9AHfofVt6Lip-r3MLrbaVUh9odTblPnG0-EYrdupt82i7ZvhWMRqldndcVawJh9tJCJu/pub?gid=942322525&single=true&output=csv';
+        const MLP_WEBHOOK = 'https://n8n.srv1086994.hstgr.cloud/webhook/ecran-mlp';
 
         let mlpData = [];
         let currentMlp = null;
@@ -3355,30 +3336,13 @@
             status.style.display = 'block';
             list.innerHTML = '';
             try {
-                const res  = await fetch(MLP_CSV + '&t=' + Date.now());
-                const text = await res.text();
-                const rows = parseCSV(text);
-                if (rows.length < 2) {
+                const res  = await fetch(MLP_WEBHOOK + '?t=' + Date.now());
+                const rows = await res.json();
+                if (!rows || !rows.length) {
                     list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande à traiter</p></div>';
                     status.style.display = 'none'; return;
                 }
-                const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13 };
-                const map = {};
-                let lastNum = null;
-                for (let i = 1; i < rows.length; i++) {
-                    const r = rows[i];
-                    const num = r[IDX.num]?.trim();
-                    if (num) {
-                        lastNum = num;
-                        const statut = (r[IDX.statut] || '').trim().toLowerCase();
-                        if (STATUTS_TRAITES.some(s => statut.includes(s))) { lastNum = null; continue; }
-                        map[num] = { num, ref: r[IDX.ref], date: r[IDX.date], client: r[IDX.client], ville: r[IDX.ville], statut: r[IDX.statut], total: r[IDX.total], produits: [] };
-                    }
-                    if (lastNum && map[lastNum] && r[IDX.ean]?.trim()) {
-                        map[lastNum].produits.push({ ean: r[IDX.ean].trim(), nom: r[IDX.nom]?.trim(), qty: parseInt(r[IDX.qty]) || 1 });
-                    }
-                }
-                mlpData = Object.values(map).sort((a, b) => new Date(b.date) - new Date(a.date));
+                mlpData = parseWebhookCommandes(rows);
                 document.getElementById('mlpCount').textContent = mlpData.length + ' commande' + (mlpData.length > 1 ? 's' : '');
                 if (!mlpData.length) {
                     list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Toutes traitées !</p></div>';
@@ -4960,44 +4924,41 @@
             try {
                 // Charger toutes les données en parallèle
                 const [nastRes, mlpRes] = await Promise.all([
-                    fetch(COMMANDES_CSV + '&t=' + Date.now()),
-                    fetch(MLP_CSV + '&t=' + Date.now())
+                    fetch(COMMANDES_WEBHOOK + '?t=' + Date.now()),
+                    fetch(MLP_WEBHOOK + '?t=' + Date.now())
                 ]);
-                const nastText = await nastRes.text();
-                const mlpText = await mlpRes.text();
-                const nastRows = parseCSV(nastText);
-                const mlpRows = parseCSV(mlpText);
+                const nastRows = await nastRes.json();
+                const mlpRows = await mlpRes.json();
 
-                const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13 };
-
-                // Parser les commandes
+                // Parser les commandes depuis webhook JSON
                 function parseAllCommandes(rows, source) {
                     const map = {};
                     let lastNum = null;
-                    for (let i = 1; i < rows.length; i++) {
+                    for (let i = 0; i < rows.length; i++) {
                         const r = rows[i];
-                        const num = r[IDX.num]?.trim();
+                        const num = String(r['ID Commande'] || '').trim();
                         if (num) {
                             lastNum = num;
-                            const statut = (r[IDX.statut] || '').trim();
-                            const totalStr = (r[IDX.total] || '0').replace(',', '.').replace(/[^0-9.]/g, '');
+                            const statut = String(r['Statut'] || '').trim();
+                            const totalStr = String(r['Total TTC'] || '0').replace(',', '.').replace(/[^0-9.]/g, '');
                             let platform = source;
                             if (source === 'nast') {
                                 if (statut.toLowerCase().includes('docmorris')) platform = 'docmorris';
                                 else platform = 'nast';
                             }
                             map[source + '_' + num] = {
-                                num, date: r[IDX.date], client: r[IDX.client]?.trim(),
+                                num, date: String(r['Date'] || ''), client: String(r['Client'] || '').trim(),
                                 total: parseFloat(totalStr) || 0,
                                 statut, platform, produits: []
                             };
                         }
                         const key = source + '_' + lastNum;
-                        if (lastNum && map[key] && r[IDX.ean]?.trim()) {
+                        const ean = String(r['reference produit'] || '').trim();
+                        if (lastNum && map[key] && ean) {
                             map[key].produits.push({
-                                ean: r[IDX.ean].trim(),
-                                nom: r[IDX.nom]?.trim() || 'Produit inconnu',
-                                qty: parseInt(r[IDX.qty]) || 1
+                                ean: ean,
+                                nom: String(r['Nom produit'] || '').trim() || 'Produit inconnu',
+                                qty: parseInt(r['Quantité']) || 1
                             });
                         }
                     }
@@ -5448,48 +5409,42 @@
                 } catch(e) { console.log('Tâches webhook error:', e); }
 
                 const [nastRes, mlpRes] = await Promise.all([
-                    fetch(COMMANDES_CSV + '&t=' + Date.now()),
-                    fetch(MLP_CSV + '&t=' + Date.now())
+                    fetch(COMMANDES_WEBHOOK + '?t=' + Date.now()),
+                    fetch(MLP_WEBHOOK + '?t=' + Date.now())
                 ]);
-                const nastText = await nastRes.text();
-                const mlpText = await mlpRes.text();
-                const nastRows = parseCSV(nastText);
-                const mlpRows = parseCSV(mlpText);
-
-                const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13 };
+                const nastRows = await nastRes.json();
+                const mlpRows = await mlpRes.json();
 
                 function parseForEcran(rows, source) {
                     const map = {};
                     let lastNum = null;
-                    for (let i = 1; i < rows.length; i++) {
+                    for (let i = 0; i < rows.length; i++) {
                         const r = rows[i];
-                        const num = r[IDX.num]?.trim();
+                        const num = String(r['ID Commande'] || '').trim();
                         if (num) {
                             lastNum = num;
-                            const statut = (r[IDX.statut] || '').trim();
-                            // Skip commandes déjà expédiées dans le sheet
+                            const statut = String(r['Statut'] || '').trim();
                             const statutLow = statut.toLowerCase();
                             if (STATUTS_TRAITES.some(s => statutLow.includes(s))) { lastNum = null; continue; }
-                            // Déterminer la plateforme
                             let platform = source;
                             if (source === 'nast') {
                                 if (statutLow.includes('docmorris')) platform = 'docmorris';
                                 else platform = 'nast';
                             }
-                            // Parser la date de commande
-                            const dateCmd = new Date(r[IDX.date]);
+                            const dateCmd = new Date(String(r['Date'] || ''));
                             const dateTs = isNaN(dateCmd.getTime()) ? Date.now() : dateCmd.getTime();
                             map[source + '_' + num] = {
                                 key: source + '_' + num,
-                                num, date: r[IDX.date], dateTs,
-                                client: r[IDX.client]?.trim() || '—',
+                                num, date: String(r['Date'] || ''), dateTs,
+                                client: String(r['Client'] || '').trim() || '—',
                                 platform, produits: [], nbProduits: 0
                             };
                         }
                         const key = source + '_' + lastNum;
-                        if (lastNum && map[key] && r[IDX.ean]?.trim()) {
-                            const qty = parseInt(r[IDX.qty]) || 1;
-                            map[key].produits.push({ nom: r[IDX.nom]?.trim() || '?', qty });
+                        const ean = String(r['reference produit'] || '').trim();
+                        if (lastNum && map[key] && ean) {
+                            const qty = parseInt(r['Quantité']) || 1;
+                            map[key].produits.push({ nom: String(r['Nom produit'] || '').trim() || '?', qty });
                             map[key].nbProduits += qty;
                         }
                     }
