@@ -1061,6 +1061,70 @@
         .menu-card-photos { border-bottom: 3px solid #FF9800; }
         .menu-card-stats .menu-card-icon { background: #e8f5e9; }
         .menu-card-stats { border-bottom: 3px solid #43A047; }
+        .menu-card-ecran .menu-card-icon { background: #212121; color: white; }
+        .menu-card-ecran { border-bottom: 3px solid #000; }
+
+        /* ÉCRAN COMMANDES — Style McDonald's */
+        .ecran-container {
+            background: #000 !important; min-height: 100vh; padding: 0 !important;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
+            overflow-y: auto; display: none;
+        }
+        .ecran-container.active { display: block; }
+        .ecran-header {
+            background: #111; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 2px solid #333; position: sticky; top: 0; z-index: 10;
+        }
+        .ecran-title { color: #fff; font-size: 20px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+        .ecran-count { color: #FF9800; font-size: 28px; font-weight: 900; }
+        .ecran-close { background: #333; border: none; color: #fff; font-size: 20px; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; }
+        .ecran-clock { color: #666; font-size: 14px; font-weight: 700; font-family: monospace; }
+        .ecran-list { padding: 8px; }
+        .ecran-cmd {
+            background: #1a1a1a; border: 2px solid #333; border-radius: 10px; padding: 14px 16px;
+            margin-bottom: 8px; transition: all 0.3s;
+        }
+        .ecran-cmd.en-cours { background: #1a1700; border-color: #FF9800; }
+        .ecran-cmd.probleme { background: #1a0000; border-color: #f44336; }
+        .ecran-cmd.expedie { opacity: 0.15; transform: scale(0.98); }
+        .ecran-cmd-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .ecran-cmd-num { color: #fff; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
+        .ecran-cmd-platform {
+            font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .ecran-plat-docmorris { background: #0D47A1; color: #fff; }
+        .ecran-plat-nast { background: #1976D2; color: #fff; }
+        .ecran-plat-mlp { background: #9C27B0; color: #fff; }
+        .ecran-plat-lcdp { background: #FF6F00; color: #fff; }
+        .ecran-cmd-client { color: #aaa; font-size: 14px; font-weight: 600; }
+        .ecran-cmd-produits { color: #666; font-size: 12px; margin-top: 4px; }
+        .ecran-cmd-timer { font-family: monospace; font-weight: 900; font-size: 16px; }
+        .ecran-cmd-timer.warn { color: #FF9800; }
+        .ecran-cmd-timer.danger { color: #f44336; animation: blink 1s infinite; }
+        .ecran-cmd-timer.ok { color: #4caf50; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .ecran-cmd-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .ecran-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 13px;
+            font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .ecran-btn:active { transform: scale(0.95); }
+        .ecran-btn-prendre { background: #FF9800; color: #000; }
+        .ecran-btn-expedie { background: #4caf50; color: #fff; }
+        .ecran-btn-probleme { background: #333; color: #f44336; border: 1px solid #f44336; }
+        .ecran-comment-zone { margin-top: 8px; display: none; }
+        .ecran-comment-zone.open { display: block; }
+        .ecran-comment-input {
+            width: 100%; background: #2a0000; border: 1px solid #f44336; color: #fff;
+            padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600;
+        }
+        .ecran-comment-text { color: #f44336; font-size: 13px; font-weight: 700; margin-top: 6px; padding: 6px 10px; background: #2a0000; border-radius: 6px; }
+        .ecran-flash { animation: ecranFlash 0.5s ease; }
+        @keyframes ecranFlash { 0%{background:#FF9800} 100%{background:#1a1a1a} }
+        .ecran-empty { color: #333; text-align: center; padding: 80px 20px; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; }
+        .ecran-sound-btn { background: none; border: 1px solid #444; color: #888; font-size: 18px; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; }
 
         .stat-kpi { padding: 14px 16px; border-radius: 12px; }
         .stat-kpi-value { font-size: 22px; font-weight: 800; color: #1a1a1a; }
@@ -1320,6 +1384,11 @@
                         <div class="menu-card-icon">📊</div>
                         <div class="menu-card-title">Stats</div>
                         <div class="menu-card-sub">Ventes · Plateformes</div>
+                    </div>
+                    <div class="menu-card menu-card-ecran" onclick="openSection('ecran')">
+                        <div class="menu-card-icon">🖥️</div>
+                        <div class="menu-card-title">Écran</div>
+                        <div class="menu-card-sub">Commandes · Équipe</div>
                     </div>
                     <div class="menu-card menu-card-pharma" onclick="openSection('pharma')">
                         <div class="menu-card-icon">🏥</div>
@@ -2346,6 +2415,27 @@
         </div>
     </div>
 
+    <!-- Section placeholder pour le routage -->
+    <div class="section-view" id="sectionEcran" style="display:none;"></div>
+
+    <!-- ÉCRAN COMMANDES OVERLAY -->
+    <div class="ecran-container" id="ecranOverlay">
+        <div class="ecran-header">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <button class="ecran-close" onclick="closeEcranMode()">✕</button>
+                <div class="ecran-title">COMMANDES</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div class="ecran-clock" id="ecranClock">00:00</div>
+                <button class="ecran-sound-btn" id="ecranSoundBtn" onclick="toggleEcranSound()">🔔</button>
+                <div class="ecran-count" id="ecranCount">0</div>
+            </div>
+        </div>
+        <div class="ecran-list" id="ecranList">
+            <div class="ecran-empty">AUCUNE COMMANDE EN ATTENTE<br>💤</div>
+        </div>
+    </div>
+
     <script>
         // ─── STATE ───
         const state = { photos: [], recentReceptions: [], labos: [], site: 'NAST' };
@@ -2376,7 +2466,8 @@
                 'mlp': 'sectionMlp',
                 'settings': 'sectionSettings',
                 'photos': 'sectionPhotos',
-                'stats': 'sectionStats'
+                'stats': 'sectionStats',
+                'ecran': 'sectionEcran'
             };
             
             const titles = {
@@ -2385,7 +2476,8 @@
                 'mlp': '💜 My Little Para',
                 'settings': '⚙️ Réglages',
                 'photos': '📸 Photos',
-                'stats': '📊 Stats'
+                'stats': '📊 Stats',
+                'ecran': '🖥️ Écran'
             };
             
             const el = document.getElementById(sectionMap[section]);
@@ -2398,6 +2490,7 @@
             if (section === 'mlp') loadMLP();
             if (section === 'photos') initPhotoSection();
             if (section === 'stats') loadStats();
+            if (section === 'ecran') openEcranMode();
             if (section === 'pharma') {
                 // Check quel panel est actif
                 const activePanel = document.querySelector('#sectionPharma .section-panel.active');
@@ -5275,6 +5368,310 @@
                         ${h.commentaire ? `<div style="font-size:12px;color:#666;margin-top:4px;">💬 ${h.commentaire}</div>` : ''}
                     </div>
                 </div>`).join('');
+        }
+
+        // ═══════════════════════════════════════════
+        // 🖥️ ÉCRAN COMMANDES — STYLE McDONALD'S
+        // ═══════════════════════════════════════════
+
+        let ecranData = [];
+        let ecranState = {}; // { cmdKey: { status: 'attente'|'en_cours'|'expedie'|'probleme', comment: '', takenAt: null } }
+        let ecranInterval = null;
+        let ecranTimerInterval = null;
+        let ecranSoundEnabled = true;
+        let ecranPrevKeys = new Set();
+
+        function openEcranMode() {
+            document.getElementById('ecranOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            loadEcranState();
+            loadEcranData();
+            // Rafraîchir toutes les 30s
+            ecranInterval = setInterval(loadEcranData, 30000);
+            // Timer toutes les secondes
+            ecranTimerInterval = setInterval(updateEcranTimers, 1000);
+            updateEcranClock();
+            setInterval(updateEcranClock, 1000);
+        }
+
+        function closeEcranMode() {
+            document.getElementById('ecranOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+            if (ecranInterval) clearInterval(ecranInterval);
+            if (ecranTimerInterval) clearInterval(ecranTimerInterval);
+            goHome();
+        }
+
+        function updateEcranClock() {
+            const now = new Date();
+            document.getElementById('ecranClock').textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        async function loadEcranData() {
+            try {
+                const [nastRes, mlpRes] = await Promise.all([
+                    fetch(COMMANDES_CSV + '&t=' + Date.now()),
+                    fetch(MLP_CSV + '&t=' + Date.now())
+                ]);
+                const nastText = await nastRes.text();
+                const mlpText = await mlpRes.text();
+                const nastRows = parseCSV(nastText);
+                const mlpRows = parseCSV(mlpText);
+
+                const IDX = { num:0, ref:1, date:2, client:3, ville:4, cp:5, tel:6, statut:7, nb:8, total:9, idprod:10, ean:11, nom:12, qty:13 };
+
+                function parseForEcran(rows, source) {
+                    const map = {};
+                    let lastNum = null;
+                    for (let i = 1; i < rows.length; i++) {
+                        const r = rows[i];
+                        const num = r[IDX.num]?.trim();
+                        if (num) {
+                            lastNum = num;
+                            const statut = (r[IDX.statut] || '').trim();
+                            // Déterminer la plateforme
+                            let platform = source;
+                            if (source === 'nast') {
+                                if (statut.toLowerCase().includes('docmorris')) platform = 'docmorris';
+                                else platform = 'nast';
+                            }
+                            map[source + '_' + num] = {
+                                key: source + '_' + num,
+                                num, date: r[IDX.date], client: r[IDX.client]?.trim() || '—',
+                                platform, produits: [], nbProduits: 0
+                            };
+                        }
+                        const key = source + '_' + lastNum;
+                        if (lastNum && map[key] && r[IDX.ean]?.trim()) {
+                            const qty = parseInt(r[IDX.qty]) || 1;
+                            map[key].produits.push({ nom: r[IDX.nom]?.trim() || '?', qty });
+                            map[key].nbProduits += qty;
+                        }
+                    }
+                    return Object.values(map);
+                }
+
+                const all = [...parseForEcran(nastRows, 'nast'), ...parseForEcran(mlpRows, 'mlp')];
+
+                // Détecter nouvelles commandes
+                const newKeys = new Set(all.map(c => c.key));
+                if (ecranPrevKeys.size > 0) {
+                    let hasNew = false;
+                    newKeys.forEach(k => {
+                        if (!ecranPrevKeys.has(k) && !ecranState[k]) {
+                            hasNew = true;
+                            ecranState[k] = { status: 'attente', comment: '', takenAt: null, arrivedAt: Date.now() };
+                        }
+                    });
+                    if (hasNew) {
+                        playEcranBeep();
+                        saveEcranState();
+                    }
+                } else {
+                    // Premier chargement — initialiser les états manquants
+                    all.forEach(c => {
+                        if (!ecranState[c.key]) {
+                            ecranState[c.key] = { status: 'attente', comment: '', takenAt: null, arrivedAt: Date.now() };
+                        }
+                    });
+                    saveEcranState();
+                }
+                ecranPrevKeys = newKeys;
+
+                ecranData = all.sort((a, b) => {
+                    // Trier : attente en premier, puis en_cours, puis problème, expédié à la fin
+                    const order = { attente: 0, en_cours: 1, probleme: 2, expedie: 3 };
+                    const sa = ecranState[a.key]?.status || 'attente';
+                    const sb = ecranState[b.key]?.status || 'attente';
+                    return (order[sa] || 0) - (order[sb] || 0);
+                });
+
+                renderEcran();
+            } catch (e) {
+                console.error('Écran erreur:', e);
+            }
+        }
+
+        function renderEcran() {
+            const list = document.getElementById('ecranList');
+            const visible = ecranData.filter(c => {
+                const st = ecranState[c.key]?.status || 'attente';
+                return st !== 'expedie';
+            });
+
+            document.getElementById('ecranCount').textContent = visible.length;
+
+            if (!visible.length) {
+                list.innerHTML = '<div class="ecran-empty">TOUT EST EXPÉDIÉ ✅<br>BEAU TRAVAIL</div>';
+                return;
+            }
+
+            const platClass = { docmorris: 'ecran-plat-docmorris', nast: 'ecran-plat-nast', mlp: 'ecran-plat-mlp', lcdp: 'ecran-plat-lcdp' };
+            const platNames = { docmorris: 'DOCMORRIS', nast: 'NAST.COM', mlp: 'MLP', lcdp: 'LCDP' };
+
+            list.innerHTML = visible.map(c => {
+                const st = ecranState[c.key] || { status: 'attente', comment: '', arrivedAt: Date.now() };
+                const statusClass = st.status === 'en_cours' ? 'en-cours' : st.status === 'probleme' ? 'probleme' : '';
+                const prodStr = c.produits.map(p => `${p.nom} ×${p.qty}`).join(' · ');
+
+                let actions = '';
+                if (st.status === 'attente') {
+                    actions = `<button class="ecran-btn ecran-btn-prendre" onclick="ecranPrendre('${c.key}')">▶ PRENDRE EN CHARGE</button>
+                               <button class="ecran-btn ecran-btn-probleme" onclick="ecranToggleComment('${c.key}')">⚠ PROBLÈME</button>`;
+                } else if (st.status === 'en_cours') {
+                    actions = `<button class="ecran-btn ecran-btn-expedie" onclick="ecranExpedier('${c.key}')">✅ EXPÉDIÉ</button>
+                               <button class="ecran-btn ecran-btn-probleme" onclick="ecranToggleComment('${c.key}')">⚠ PROBLÈME</button>`;
+                } else if (st.status === 'probleme') {
+                    actions = `<button class="ecran-btn ecran-btn-prendre" onclick="ecranPrendre('${c.key}')">▶ REPRENDRE</button>
+                               <button class="ecran-btn ecran-btn-expedie" onclick="ecranExpedier('${c.key}')">✅ EXPÉDIÉ</button>`;
+                }
+
+                return `<div class="ecran-cmd ${statusClass}" id="ecran_${c.key}">
+                    <div class="ecran-cmd-top">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="ecran-cmd-num">#${c.num}</div>
+                            <span class="ecran-cmd-platform ${platClass[c.platform] || ''}">${platNames[c.platform] || c.platform}</span>
+                        </div>
+                        <div class="ecran-cmd-timer" id="timer_${c.key}" data-arrived="${st.arrivedAt || Date.now()}">--:--</div>
+                    </div>
+                    <div class="ecran-cmd-client">👤 ${c.client}</div>
+                    <div class="ecran-cmd-produits">📦 ${c.nbProduits} article${c.nbProduits > 1 ? 's' : ''} — ${prodStr.substring(0, 80)}${prodStr.length > 80 ? '…' : ''}</div>
+                    ${st.comment ? `<div class="ecran-comment-text">⚠ ${st.comment}</div>` : ''}
+                    <div class="ecran-cmd-actions">${actions}</div>
+                    <div class="ecran-comment-zone" id="comment_${c.key}">
+                        <input class="ecran-comment-input" id="commentInput_${c.key}" placeholder="Décrire le problème…" onkeydown="if(event.key==='Enter')ecranSaveComment('${c.key}')">
+                        <button class="ecran-btn" style="background:#f44336;color:#fff;margin-top:6px;width:100%;" onclick="ecranSaveComment('${c.key}')">VALIDER LE PROBLÈME</button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            updateEcranTimers();
+        }
+
+        function ecranPrendre(key) {
+            if (!ecranState[key]) ecranState[key] = { status: 'attente', comment: '', arrivedAt: Date.now() };
+            ecranState[key].status = 'en_cours';
+            ecranState[key].takenAt = Date.now();
+            saveEcranState();
+            renderEcran();
+        }
+
+        function ecranExpedier(key) {
+            if (!ecranState[key]) return;
+            ecranState[key].status = 'expedie';
+            saveEcranState();
+            // Animation de disparition
+            const el = document.getElementById('ecran_' + key);
+            if (el) {
+                el.classList.add('expedie');
+                setTimeout(() => renderEcran(), 600);
+            } else {
+                renderEcran();
+            }
+        }
+
+        function ecranToggleComment(key) {
+            const zone = document.getElementById('comment_' + key);
+            if (zone) {
+                zone.classList.toggle('open');
+                if (zone.classList.contains('open')) {
+                    document.getElementById('commentInput_' + key).focus();
+                }
+            }
+        }
+
+        function ecranSaveComment(key) {
+            const input = document.getElementById('commentInput_' + key);
+            const comment = input?.value?.trim();
+            if (!comment) return;
+            if (!ecranState[key]) ecranState[key] = { status: 'attente', arrivedAt: Date.now() };
+            ecranState[key].status = 'probleme';
+            ecranState[key].comment = comment;
+            saveEcranState();
+            renderEcran();
+        }
+
+        function updateEcranTimers() {
+            const now = Date.now();
+            document.querySelectorAll('.ecran-cmd-timer').forEach(el => {
+                const arrived = parseInt(el.dataset.arrived) || now;
+                const diff = Math.floor((now - arrived) / 1000);
+                const mins = Math.floor(diff / 60);
+                const secs = diff % 60;
+                const hours = Math.floor(mins / 60);
+
+                let display = '';
+                if (hours > 0) display = `${hours}h${String(mins % 60).padStart(2, '0')}`;
+                else display = `${mins}:${String(secs).padStart(2, '0')}`;
+
+                el.textContent = '⏱ ' + display;
+                el.className = 'ecran-cmd-timer';
+                if (mins >= 30) el.classList.add('danger');
+                else if (mins >= 15) el.classList.add('warn');
+                else el.classList.add('ok');
+            });
+        }
+
+        function playEcranBeep() {
+            if (!ecranSoundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                // Beep 1
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.frequency.value = 880;
+                osc1.type = 'square';
+                gain1.gain.value = 0.3;
+                osc1.start(ctx.currentTime);
+                osc1.stop(ctx.currentTime + 0.15);
+                // Beep 2
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.frequency.value = 1100;
+                osc2.type = 'square';
+                gain2.gain.value = 0.3;
+                osc2.start(ctx.currentTime + 0.2);
+                osc2.stop(ctx.currentTime + 0.35);
+                // Beep 3 (plus aigu)
+                const osc3 = ctx.createOscillator();
+                const gain3 = ctx.createGain();
+                osc3.connect(gain3);
+                gain3.connect(ctx.destination);
+                osc3.frequency.value = 1320;
+                osc3.type = 'square';
+                gain3.gain.value = 0.3;
+                osc3.start(ctx.currentTime + 0.4);
+                osc3.stop(ctx.currentTime + 0.6);
+            } catch (e) {}
+        }
+
+        function toggleEcranSound() {
+            ecranSoundEnabled = !ecranSoundEnabled;
+            document.getElementById('ecranSoundBtn').textContent = ecranSoundEnabled ? '🔔' : '🔇';
+            if (ecranSoundEnabled) playEcranBeep();
+        }
+
+        function loadEcranState() {
+            try {
+                const stored = localStorage.getItem('ecranState');
+                ecranState = stored ? JSON.parse(stored) : {};
+                // Nettoyer les expédiés de plus de 24h
+                const now = Date.now();
+                Object.keys(ecranState).forEach(k => {
+                    if (ecranState[k].status === 'expedie') {
+                        const age = now - (ecranState[k].takenAt || ecranState[k].arrivedAt || 0);
+                        if (age > 24 * 60 * 60 * 1000) delete ecranState[k];
+                    }
+                });
+            } catch (e) { ecranState = {}; }
+        }
+
+        function saveEcranState() {
+            localStorage.setItem('ecranState', JSON.stringify(ecranState));
         }
     </script>
 </body>
