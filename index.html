@@ -5633,12 +5633,12 @@
                 // Fil de conversation (problème signalé + réponse patron)
                 let conversationHtml = '';
                 if (st.comment) {
-                    conversationHtml += `<div class="ecran-comment-text">👷 ÉQUIPE : ${st.comment}</div>`;
+                    conversationHtml += `<div style="color:#f44336;font-size:14px;font-weight:800;margin-top:8px;padding:10px 12px;background:#2a0000;border-radius:8px;border-left:4px solid #f44336;">👷 ÉQUIPE : ${st.comment}</div>`;
                 }
                 if (c.tgReponse) {
-                    conversationHtml += `<div style="color:#26A5E4;font-size:13px;font-weight:700;margin-top:6px;padding:6px 10px;background:#0a1929;border-radius:6px;border-left:3px solid #26A5E4;">👔 PATRON : ${c.tgReponse}</div>`;
+                    conversationHtml += `<div style="color:#000;font-size:16px;font-weight:900;margin-top:8px;padding:12px 14px;background:#26A5E4;border-radius:8px;border-left:4px solid #fff;letter-spacing:0.5px;">👔 PATRON : ${c.tgReponse}</div>`;
                 } else if (st.status === 'probleme' && !c.isTache) {
-                    conversationHtml += `<div style="color:#555;font-size:11px;margin-top:4px;font-style:italic;">⏳ En attente de réponse du patron…</div>`;
+                    conversationHtml += `<div style="color:#666;font-size:12px;margin-top:6px;font-style:italic;animation:blink 2s infinite;">⏳ En attente de réponse du patron…</div>`;
                 }
 
                 return `<div class="ecran-cmd ${statusClass} ${urgenceClass}" id="ecran_${c.key}">
