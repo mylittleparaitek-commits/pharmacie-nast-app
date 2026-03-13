@@ -2164,6 +2164,7 @@
                 </div>
                 <div class="section-subtabs" id="mlpSubtabs">
                     <button class="section-subtab active-purple" onclick="switchSection('mlp','traiterMlp',this,'purple')">📦 À traiter</button>
+                    <button class="section-subtab" onclick="switchSection('mlp','aCommander',this,'purple')">🛒 A commander</button>
                     <button class="section-subtab" onclick="switchSection('mlp','savMlp',this,'purple')">💬 SAV</button>
                     <button class="section-subtab" onclick="switchSection('mlp','todoWeb',this,'purple')">✅ Todo</button>
                 </div>
@@ -2223,6 +2224,34 @@
                         Scanner un produit
                     </button>
                 </div>
+                </div>
+
+                <div class="section-panel" id="mlp_aCommander">
+                    <div class="commandes-header">
+                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot" style="background:#ff9800;"></span>A commander</div>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span class="commandes-count" id="aCommanderCount"></span>
+                            <button onclick="loadACommander()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                Actualiser
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Onglets fournisseurs -->
+                    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="aCommanderTabs">
+                        <button class="sav-filter active" data-source="montf" onclick="filterACommander('montf',this)">🏪 MONTF</button>
+                        <button class="sav-filter" data-source="ferry" onclick="filterACommander('ferry',this)">🚢 FERRY</button>
+                        <button class="sav-filter" data-source="stocksante" onclick="filterACommander('stocksante',this)">💊 STOCK SANTÉ</button>
+                        <button class="sav-filter" data-source="cerp" onclick="filterACommander('cerp',this)">🏭 CERP ALTAPHARM</button>
+                        <button class="sav-filter" data-source="d2p" onclick="filterACommander('d2p',this)">📦 D2P</button>
+                        <button class="sav-filter" data-source="rupture" onclick="filterACommander('rupture',this)">❌ RUPTURE</button>
+                    </div>
+                    <div id="aCommanderList" class="commandes-list">
+                        <div class="commande-empty">
+                            <div class="commande-empty-icon">🛒</div>
+                            <p>Chargez les commandes d'abord</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="section-panel" id="mlp_savMlp">
@@ -2553,6 +2582,7 @@
             if (panel === 'dashboard') loadSheetData();
             if (panel === 'traiter') loadCommandes();
             if (panel === 'traiterMlp') loadMLP();
+            if (panel === 'aCommander') loadACommander();
             if (panel === 'ruptures') loadRuptures();
             if (panel === 'photosTg') loadPhotosTg();
             if (panel === 'perimes') loadPerimes();
@@ -3401,6 +3431,97 @@
             currentMlp = null;
             document.getElementById('mlpListView').classList.remove('hidden');
             document.getElementById('mlpDetailView').classList.remove('active');
+        }
+
+        // ─── A COMMANDER ───
+        let aCommanderData = [];
+        let aCommanderFilter = 'montf';
+
+        function loadACommander() {
+            // Utilise mlpData déjà chargé
+            if (!mlpData.length) {
+                document.getElementById('aCommanderList').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Chargez d\'abord les commandes MLP</p></div>';
+                return;
+            }
+
+            // Collecter tous les produits sans stock NAST (stockNast === 0)
+            aCommanderData = [];
+            mlpData.forEach(c => {
+                c.produits.forEach(p => {
+                    if ((p.stockNast || 0) === 0) {
+                        aCommanderData.push({
+                            ...p,
+                            cmdNum: c.num,
+                            client: c.client,
+                            source: (p.stockMontf || 0) > 0 ? 'montf' : 'rupture'
+                        });
+                    }
+                });
+            });
+
+            document.getElementById('aCommanderCount').textContent = aCommanderData.length + ' produit' + (aCommanderData.length > 1 ? 's' : '');
+            renderACommander();
+        }
+
+        function filterACommander(source, btn) {
+            aCommanderFilter = source;
+            document.querySelectorAll('#aCommanderTabs .sav-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderACommander();
+        }
+
+        function renderACommander() {
+            const list = document.getElementById('aCommanderList');
+            let filtered;
+
+            if (aCommanderFilter === 'montf') {
+                filtered = aCommanderData.filter(p => p.source === 'montf');
+            } else if (aCommanderFilter === 'rupture') {
+                filtered = aCommanderData.filter(p => p.source === 'rupture');
+            } else {
+                // FERRY, STOCK SANTE, CERP, D2P → pour l'instant on montre les ruptures
+                // Tu pourras ajouter une colonne "fournisseur" dans le Sheet pour filtrer
+                filtered = aCommanderData.filter(p => p.source === 'rupture');
+            }
+
+            if (!filtered.length) {
+                list.innerHTML = `<div class="commande-empty"><div class="commande-empty-icon">${aCommanderFilter === 'montf' ? '🏪' : '✅'}</div><p>Aucun produit ${aCommanderFilter === 'montf' ? 'à récupérer à Montfermeil' : 'pour ce fournisseur'}</p></div>`;
+                return;
+            }
+
+            // Grouper par produit (même EAN)
+            const grouped = {};
+            filtered.forEach(p => {
+                const key = p.ean || p.nom;
+                if (!grouped[key]) {
+                    grouped[key] = { ...p, totalQty: 0, commandes: [] };
+                }
+                grouped[key].totalQty += p.qty;
+                grouped[key].commandes.push({ num: p.cmdNum, client: p.client, qty: p.qty });
+            });
+
+            const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+
+            list.innerHTML = items.map(item => {
+                const stock = getStockInfo(item);
+                const cmdsHtml = item.commandes.map(c =>
+                    `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:rgba(156,39,176,0.1);color:#7b1fa2;">#${c.num} × ${c.qty}</span>`
+                ).join(' ');
+
+                return `<div class="produit-item" style="${stock.bg ? 'background:' + stock.bg + ';' : ''}${stock.border || ''}margin-bottom:8px;">
+                    <div class="produit-info" style="flex:1;">
+                        <div class="produit-nom">${item.nom || 'Produit inconnu'}</div>
+                        <div class="produit-ean">${item.ean}</div>
+                        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
+                            ${cmdsHtml}
+                        </div>
+                        <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span></div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;min-width:40px;">
+                        <span class="produit-qty" style="font-size:18px;font-weight:700;">×${item.totalQty}</span>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function getStockInfo(p) {
