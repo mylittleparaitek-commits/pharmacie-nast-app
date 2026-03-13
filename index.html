@@ -1265,6 +1265,12 @@
             border-color: #9C27B0;
         }
 
+        .section-subtab.active-green {
+            background: #43A047;
+            color: white;
+            border-color: #43A047;
+        }
+
         .section-panel { display: none; }
         .section-panel.active { display: block; }
 
@@ -1431,6 +1437,14 @@
                     <div class="section-title">📊 Statistiques</div>
                 </div>
 
+                <div class="section-subtabs" id="statsSubtabs">
+                    <button class="section-subtab active-green" onclick="switchStatsPeriod('jour',this)" style="--active-color:#43A047;">📅 Journée</button>
+                    <button class="section-subtab" onclick="switchStatsPeriod('hier',this)" style="--active-color:#43A047;">⏪ J-1</button>
+                    <button class="section-subtab" onclick="switchStatsPeriod('semaine',this)" style="--active-color:#43A047;">📆 Semaine</button>
+                    <button class="section-subtab" onclick="switchStatsPeriod('mois',this)" style="--active-color:#43A047;">🗓️ Mois</button>
+                    <button class="section-subtab" onclick="switchStatsPeriod('tout',this)" style="--active-color:#43A047;">📊 Tout</button>
+                </div>
+
                 <div class="section-panel active" id="stats_main" style="padding:16px;">
                     
                     <div id="statsLoading" style="text-align:center;padding:40px;">
@@ -1438,13 +1452,15 @@
                         <p style="color:#888;margin-top:8px;">Chargement des données…</p>
                     </div>
 
+                    <div id="statsPeriodLabel" style="display:none;text-align:center;padding:8px;margin-bottom:12px;font-size:13px;font-weight:600;color:#43A047;background:#e8f5e9;border-radius:10px;"></div>
+
                     <div id="statsContent" style="display:none;">
 
                         <!-- KPI Cards -->
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
                             <div class="stat-kpi" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-left:4px solid #1976D2;">
                                 <div class="stat-kpi-value" id="statTotalCommandes">0</div>
-                                <div class="stat-kpi-label">Commandes totales</div>
+                                <div class="stat-kpi-label">Commandes</div>
                             </div>
                             <div class="stat-kpi" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-left:4px solid #43A047;">
                                 <div class="stat-kpi-value" id="statTotalProduits">0</div>
@@ -1452,7 +1468,7 @@
                             </div>
                             <div class="stat-kpi" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-left:4px solid #FF9800;">
                                 <div class="stat-kpi-value" id="statTotalCA">0 €</div>
-                                <div class="stat-kpi-label">CA total</div>
+                                <div class="stat-kpi-label">CA</div>
                             </div>
                             <div class="stat-kpi" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);border-left:4px solid #E91E63;">
                                 <div class="stat-kpi-value" id="statPanierMoyen">0 €</div>
@@ -1467,15 +1483,15 @@
                             <div id="statPlatformDetails" style="margin-top:12px;"></div>
                         </div>
 
-                        <!-- Commandes par jour (7 derniers jours) -->
+                        <!-- Commandes par jour -->
                         <div class="card" style="margin-bottom:16px;">
-                            <div class="card-title"><span class="card-title-dot" style="background:#1976D2;"></span>Commandes par jour (7j)</div>
+                            <div class="card-title"><span class="card-title-dot" style="background:#1976D2;"></span>Commandes par jour</div>
                             <div id="statDailyChart" style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:8px 0;"></div>
                         </div>
 
                         <!-- Top produits global -->
                         <div class="card" style="margin-bottom:16px;">
-                            <div class="card-title"><span class="card-title-dot" style="background:#FF9800;"></span>Top 15 produits (toutes plateformes)</div>
+                            <div class="card-title"><span class="card-title-dot" style="background:#FF9800;"></span>Top 15 produits</div>
                             <div id="statTopProduitsGlobal"></div>
                         </div>
 
@@ -5057,12 +5073,68 @@
         // 📊 STATISTIQUES
         // ═══════════════════════════════════════════
 
+        let allStatsCommandes = [];
+        let currentStatsPeriod = 'jour';
+
+        function switchStatsPeriod(period, btn) {
+            currentStatsPeriod = period;
+            document.querySelectorAll('#statsSubtabs .section-subtab').forEach(b => b.classList.remove('active-green'));
+            btn.classList.add('active-green');
+            if (allStatsCommandes.length) {
+                renderStats(allStatsCommandes);
+            } else {
+                loadStats();
+            }
+        }
+
+        function filterByPeriod(commandes, period) {
+            const now = new Date();
+            const todayStr = now.toISOString().slice(0, 10);
+            
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+            // Début de semaine (lundi)
+            const weekStart = new Date(now);
+            const dayOfWeek = weekStart.getDay() || 7;
+            weekStart.setDate(weekStart.getDate() - dayOfWeek + 1);
+            weekStart.setHours(0, 0, 0, 0);
+
+            // Début du mois
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            const labels = {
+                jour: `📅 Aujourd'hui — ${now.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})}`,
+                hier: `⏪ Hier — ${yesterday.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})}`,
+                semaine: `📆 Semaine du ${weekStart.toLocaleDateString('fr-FR', {day:'numeric', month:'short'})} au ${now.toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}`,
+                mois: `🗓️ ${now.toLocaleDateString('fr-FR', {month:'long', year:'numeric'})}`,
+                tout: '📊 Toutes les commandes'
+            };
+
+            document.getElementById('statsPeriodLabel').style.display = 'block';
+            document.getElementById('statsPeriodLabel').textContent = labels[period] || '';
+
+            if (period === 'tout') return commandes;
+
+            return commandes.filter(c => {
+                try {
+                    const d = new Date(c.date);
+                    const dStr = d.toISOString().slice(0, 10);
+                    if (period === 'jour') return dStr === todayStr;
+                    if (period === 'hier') return dStr === yesterdayStr;
+                    if (period === 'semaine') return d >= weekStart && d <= now;
+                    if (period === 'mois') return d >= monthStart && d <= now;
+                } catch(e) {}
+                return false;
+            });
+        }
+
         async function loadStats() {
             document.getElementById('statsLoading').style.display = 'block';
             document.getElementById('statsContent').style.display = 'none';
 
             try {
-                // Charger toutes les données en parallèle
                 const [nastRes, mlpRes] = await Promise.all([
                     fetch(COMMANDES_WEBHOOK + '?t=' + Date.now()),
                     fetch(MLP_WEBHOOK + '?t=' + Date.now())
@@ -5070,7 +5142,6 @@
                 const nastRows = await nastRes.json();
                 const mlpRows = await mlpRes.json();
 
-                // Parser les commandes depuis webhook JSON
                 function parseAllCommandes(rows, source) {
                     const map = {};
                     let lastNum = null;
@@ -5107,9 +5178,9 @@
 
                 const nastCommandes = parseAllCommandes(nastRows, 'nast');
                 const mlpCommandes = parseAllCommandes(mlpRows, 'mlp');
-                const allCommandes = [...nastCommandes, ...mlpCommandes];
+                allStatsCommandes = [...nastCommandes, ...mlpCommandes];
 
-                renderStats(allCommandes);
+                renderStats(allStatsCommandes);
 
             } catch (e) {
                 document.getElementById('statsLoading').innerHTML = '<p style="color:#c62828;">❌ Erreur de chargement : ' + e.message + '</p>';
@@ -5117,11 +5188,14 @@
         }
 
         function renderStats(commandes) {
+            // Filtrer par période
+            const filtered = filterByPeriod(commandes, currentStatsPeriod);
+
             // === KPI ===
-            const totalCmd = commandes.length;
+            const totalCmd = filtered.length;
             let totalProduits = 0;
             let totalCA = 0;
-            commandes.forEach(c => {
+            filtered.forEach(c => {
                 totalCA += c.total;
                 c.produits.forEach(p => totalProduits += p.qty);
             });
@@ -5132,7 +5206,7 @@
 
             // === Répartition par plateforme ===
             const platforms = {};
-            commandes.forEach(c => {
+            filtered.forEach(c => {
                 const p = c.platform;
                 if (!platforms[p]) platforms[p] = { count: 0, ca: 0, produits: 0 };
                 platforms[p].count++;
@@ -5148,7 +5222,7 @@
             let detailsHtml = '';
             Object.keys(platforms).sort((a, b) => platforms[b].count - platforms[a].count).forEach(key => {
                 const p = platforms[key];
-                const pct = ((p.count / totalCmd) * 100).toFixed(0);
+                const pct = totalCmd ? ((p.count / totalCmd) * 100).toFixed(0) : 0;
                 const width = ((p.count / maxCount) * 100).toFixed(0);
                 const color = platformColors[key] || '#666';
                 barsHtml += `<div class="stat-bar-row">
@@ -5170,16 +5244,24 @@
             document.getElementById('statPlatformBars').innerHTML = barsHtml;
             document.getElementById('statPlatformDetails').innerHTML = detailsHtml;
 
-            // === Commandes par jour (7 derniers jours) ===
+            // === Commandes par jour ===
             const dailyMap = {};
+            // Adapter le nombre de jours selon la période
+            let nbDays = 7;
+            if (currentStatsPeriod === 'jour' || currentStatsPeriod === 'hier') nbDays = 1;
+            else if (currentStatsPeriod === 'semaine') nbDays = 7;
+            else if (currentStatsPeriod === 'mois') nbDays = new Date().getDate();
+            else nbDays = 14;
+
             const today = new Date();
-            for (let i = 6; i >= 0; i--) {
+            const startOffset = currentStatsPeriod === 'hier' ? 1 : 0;
+            for (let i = nbDays - 1 + startOffset; i >= startOffset; i--) {
                 const d = new Date(today);
                 d.setDate(d.getDate() - i);
                 const key = d.toISOString().slice(0, 10);
                 dailyMap[key] = { total: 0, docmorris: 0, nast: 0, mlp: 0 };
             }
-            commandes.forEach(c => {
+            filtered.forEach(c => {
                 try {
                     const d = new Date(c.date);
                     const key = d.toISOString().slice(0, 10);
@@ -5193,26 +5275,27 @@
             const dailyMax = Math.max(...Object.values(dailyMap).map(d => d.total), 1);
             const dayNames = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
             let chartHtml = '';
+            const todayStr = today.toISOString().slice(0, 10);
             Object.keys(dailyMap).forEach(key => {
                 const d = new Date(key);
                 const dayName = dayNames[d.getDay()];
                 const dayNum = d.getDate();
                 const val = dailyMap[key];
                 const h = val.total ? Math.max((val.total / dailyMax) * 100, 8) : 4;
-                const isToday = key === today.toISOString().slice(0, 10);
-                chartHtml += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-                    <div style="font-size:12px;font-weight:800;color:${isToday ? '#43A047' : '#333'};">${val.total}</div>
+                const isToday = key === todayStr;
+                chartHtml += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;${nbDays > 14 ? 'min-width:20px;' : ''}">
+                    <div style="font-size:${nbDays > 14 ? '10' : '12'}px;font-weight:800;color:${isToday ? '#43A047' : '#333'};">${val.total}</div>
                     <div style="width:100%;height:${h}px;border-radius:6px;background:${isToday ? 'linear-gradient(#66BB6A,#43A047)' : 'linear-gradient(#90CAF9,#1976D2)'};transition:height 0.5s;"></div>
-                    <div style="font-size:10px;color:#888;font-weight:600;">${dayName}</div>
-                    <div style="font-size:10px;color:#aaa;">${dayNum}</div>
+                    <div style="font-size:${nbDays > 14 ? '8' : '10'}px;color:#888;font-weight:600;">${dayName}</div>
+                    <div style="font-size:${nbDays > 14 ? '8' : '10'}px;color:#aaa;">${dayNum}</div>
                 </div>`;
             });
-            document.getElementById('statDailyChart').innerHTML = chartHtml;
+            document.getElementById('statDailyChart').innerHTML = chartHtml || '<div style="text-align:center;color:#aaa;padding:20px;font-size:13px;">Aucune donnée pour cette période</div>';
 
             // === Top produits ===
-            function getTopProducts(commandes, limit) {
+            function getTopProducts(cmds, limit) {
                 const map = {};
-                commandes.forEach(c => {
+                cmds.forEach(c => {
                     c.produits.forEach(p => {
                         const key = p.ean || p.nom;
                         if (!map[key]) map[key] = { nom: p.nom, ean: p.ean, qty: 0 };
@@ -5234,14 +5317,14 @@
                 `).join('') : '<p style="color:#aaa;font-size:13px;text-align:center;padding:12px;">Aucune donnée</p>';
             }
 
-            renderTopProducts('statTopProduitsGlobal', getTopProducts(commandes, 15), '#FF9800');
-            renderTopProducts('statTopDocmorris', getTopProducts(commandes.filter(c => c.platform === 'docmorris'), 10), '#0D47A1');
-            renderTopProducts('statTopNast', getTopProducts(commandes.filter(c => c.platform === 'nast'), 10), '#1976D2');
-            renderTopProducts('statTopMlp', getTopProducts(commandes.filter(c => c.platform === 'mlp'), 10), '#9C27B0');
+            renderTopProducts('statTopProduitsGlobal', getTopProducts(filtered, 15), '#FF9800');
+            renderTopProducts('statTopDocmorris', getTopProducts(filtered.filter(c => c.platform === 'docmorris'), 10), '#0D47A1');
+            renderTopProducts('statTopNast', getTopProducts(filtered.filter(c => c.platform === 'nast'), 10), '#1976D2');
+            renderTopProducts('statTopMlp', getTopProducts(filtered.filter(c => c.platform === 'mlp'), 10), '#9C27B0');
 
             // === Top clients ===
             const clientMap = {};
-            commandes.forEach(c => {
+            filtered.forEach(c => {
                 const name = c.client || 'Inconnu';
                 if (!clientMap[name]) clientMap[name] = { count: 0, ca: 0 };
                 clientMap[name].count++;
@@ -5256,7 +5339,7 @@
                     <div style="font-size:11px;color:#888;flex-shrink:0;">${data.ca.toLocaleString('fr-FR', {maximumFractionDigits:0})} €</div>
                     <div class="stat-product-qty">×${data.count}</div>
                 </div>`;
-            }).join('');
+            }).join('') || '<p style="color:#aaa;font-size:13px;text-align:center;padding:12px;">Aucune donnée</p>';
 
             // Show
             document.getElementById('statsLoading').style.display = 'none';
