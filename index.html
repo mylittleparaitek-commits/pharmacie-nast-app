@@ -3488,56 +3488,89 @@
 
         function renderACommander() {
             const list = document.getElementById('aCommanderList');
-            let filtered;
 
             if (aCommanderFilter === 'montf') {
-                filtered = aCommanderData.filter(p => p.source === 'montf');
-            } else if (aCommanderFilter === 'rupture') {
-                filtered = aCommanderData.filter(p => p.source === 'rupture');
-            } else {
-                // FERRY, STOCK SANTE, CERP, D2P → pour l'instant on montre les ruptures
-                // Tu pourras ajouter une colonne "fournisseur" dans le Sheet pour filtrer
-                filtered = aCommanderData.filter(p => p.source === 'rupture');
-            }
-
-            if (!filtered.length) {
-                list.innerHTML = `<div class="commande-empty"><div class="commande-empty-icon">${aCommanderFilter === 'montf' ? '🏪' : '✅'}</div><p>Aucun produit ${aCommanderFilter === 'montf' ? 'à récupérer à Montfermeil' : 'pour ce fournisseur'}</p></div>`;
-                return;
-            }
-
-            // Grouper par produit (même EAN)
-            const grouped = {};
-            filtered.forEach(p => {
-                const key = p.ean || p.nom;
-                if (!grouped[key]) {
-                    grouped[key] = { ...p, totalQty: 0, commandes: [] };
+                // Produits avec 0 stock NAST mais dispo Montfermeil
+                const filtered = aCommanderData.filter(p => p.source === 'montf');
+                if (!filtered.length) {
+                    list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucun produit à récupérer à Montfermeil</p></div>';
+                    return;
                 }
-                grouped[key].totalQty += p.qty;
-                grouped[key].commandes.push({ num: p.cmdNum, client: p.client, qty: p.qty });
-            });
 
-            const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+                // Grouper par EAN
+                const grouped = {};
+                filtered.forEach(p => {
+                    const key = p.ean || p.nom;
+                    if (!grouped[key]) grouped[key] = { ...p, totalQty: 0, commandes: [] };
+                    grouped[key].totalQty += p.qty;
+                    grouped[key].commandes.push({ num: p.cmdNum, client: p.client, qty: p.qty });
+                });
 
-            list.innerHTML = items.map(item => {
-                const stock = getStockInfo(item);
-                const cmdsHtml = item.commandes.map(c =>
-                    `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:rgba(156,39,176,0.1);color:#7b1fa2;">#${c.num} × ${c.qty}</span>`
-                ).join(' ');
+                const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+                const countLabel = items.length + ' produit' + (items.length > 1 ? 's' : '') + ' · ' + items.reduce((s, i) => s + i.totalQty, 0) + ' unités';
+                document.getElementById('aCommanderCount').textContent = countLabel;
 
-                return `<div class="produit-item" style="${stock.bg ? 'background:' + stock.bg + ';' : ''}${stock.border || ''}margin-bottom:8px;">
-                    <div class="produit-info" style="flex:1;">
-                        <div class="produit-nom">${item.nom || 'Produit inconnu'}</div>
-                        <div class="produit-ean">${item.ean}</div>
-                        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">
-                            ${cmdsHtml}
+                list.innerHTML = items.map(item => {
+                    const cmdsHtml = item.commandes.map(c =>
+                        `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:rgba(156,39,176,0.1);color:#7b1fa2;">#${c.num} × ${c.qty}</span>`
+                    ).join(' ');
+
+                    return `<div class="produit-item" style="background:rgba(156,39,176,0.05);border-left:3px solid #9c27b0;margin-bottom:8px;">
+                        <div class="produit-info" style="flex:1;">
+                            <div class="produit-nom">${item.nom || 'Produit inconnu'}</div>
+                            <div class="produit-ean">${item.ean}</div>
+                            <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${cmdsHtml}</div>
+                            <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:#7b1fa2;background:rgba(156,39,176,0.1);padding:2px 8px;border-radius:6px;">${item.stockMontf || 0} en stock Montfermeil</span></div>
                         </div>
-                        <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span></div>
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:flex-end;min-width:40px;">
-                        <span class="produit-qty" style="font-size:18px;font-weight:700;">×${item.totalQty}</span>
-                    </div>
-                </div>`;
-            }).join('');
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;min-width:40px;">
+                            <span class="produit-qty" style="font-size:18px;font-weight:700;">×${item.totalQty}</span>
+                        </div>
+                    </div>`;
+                }).join('');
+
+            } else {
+                // FERRY, STOCK SANTE, CERP, D2P, RUPTURE → liste vide, à remplir manuellement
+                const icons = { ferry: '🚢', stocksante: '💊', cerp: '🏭', d2p: '📦', rupture: '❌' };
+                const names = { ferry: 'Ferry', stocksante: 'Stock Santé', cerp: 'CERP Altapharm', d2p: 'D2P', rupture: 'Rupture totale' };
+                
+                if (aCommanderFilter === 'rupture') {
+                    // Montrer les produits en rupture totale (0 partout)
+                    const ruptureItems = aCommanderData.filter(p => p.source === 'rupture');
+                    if (!ruptureItems.length) {
+                        list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune rupture totale</p></div>';
+                        return;
+                    }
+                    const grouped = {};
+                    ruptureItems.forEach(p => {
+                        const key = p.ean || p.nom;
+                        if (!grouped[key]) grouped[key] = { ...p, totalQty: 0, commandes: [] };
+                        grouped[key].totalQty += p.qty;
+                        grouped[key].commandes.push({ num: p.cmdNum, client: p.client, qty: p.qty });
+                    });
+                    const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+                    document.getElementById('aCommanderCount').textContent = items.length + ' produit' + (items.length > 1 ? 's' : '') + ' en rupture';
+
+                    list.innerHTML = items.map(item => {
+                        const cmdsHtml = item.commandes.map(c =>
+                            `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:rgba(231,76,60,0.1);color:#c62828;">#${c.num} × ${c.qty}</span>`
+                        ).join(' ');
+                        return `<div class="produit-item" style="background:rgba(231,76,60,0.05);border-left:3px solid #e74c3c;margin-bottom:8px;">
+                            <div class="produit-info" style="flex:1;">
+                                <div class="produit-nom">${item.nom || 'Produit inconnu'}</div>
+                                <div class="produit-ean">${item.ean}</div>
+                                <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${cmdsHtml}</div>
+                                <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:#c62828;background:rgba(231,76,60,0.1);padding:2px 8px;border-radius:6px;">0 NAST / 0 MONTF</span></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;min-width:40px;">
+                                <span class="produit-qty" style="font-size:18px;font-weight:700;">×${item.totalQty}</span>
+                            </div>
+                        </div>`;
+                    }).join('');
+                } else {
+                    document.getElementById('aCommanderCount').textContent = '';
+                    list.innerHTML = `<div class="commande-empty"><div class="commande-empty-icon">${icons[aCommanderFilter] || '📦'}</div><p>Onglet ${names[aCommanderFilter] || ''}<br><span style="font-size:12px;color:#aaa;">À gérer manuellement</span></p></div>`;
+                }
+            }
         }
 
         function getStockInfo(p) {
