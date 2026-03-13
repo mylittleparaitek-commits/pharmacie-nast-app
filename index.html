@@ -2946,7 +2946,9 @@
                     map[lastNum].produits.push({
                         ean: ean,
                         nom: String(r['Nom produit'] || '').trim(),
-                        qty: parseInt(r['Quantité']) || 1
+                        qty: parseInt(r['Quantité']) || 1,
+                        stockNast: parseInt(r['Stock NAST']) || 0,
+                        stockMontf: parseInt(r['Stock Montfermeil']) || 0
                     });
                 }
             }
@@ -3040,7 +3042,7 @@
                     c.produits.forEach(p => {
                         const key = p.ean || p.nom;
                         if (!grouped[key]) {
-                            grouped[key] = { ean: p.ean, nom: p.nom, totalQty: 0, commandes: [] };
+                            grouped[key] = { ean: p.ean, nom: p.nom, totalQty: 0, stockNast: p.stockNast || 0, stockMontf: p.stockMontf || 0, commandes: [] };
                         }
                         grouped[key].totalQty += p.qty;
                         grouped[key].commandes.push({ num: c.num, client: c.client, qty: p.qty, color: cmdColorMap[c.num] });
@@ -3087,12 +3089,12 @@
                     `<span class="pick-cmd-tag" style="background:${c.color}">#${c.num} × ${c.qty}</span>`
                 ).join('');
 
-                return `<div class="pick-item ${isPicked ? 'picked' : ''}" id="pickItem_${idx}">
+                return `<div class="pick-item ${isPicked ? 'picked' : ''}" id="pickItem_${idx}" style="${(() => { const s = getStockInfo(item); return s.bg ? 'background:' + s.bg + ';' : ''; })()}">
                     <div class="pick-main" onclick="togglePickItem('${key}',${idx})">
                         <div class="pick-check">${isPicked ? '✓' : ''}</div>
                         <div class="pick-body">
                             <div class="pick-nom">${item.nom || 'Produit inconnu'}</div>
-                            <div class="pick-ean">${item.ean}</div>
+                            <div class="pick-ean">${item.ean} ${(() => { const s = getStockInfo(item); return `<span style="font-size:10px;color:${s.color};font-weight:600;margin-left:4px;${s.type === 'rupture' ? 'background:#fdf0ef;padding:1px 5px;border-radius:4px;' : s.type === 'montf' ? 'background:rgba(156,39,176,0.08);padding:1px 5px;border-radius:4px;' : ''}">${s.label}</span>`; })()}</div>
                         </div>
                         <div class="pick-qty-total">${item.totalQty}</div>
                     </div>
@@ -3140,11 +3142,12 @@
             list.innerHTML = currentCommande.produits.map((p, idx) => {
                 const validated = pickingState[p.ean] || 0;
                 const scanned   = validated > 0;
-                return `<div class="produit-item ${scanned ? 'scanned' : ''}">
+                const stock = getStockInfo(p);
+                return `<div class="produit-item ${scanned ? 'scanned' : ''}" style="${stock.bg ? 'background:' + stock.bg + ';' : ''}">
                     <div class="produit-check" onclick="showScanPopupByIndex(${idx})" style="cursor:pointer;">${scanned ? '✓' : ''}</div>
                     <div class="produit-info">
                         <div class="produit-nom">${p.nom || 'Produit'}</div>
-                        <div class="produit-ean">${p.ean}</div>
+                        <div class="produit-ean">${p.ean} <span style="font-size:10px;color:${stock.color};font-weight:600;margin-left:4px;${stock.type === 'rupture' ? 'background:#fdf0ef;padding:1px 5px;border-radius:4px;' : stock.type === 'montf' ? 'background:rgba(156,39,176,0.08);padding:1px 5px;border-radius:4px;' : ''}">${stock.label}</span></div>
                     </div>
                     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
                         <span class="produit-qty">${scanned ? validated + '/' : ''}×${p.qty}</span>
@@ -3398,17 +3401,26 @@
             document.getElementById('mlpDetailView').classList.remove('active');
         }
 
+        function getStockInfo(p) {
+            const sN = p.stockNast || 0;
+            const sM = p.stockMontf || 0;
+            if (sN > 0) return { bg: '', label: `${sN} N`, color: '#9aa8b8', type: 'nast' };
+            if (sN === 0 && sM > 0) return { bg: 'rgba(156,39,176,0.06)', label: `${sM} M`, color: '#9c27b0', type: 'montf' };
+            return { bg: 'rgba(231,76,60,0.06)', label: '0/0', color: '#e74c3c', type: 'rupture' };
+        }
+
         function renderMlpProduits() {
             const list = document.getElementById('mlpProduitsList');
             if (!currentMlp?.produits.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Aucun produit</div>'; return; }
             list.innerHTML = currentMlp.produits.map(p => {
                 const validated = mlpPickingState[p.ean] || 0;
                 const scanned = validated > 0;
-                return `<div class="produit-item ${scanned ? 'scanned' : ''}">
+                const stock = getStockInfo(p);
+                return `<div class="produit-item ${scanned ? 'scanned' : ''}" style="${stock.bg ? 'background:' + stock.bg + ';' : ''}">
                     <div class="produit-check" onclick="showMlpPopup(${JSON.stringify(p).replace(/"/g,'&quot;')})" style="cursor:pointer;">${scanned ? '✓' : ''}</div>
                     <div class="produit-info">
                         <div class="produit-nom">${p.nom || 'Produit'}</div>
-                        <div class="produit-ean">${p.ean}</div>
+                        <div class="produit-ean">${p.ean} <span style="font-size:10px;color:${stock.color};font-weight:600;margin-left:4px;${stock.type === 'rupture' ? 'background:#fdf0ef;padding:1px 5px;border-radius:4px;' : stock.type === 'montf' ? 'background:rgba(156,39,176,0.08);padding:1px 5px;border-radius:4px;' : ''}">${stock.label}</span></div>
                     </div>
                     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
                         <span class="produit-qty">${scanned ? validated + '/' : ''}×${p.qty}</span>
