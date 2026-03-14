@@ -1271,33 +1271,6 @@
             border-color: #43A047;
         }
 
-        /* Main tabs INTERNET / PHARMACIE */
-        .main-tab {
-            flex: 1;
-            padding: 10px 0;
-            border: none;
-            background: rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.7);
-            font-family: var(--font-body);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 10px 10px 0 0;
-        }
-        .main-tab.active {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-        }
-
-        /* Main panels */
-        .main-panel { display: none; }
-        .main-panel.active { display: block; }
-
-        /* Internet sub-panels */
-        .internet-panel { display: none; }
-        .internet-panel.active { display: block; }
-
         .section-panel { display: none; }
         .section-panel.active { display: block; }
 
@@ -1391,6 +1364,109 @@
             color: var(--text-muted);
         }
     
+    
+
+        /* ─── HOME REORG INTERNET / PHARMACIE ─── */
+        .home-switcher-wrap { margin-bottom: 16px; }
+        .home-switcher {
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 4px;
+            border-radius: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+        .home-switch-btn {
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.88);
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .home-switch-btn.active {
+            background: white;
+            color: var(--nast-pink);
+            box-shadow: var(--shadow-sm);
+        }
+        .home-panel { display:none; }
+        .home-panel.active { display:block; }
+        .home-summary-grid {
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .home-summary-card {
+            border: none;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            color: white;
+        }
+        .home-summary-stats { background: linear-gradient(135deg,#43A047,#26C6DA); }
+        .home-summary-orders { background: linear-gradient(135deg,#1976D2,#42A5F5); }
+        .home-summary-mlp { background: linear-gradient(135deg,#9C27B0,#E91E63); }
+        .home-summary-ecran { background: linear-gradient(135deg,#263238,#546E7A); }
+        .home-summary-label { font-size: 11px; font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
+        .home-summary-value { font-size: 24px; font-weight: 800; margin: 6px 0 4px; }
+        .home-summary-sub { font-size: 12px; opacity: 0.92; }
+        .home-section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom: 12px; }
+        .home-chip-action, .home-link-btn, .home-add-btn {
+            border: none; cursor: pointer; font-family: var(--font-body); font-weight: 700;
+        }
+        .home-chip-action {
+            width: 36px; height: 36px; border-radius: 12px; background: var(--nast-pink-light); color: var(--nast-pink-dark); font-size: 16px;
+        }
+        .home-link-btn {
+            background: var(--nast-blue); color: white; border-radius: 12px; padding: 10px 14px; font-size: 12px;
+        }
+        .home-link-inline {
+            border:none; background:none; color: var(--nast-pink); font-weight:700; font-size:12px; cursor:pointer; font-family: var(--font-body);
+        }
+        .home-mini-tabs {
+            display:flex; gap:6px; flex-wrap:wrap;
+        }
+        .home-mini-tab {
+            border:1px solid var(--border); background: var(--bg-input); color: var(--text-secondary); border-radius: 999px; padding: 7px 10px; font-size: 11px; font-weight: 700; cursor:pointer;
+        }
+        .home-mini-tab.active { background: var(--nast-pink); color: white; border-color: var(--nast-pink); }
+        .home-picking-panel { display:none; }
+        .home-picking-panel.active { display:block; }
+        .home-picking-box {
+            display:flex; align-items:center; justify-content:space-between; gap:12px; padding: 14px; background: var(--bg-secondary); border-radius: 14px;
+        }
+        .home-picking-title { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+        .home-picking-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .home-counter-list { display:flex; flex-direction:column; gap:8px; }
+        .home-counter-item {
+            display:flex; align-items:center; justify-content:space-between; gap:12px; padding: 12px 14px; background: var(--bg-secondary); border-radius: 12px; font-size:13px; color: var(--text-secondary);
+        }
+        .home-counter-item strong { font-size:18px; color: var(--text-primary); }
+        .home-list-compact { display:flex; flex-direction:column; gap:8px; }
+        .home-list-item {
+            display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 12px 14px; background: var(--bg-secondary); border-radius: 12px;
+        }
+        .home-list-main { min-width: 0; }
+        .home-list-title { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .home-list-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .home-empty-box {
+            padding: 14px; border-radius: 12px; background: var(--bg-secondary); color: var(--text-muted); font-size: 13px; text-align:center;
+        }
+        .home-task-add { display:flex; gap:8px; margin-bottom:12px; }
+        .home-add-btn { background: var(--nast-pink); color:white; border-radius: 12px; padding: 0 14px; font-size: 12px; }
+        .home-remove-btn {
+            border:none; background:#fff1f3; color:#c2185b; border-radius:10px; width:32px; height:32px; cursor:pointer; font-size:16px; flex-shrink:0;
+        }
+
     </style>
 </head>
 <body>
@@ -1404,126 +1480,147 @@
                     </div>
                     <span class="logo-text">Pharmacie Nast</span>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <span class="header-date" id="headerDate"></span>
-                    <button onclick="openSection('settings')" style="background:none;border:none;cursor:pointer;color:white;font-size:18px;">⚙️</button>
-                </div>
+                <span class="header-date" id="headerDate"></span>
             </div>
-            <!-- 2 onglets principaux -->
-            <div style="display:flex;gap:0;margin-top:10px;">
-                <button id="mainTabInternet" class="main-tab active" onclick="switchMainTab('internet')">🌐 Internet</button>
-                <button id="mainTabPharma" class="main-tab" onclick="switchMainTab('pharma')">🏥 Pharmacie</button>
-            </div>
+            <h1 id="headerTitle">Accueil</h1>
         </header>
 
         <!-- Content -->
         <main class="content">
-
-            <!-- ═══ ONGLET INTERNET ═══ -->
-            <div class="main-panel active" id="panelInternet">
-
-                <!-- Greeting + compteurs -->
-                <div class="menu-greeting">
-                    <div class="menu-greeting-hello">👋 Bonjour !</div>
-                    <div class="menu-greeting-sub" id="menuDate"></div>
-                </div>
-
-                <!-- Compteurs À traiter -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;" id="internetCounters">
-                    <div style="background:#e3f2fd;border-radius:12px;padding:12px;border-left:3px solid #1976D2;">
-                        <div style="font-size:22px;font-weight:800;color:#1976D2;" id="counterNast">—</div>
-                        <div style="font-size:11px;color:#5a6a7e;">Commandes NAST</div>
-                    </div>
-                    <div style="background:#f3e5f5;border-radius:12px;padding:12px;border-left:3px solid #9C27B0;">
-                        <div style="font-size:22px;font-weight:800;color:#9C27B0;" id="counterMlp">—</div>
-                        <div style="font-size:11px;color:#5a6a7e;">Commandes MLP</div>
-                    </div>
-                    <div style="background:#fce4ec;border-radius:12px;padding:12px;border-left:3px solid #e74c3c;">
-                        <div style="font-size:22px;font-weight:800;color:#e74c3c;" id="counterRuptures">—</div>
-                        <div style="font-size:11px;color:#5a6a7e;">Produits en rupture</div>
-                    </div>
-                    <div style="background:#e8f5e9;border-radius:12px;padding:12px;border-left:3px solid #43A047;">
-                        <div style="font-size:22px;font-weight:800;color:#43A047;" id="counterMontf">—</div>
-                        <div style="font-size:11px;color:#5a6a7e;">À récupérer Montf</div>
+            <!-- ═══ MENU PRINCIPAL ═══ -->
+            <div class="menu-home" id="menuHome">
+                <div class="home-switcher-wrap">
+                    <div class="home-switcher">
+                        <button class="home-switch-btn active" id="homeTabInternet" onclick="switchHomeTab('internet')">INTERNET</button>
+                        <button class="home-switch-btn" id="homeTabPharmacie" onclick="switchHomeTab('pharmacie')">PHARMACIE</button>
                     </div>
                 </div>
 
-                <!-- Sous-onglets Internet -->
-                <div class="section-subtabs" id="internetSubtabs">
-                    <button class="section-subtab active-blue" onclick="switchInternetPanel('picking',this)">📋 Picking</button>
-                    <button class="section-subtab" onclick="switchInternetPanel('commandes',this)">📦 Commandes</button>
-                    <button class="section-subtab" onclick="switchInternetPanel('aCommander',this)">🛒 A commander</button>
-                    <button class="section-subtab" onclick="switchInternetPanel('stats',this)">📊 Stats</button>
-                    <button class="section-subtab" onclick="switchInternetPanel('taches',this)">🖥️ Tâches</button>
-                </div>
-
-                <!-- Panel Picking -->
-                <div class="internet-panel active" id="inet_picking">
-                    <div style="display:flex;gap:6px;margin-bottom:12px;">
-                        <button class="sav-filter active" onclick="switchPickingSource('nast',this)">🛒 NAST.COM</button>
-                        <button class="sav-filter" onclick="switchPickingSource('mlp',this)">💜 MLP</button>
-                        <button class="sav-filter" onclick="switchPickingSource('lcdp',this)" style="opacity:0.4;">🏪 LCDP</button>
+                <div class="home-panel active" id="homeInternetPanel">
+                    <div class="menu-greeting">
+                        <div class="menu-greeting-hello">🌐 Internet</div>
+                        <div class="menu-greeting-sub">Vue réorganisée sans casser les modules existants</div>
                     </div>
-                    <div id="pickingContainer"></div>
-                </div>
 
-                <!-- Panel Commandes (NAST + MLP) -->
-                <div class="internet-panel" id="inet_commandes">
-                    <div style="display:flex;gap:6px;margin-bottom:12px;">
-                        <button class="sav-filter active" onclick="switchCommandesSource('nast',this)">🛒 NAST.COM</button>
-                        <button class="sav-filter" onclick="switchCommandesSource('mlp',this)">💜 MLP</button>
-                    </div>
-                    <div id="commandesContainer"></div>
-                </div>
-
-                <!-- Panel A commander -->
-                <div class="internet-panel" id="inet_aCommander">
-                    <div class="commandes-header">
-                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot" style="background:#ff9800;"></span>A commander</div>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <span class="commandes-count" id="aCommanderCount2"></span>
-                            <button onclick="loadACommander()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                                Actualiser
-                            </button>
+                    <div class="internet-hero card" style="margin-bottom:14px;">
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                            <div>
+                                <div class="card-title" style="margin-bottom:8px;"><span class="card-title-dot"></span>Pilotage rapide</div>
+                                <div style="font-size:18px;font-weight:700;color:var(--text-primary);line-height:1.25;">Tout l’Internet regroupé au même endroit</div>
+                                <div style="font-size:13px;color:var(--text-secondary);margin-top:6px;">Stats, picking, à traiter et tâches équipe sans repartir de zéro.</div>
+                            </div>
+                            <button class="home-chip-action" onclick="refreshHomeDashboard()">↻</button>
                         </div>
                     </div>
-                    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="aCommanderTabs2">
-                        <button class="sav-filter active" data-source="montf" onclick="filterACommander('montf',this);document.querySelectorAll('#aCommanderTabs2 .sav-filter,#aCommanderTabs .sav-filter').forEach(b=>b.classList.remove('active'));this.classList.add('active');">🏪 MONTF</button>
-                        <button class="sav-filter" data-source="rupture" onclick="filterACommander('rupture',this);document.querySelectorAll('#aCommanderTabs2 .sav-filter,#aCommanderTabs .sav-filter').forEach(b=>b.classList.remove('active'));this.classList.add('active');">❌ RUPTURE</button>
-                        <button class="sav-filter" data-source="ferry" onclick="filterACommander('ferry',this);document.querySelectorAll('#aCommanderTabs2 .sav-filter,#aCommanderTabs .sav-filter').forEach(b=>b.classList.remove('active'));this.classList.add('active');">🚢 FERRY</button>
-                        <button class="sav-filter" data-source="stocksante" onclick="filterACommander('stocksante',this);document.querySelectorAll('#aCommanderTabs2 .sav-filter,#aCommanderTabs .sav-filter').forEach(b=>b.classList.remove('active'));this.classList.add('active');">💊 STOCK SANTÉ</button>
-                        <button class="sav-filter" data-source="cerp" onclick="filterACommander('cerp',this);document.querySelectorAll('#aCommanderTabs2 .sav-filter,#aCommanderTabs .sav-filter').forEach(b=>b.classList.remove('active'));this.classList.add('active');">🏭 CERP</button>
-                        <button class="sav-filter" data-source="d2p" onclick="filterACommander('d2p',this);document.querySelectorAll('#aCommanderTabs2 .sav-filter,#aCommanderTabs .sav-filter').forEach(b=>b.classList.remove('active'));this.classList.add('active');">📦 D2P</button>
+
+                    <div class="home-summary-grid">
+                        <button class="home-summary-card home-summary-stats" onclick="openSection('stats')">
+                            <div class="home-summary-label">Stats</div>
+                            <div class="home-summary-value" id="homeStatCA">—</div>
+                            <div class="home-summary-sub">CA période + marge</div>
+                        </button>
+                        <button class="home-summary-card home-summary-orders" onclick="openSection('nastcom')">
+                            <div class="home-summary-label">NAST à traiter</div>
+                            <div class="home-summary-value" id="homeStatNast">—</div>
+                            <div class="home-summary-sub">Commandes ouvertes</div>
+                        </button>
+                        <button class="home-summary-card home-summary-mlp" onclick="openSection('mlp')">
+                            <div class="home-summary-label">MLP à traiter</div>
+                            <div class="home-summary-value" id="homeStatMlp">—</div>
+                            <div class="home-summary-sub">Commandes ouvertes</div>
+                        </button>
+                        <button class="home-summary-card home-summary-ecran" onclick="openSection(&quot;ecran&quot;)">
+                            <div class="home-summary-label">Écran / Telegram</div>
+                            <div class="home-summary-value" id="homeStatTodos">—</div>
+                            <div class="home-summary-sub">Tâches actives</div>
+                        </button>
                     </div>
-                    <div id="aCommanderList2" class="commandes-list"></div>
-                </div>
 
-                <!-- Panel Stats -->
-                <div class="internet-panel" id="inet_stats">
-                    <div id="statsInlineContainer"></div>
-                </div>
+                    <div class="card">
+                        <div class="home-section-head">
+                            <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Picking</div>
+                            <div class="home-mini-tabs">
+                                <button class="home-mini-tab active" id="homePickTabNast" onclick="switchHomePicking('nast')">NAST.COM</button>
+                                <button class="home-mini-tab" id="homePickTabMlp" onclick="switchHomePicking('mlp')">MLP</button>
+                                <button class="home-mini-tab" id="homePickTabLcdp" onclick="switchHomePicking('lcdp')">LCDP</button>
+                            </div>
+                        </div>
+                        <div class="home-picking-panel active" id="homePickingNast">
+                            <div class="home-picking-box">
+                                <div>
+                                    <div class="home-picking-title">Picking Nast.com</div>
+                                    <div class="home-picking-sub">Accès au picking groupé existant</div>
+                                </div>
+                                <button class="home-link-btn" onclick="openSection('nastcom'); setTimeout(function(){ forceSwitchSection('nastcom','picking','blue'); }, 50);">Ouvrir</button>
+                            </div>
+                        </div>
+                        <div class="home-picking-panel" id="homePickingMlp">
+                            <div class="home-picking-box">
+                                <div>
+                                    <div class="home-picking-title">Picking MLP</div>
+                                    <div class="home-picking-sub">Ouverture directe des commandes MLP à préparer</div>
+                                </div>
+                                <button class="home-link-btn" onclick="openSection('mlp');">Ouvrir</button>
+                            </div>
+                        </div>
+                        <div class="home-picking-panel" id="homePickingLcdp">
+                            <div class="home-empty-box">LCDP prévu au code, laissé volontairement vide pour l’instant.</div>
+                        </div>
+                    </div>
 
-                <!-- Panel Tâches (Ecran) -->
-                <div class="internet-panel" id="inet_taches">
-                    <div class="card-title" style="margin-bottom:12px;"><span class="card-title-dot" style="background:#000;"></span>Tâches & Écran</div>
-                    <div id="tachesInlineContainer">
-                        <div class="commande-empty"><div class="commande-empty-icon">🖥️</div><p>Chargement des tâches…</p></div>
+                    <div class="card">
+                        <div class="home-section-head">
+                            <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>À traiter</div>
+                            <button class="home-link-inline" onclick="refreshHomeDashboard()">Actualiser</button>
+                        </div>
+                        <div class="home-counter-list">
+                            <div class="home-counter-item"><span>Commandes NAST</span><strong id="homeCounterNast">0</strong></div>
+                            <div class="home-counter-item"><span>Commandes MLP</span><strong id="homeCounterMlp">0</strong></div>
+                            <div class="home-counter-item"><span>SAV / tâches web</span><strong id="homeCounterSav">0</strong></div>
+                            <div class="home-counter-item"><span>Ruptures / à commander</span><strong id="homeCounterRuptures">0</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="home-section-head">
+                            <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Tâches Telegram / Écran</div>
+                            <button class="home-link-inline" onclick="openSection(&quot;ecran&quot;)">Voir l’écran</button>
+                        </div>
+                        <div id="homeInternetTasks" class="home-list-compact">
+                            <div class="home-empty-box">Chargement des tâches…</div>
+                        </div>
                     </div>
                 </div>
 
-            </div><!-- /panelInternet -->
+                <div class="home-panel" id="homePharmaciePanel">
+                    <div class="menu-greeting">
+                        <div class="menu-greeting-hello">🏥 Pharmacie</div>
+                        <div class="menu-greeting-sub">Bloc pharmacie conservé + liste de tâches perso</div>
+                    </div>
 
-            <!-- ═══ ONGLET PHARMACIE ═══ -->
-            <div class="main-panel" id="panelPharma">
-                <div id="pharmaInlineContainer"></div>
-            </div><!-- /panelPharma -->
+                    <div class="card" style="margin-bottom:14px;">
+                        <div class="home-section-head">
+                            <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Bloc pharmacie existant</div>
+                            <button class="home-link-inline" onclick="openSection('pharma')">Ouvrir</button>
+                        </div>
+                        <div class="home-empty-box" style="text-align:left;">On ne touche pas au bloc pharmacie existant. Cette réorganisation sert uniquement à mieux grouper l’accès.</div>
+                    </div>
 
-            <!-- On garde les sections existantes cachées pour réutiliser leur contenu -->
-            <!-- Le menu home est supprimé, remplacé par les onglets -->
-
-            <div class="menu-home" id="menuHome" style="display:none;">
+                    <div class="card">
+                        <div class="home-section-head">
+                            <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Mes tâches perso</div>
+                        </div>
+                        <div class="home-task-add">
+                            <input class="input" id="homePersoTaskInput" placeholder="Ajouter une tâche perso…" />
+                            <button class="home-add-btn" onclick="addHomePersoTask()">Ajouter</button>
+                        </div>
+                        <div id="homePersoTaskList" class="home-list-compact">
+                            <div class="home-empty-box">Aucune tâche perso.</div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
 
             <!-- ═══ SECTION STATS ═══ -->
             <div class="section-view" id="sectionStats">
@@ -1563,19 +1660,11 @@
                             </div>
                             <div class="stat-kpi" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-left:4px solid #FF9800;">
                                 <div class="stat-kpi-value" id="statTotalCA">0 €</div>
-                                <div class="stat-kpi-label">CA TTC</div>
+                                <div class="stat-kpi-label">CA</div>
                             </div>
                             <div class="stat-kpi" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);border-left:4px solid #E91E63;">
                                 <div class="stat-kpi-value" id="statPanierMoyen">0 €</div>
                                 <div class="stat-kpi-label">Panier moyen</div>
-                            </div>
-                            <div class="stat-kpi" style="background:linear-gradient(135deg,#e0f2f1,#b2dfdb);border-left:4px solid #00897B;">
-                                <div class="stat-kpi-value" id="statMargeEuros">0 €</div>
-                                <div class="stat-kpi-label">Marge brute ≈</div>
-                            </div>
-                            <div class="stat-kpi" style="background:linear-gradient(135deg,#ede7f6,#d1c4e9);border-left:4px solid #5E35B1;">
-                                <div class="stat-kpi-value" id="statTauxMarge">0%</div>
-                                <div class="stat-kpi-label">Taux marge moy.</div>
                             </div>
                         </div>
 
@@ -2152,13 +2241,6 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
                         Scanner un produit
                     </button>
-
-                    <!-- Photo preuve commande -->
-                    <input type="file" accept="image/*" capture="environment" id="photoCommandeInput" style="display:none" onchange="handlePhotoCommande(event, 'nast')">
-                    <button onclick="document.getElementById('photoCommandeInput').click()" style="width:100%;margin-top:8px;padding:14px;border:2px dashed var(--nast-pink);border-radius:12px;background:var(--nast-pink-light);color:var(--nast-pink-dark);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-                        📸 Photo preuve commande
-                    </button>
-                    <div id="photoCommandePreview" style="margin-top:8px;"></div>
                 </div>
                 </div>
 
@@ -2349,13 +2431,6 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
                         Scanner un produit
                     </button>
-
-                    <!-- Photo preuve commande MLP -->
-                    <input type="file" accept="image/*" capture="environment" id="photoMlpCommandeInput" style="display:none" onchange="handlePhotoCommande(event, 'mlp')">
-                    <button onclick="document.getElementById('photoMlpCommandeInput').click()" style="width:100%;margin-top:8px;padding:14px;border:2px dashed #9C27B0;border-radius:12px;background:#f3e5f5;color:#7b1fa2;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-                        📸 Photo preuve commande
-                    </button>
-                    <div id="photoMlpCommandePreview" style="margin-top:8px;"></div>
                 </div>
                 </div>
 
@@ -2640,244 +2715,11 @@
         
         // ─── NAVIGATION MENU PRINCIPAL ───
         let currentSection = null;
-        let currentMainTab = 'internet';
-        let currentInternetPanel = 'picking';
-        let currentPickingSource = 'nast';
-        let currentCommandesSource = 'nast';
 
-        function switchMainTab(tab) {
-            currentMainTab = tab;
-            document.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
-            document.getElementById(tab === 'internet' ? 'mainTabInternet' : 'mainTabPharma').classList.add('active');
-            document.querySelectorAll('.main-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(tab === 'internet' ? 'panelInternet' : 'panelPharma').classList.add('active');
-            // Hide any open section views
-            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
-            if (tab === 'internet') {
-                updateInternetCounters();
-            }
-        }
-
-        function switchInternetPanel(panel, btn) {
-            currentInternetPanel = panel;
-            document.querySelectorAll('#internetSubtabs .section-subtab').forEach(b => b.classList.remove('active', 'active-blue', 'active-green'));
-            btn.classList.add('active-blue');
-            document.querySelectorAll('.internet-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById('inet_' + panel).classList.add('active');
-
-            if (panel === 'picking') loadPickingForSource();
-            if (panel === 'commandes') loadCommandesForSource();
-            if (panel === 'aCommander') loadACommander();
-            if (panel === 'stats') loadStats();
-            if (panel === 'taches') loadTachesInline();
-        }
-
-        function switchPickingSource(source, btn) {
-            currentPickingSource = source;
-            btn.parentElement.querySelectorAll('.sav-filter').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            if (source === 'lcdp') {
-                document.getElementById('pickingContainer').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">🏪</div><p>LCDP — Bientôt disponible</p></div>';
-                return;
-            }
-            loadPickingForSource();
-        }
-
-        function switchCommandesSource(source, btn) {
-            currentCommandesSource = source;
-            btn.parentElement.querySelectorAll('.sav-filter').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            loadCommandesForSource();
-        }
-
-        async function loadPickingForSource() {
-            if (currentPickingSource === 'nast') {
-                if (!commandesData.length) {
-                    const res = await fetch(COMMANDES_WEBHOOK + '?t=' + Date.now());
-                    const rows = await res.json();
-                    if (rows?.length) commandesData = parseWebhookCommandes(rows);
-                }
-                // Render picking in the container
-                document.getElementById('pickingContainer').innerHTML = document.getElementById('nastcom_picking')?.innerHTML || '<div class="commande-empty"><p>Chargez les commandes NAST d\'abord</p></div>';
-                loadPicking();
-            } else if (currentPickingSource === 'mlp') {
-                if (!mlpData.length) {
-                    const res = await fetch(MLP_WEBHOOK + '?t=' + Date.now());
-                    const rows = await res.json();
-                    if (rows?.length) mlpData = parseWebhookCommandes(rows);
-                }
-                // Use existing MLP picking
-                document.getElementById('pickingContainer').innerHTML = '<div id="mlpPickingInPicking"></div>';
-                renderMlpPickingInPanel();
-            }
-            updateInternetCounters();
-        }
-
-        function renderMlpPickingInPanel() {
-            // Simple: redirect to MLP commandes list
-            const container = document.getElementById('pickingContainer');
-            if (!mlpData.length) {
-                container.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">💜</div><p>Aucune commande MLP</p></div>';
-                return;
-            }
-            // Reuse the grouped picking approach from NAST but with MLP data
-            const cmdColorMap = {};
-            mlpData.forEach((c, i) => { cmdColorMap[c.num] = PICKING_COLORS[i % PICKING_COLORS.length]; });
-            const grouped = {};
-            mlpData.forEach(c => {
-                c.produits.forEach(p => {
-                    const key = p.ean || p.nom;
-                    if (!grouped[key]) grouped[key] = { ean: p.ean, nom: p.nom, totalQty: 0, stockNast: p.stockNast || 0, stockMontf: p.stockMontf || 0, commandes: [] };
-                    grouped[key].totalQty += p.qty;
-                    grouped[key].commandes.push({ num: c.num, client: c.client, qty: p.qty, color: cmdColorMap[c.num] });
-                });
-            });
-            const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
-            const savedPicking = getVal('mlp_picking_checked_' + new Date().toISOString().split('T')[0]);
-            const mlpPickChecked = savedPicking ? JSON.parse(savedPicking) : {};
-            
-            container.innerHTML = `
-                <div style="margin-bottom:10px;">
-                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-                        ${mlpData.map(c => `<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;color:white;background:${cmdColorMap[c.num]}">#${c.num} ${(c.client || '').split(' ')[0]}</span>`).join('')}
-                    </div>
-                </div>
-                ${items.map((item, idx) => {
-                    const key = item.ean || item.nom;
-                    const isPicked = mlpPickChecked[key];
-                    const stock = getStockInfo(item);
-                    const cmdsHtml = item.commandes.map(c => `<span class="pick-cmd-tag" style="background:${c.color}">#${c.num} × ${c.qty}</span>`).join('');
-                    return `<div class="pick-item ${isPicked ? 'picked' : ''}" style="${(stock.bg ? 'background:' + stock.bg + ';' : '') + (stock.border || '')}">
-                        <div class="pick-main" onclick="toggleMlpPickItem('${key}')">
-                            <div class="pick-check">${isPicked ? '✓' : ''}</div>
-                            <div class="pick-body">
-                                <div class="pick-nom">${item.nom || 'Produit inconnu'}</div>
-                                <div class="pick-ean">${item.ean}</div>
-                                <div style="margin-top:2px;"><span style="font-size:10px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:1px 6px;border-radius:5px;">${stock.label}</span></div>
-                            </div>
-                            <div class="pick-qty-total">${item.totalQty}</div>
-                        </div>
-                        <div class="pick-cmds">${cmdsHtml}</div>
-                    </div>`;
-                }).join('')}
-            `;
-        }
-
-        function toggleMlpPickItem(key) {
-            const today = new Date().toISOString().split('T')[0];
-            const saved = getVal('mlp_picking_checked_' + today);
-            const checked = saved ? JSON.parse(saved) : {};
-            checked[key] = !checked[key];
-            setVal('mlp_picking_checked_' + today, JSON.stringify(checked));
-            renderMlpPickingInPanel();
-        }
-
-        async function loadCommandesForSource() {
-            const container = document.getElementById('commandesContainer');
-            if (currentCommandesSource === 'nast') {
-                if (!commandesData.length) {
-                    const res = await fetch(COMMANDES_WEBHOOK + '?t=' + Date.now());
-                    const rows = await res.json();
-                    if (rows?.length) commandesData = parseWebhookCommandes(rows);
-                }
-                renderCommandesInPanel(commandesData, 'nast');
-            } else {
-                if (!mlpData.length) {
-                    const res = await fetch(MLP_WEBHOOK + '?t=' + Date.now());
-                    const rows = await res.json();
-                    if (rows?.length) mlpData = parseWebhookCommandes(rows);
-                }
-                renderCommandesInPanel(mlpData, 'mlp');
-            }
-            updateInternetCounters();
-        }
-
-        function renderCommandesInPanel(data, source) {
-            const container = document.getElementById('commandesContainer');
-            if (!data.length) {
-                container.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Toutes les commandes sont traitées !</p></div>';
-                return;
-            }
-            container.innerHTML = `<div style="margin-bottom:8px;font-size:13px;font-weight:600;color:var(--text-secondary);">${data.length} commande${data.length > 1 ? 's' : ''} à traiter</div>` +
-                data.map((c, idx) => {
-                    const d = new Date(c.date);
-                    const dateStr = isNaN(d) ? c.date : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-                    const statut = c.statut?.trim() || '';
-                    const statutClass = statut.toLowerCase().includes('docmorris') ? 'statut-docmorris' : statut.toLowerCase().includes('payplug') ? 'statut-payplug' : 'statut-autre';
-                    return `<div class="commande-card" onclick="${source === 'nast' ? 'openCommandeDetail(' + idx + ')' : 'openMlpDetail(' + idx + ')'}">
-                        <div class="commande-card-top">
-                            <span class="commande-ref">#${c.num}</span>
-                            <span class="commande-statut ${statutClass}">${statut}</span>
-                        </div>
-                        <div class="commande-client">${c.client || '—'}</div>
-                        <div class="commande-meta">
-                            <span>📦 ${c.produits.length} produit(s)</span>
-                            <span>📍 ${c.ville || '—'}</span>
-                            <span>🕐 ${dateStr}</span>
-                        </div>
-                    </div>`;
-                }).join('');
-        }
-
-        function updateInternetCounters() {
-            document.getElementById('counterNast').textContent = commandesData.length || '—';
-            document.getElementById('counterMlp').textContent = mlpData.length || '—';
-            let ruptures = 0, montfItems = 0;
-            const allData = [...commandesData, ...mlpData];
-            const seen = {};
-            allData.forEach(c => c.produits.forEach(p => {
-                const key = p.ean || p.nom;
-                if (!seen[key]) {
-                    seen[key] = true;
-                    if ((p.stockNast || 0) === 0 && (p.stockMontf || 0) === 0) ruptures++;
-                    if ((p.stockNast || 0) === 0 && (p.stockMontf || 0) > 0) montfItems++;
-                }
-            }));
-            document.getElementById('counterRuptures').textContent = ruptures || '0';
-            document.getElementById('counterMontf').textContent = montfItems || '0';
-        }
-
-        async function loadTachesInline() {
-            const container = document.getElementById('tachesInlineContainer');
-            container.innerHTML = '<div style="text-align:center;padding:20px;color:#888;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/></svg> Chargement…</div>';
-            try {
-                const tRes = await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/ecran-taches?t=' + Date.now());
-                const tJson = await tRes.json();
-                if (!Array.isArray(tJson) || !tJson.length) {
-                    container.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune tâche en attente</p></div>';
-                    return;
-                }
-                container.innerHTML = tJson.map(t => {
-                    const type = String(t.type || '').toLowerCase();
-                    const icon = type.includes('probleme') || type.includes('problème') ? '🔴' : type.includes('sav') ? '🟠' : '📋';
-                    const bgColor = type.includes('probleme') || type.includes('problème') ? 'rgba(231,76,60,0.06)' : type.includes('sav') ? 'rgba(255,152,0,0.06)' : '#f7f9fb';
-                    return `<div style="background:${bgColor};border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border);">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                            <span style="font-weight:600;font-size:13px;">${icon} ${t.type || 'Tâche'}</span>
-                            <span style="font-size:11px;color:#888;">${t.date || ''}</span>
-                        </div>
-                        <div style="font-size:13px;color:var(--text-primary);">${t.message || t.contenu || ''}</div>
-                        ${t.numCommande ? `<div style="margin-top:4px;font-size:11px;color:#1976D2;font-weight:600;">#${t.numCommande}</div>` : ''}
-                        ${t.reponse ? `<div style="margin-top:6px;padding:8px;background:#e8f5e9;border-radius:8px;font-size:12px;color:#2e7d32;">✅ ${t.reponse}</div>` : ''}
-                    </div>`;
-                }).join('');
-            } catch(e) {
-                container.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Erreur chargement tâches</p></div>';
-            }
-        }
-
-        // Keep openSection for pharma sub-sections and settings
         function openSection(section) {
-            // Hide main panels for full-screen sections
-            if (section === 'settings') {
-                document.querySelectorAll('.main-panel').forEach(p => p.classList.remove('active'));
-                document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
-                document.getElementById('sectionSettings').classList.add('active');
-                currentSection = section;
-                return;
-            }
-            // For pharma sub-sections opened from within pharma panel
+            document.getElementById('menuHome').classList.add('hidden');
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            
             const sectionMap = {
                 'pharma': 'sectionPharma',
                 'nastcom': 'sectionNastcom',
@@ -2887,19 +2729,41 @@
                 'stats': 'sectionStats',
                 'ecran': 'sectionEcran'
             };
+            
+            const titles = {
+                'pharma': '🏥 Pharmacie Nast',
+                'nastcom': '🛒 Nast.com',
+                'mlp': '💜 My Little Para',
+                'settings': '⚙️ Réglages',
+                'photos': '📸 Photos',
+                'stats': '📊 Stats',
+                'ecran': '🖥️ Écran'
+            };
+            
             const el = document.getElementById(sectionMap[section]);
             if (el) el.classList.add('active');
+            document.getElementById('headerTitle').textContent = titles[section] || '';
             currentSection = section;
+            
+            // Auto-load data
             if (section === 'nastcom') loadCommandes();
             if (section === 'mlp') loadMLP();
+            if (section === 'photos') initPhotoSection();
             if (section === 'stats') loadStats();
+            if (section === 'ecran') openEcranMode();
+            if (section === 'pharma') {
+                // Check quel panel est actif
+                const activePanel = document.querySelector('#sectionPharma .section-panel.active');
+                if (activePanel?.id === 'pharma_dashboard') loadSheetData();
+            }
         }
 
         function goHome() {
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
-            // Return to current main tab
-            document.getElementById(currentMainTab === 'internet' ? 'panelInternet' : 'panelPharma').classList.add('active');
+            document.getElementById('menuHome').classList.remove('hidden');
+            document.getElementById('headerTitle').textContent = currentHomeTab === 'pharmacie' ? 'Pharmacie' : 'Internet';
             currentSection = null;
+            switchHomeTab(currentHomeTab || 'internet');
         }
 
         function switchSection(section, panel, btn, color) {
@@ -2961,39 +2825,6 @@
             setupRuptures();
             setupPhotosTg();
             setupPerimes();
-
-            // Wire existing sections into new layout
-            wireSectionsToNewLayout();
-
-            // Auto-load internet data
-            setTimeout(() => {
-                loadPickingForSource();
-            }, 500);
-        }
-
-        function wireSectionsToNewLayout() {
-            // Move Pharmacie content into panelPharma
-            const pharmaSection = document.getElementById('sectionPharma');
-            const pharmaContainer = document.getElementById('pharmaInlineContainer');
-            if (pharmaSection && pharmaContainer) {
-                // Remove the back button from pharma since we have tabs now
-                const backBtn = pharmaSection.querySelector('.section-back');
-                if (backBtn) backBtn.style.display = 'none';
-                pharmaContainer.appendChild(pharmaSection);
-                pharmaSection.style.display = 'block';
-                pharmaSection.classList.add('active');
-            }
-
-            // Move Stats content into inet_stats
-            const statsSection = document.getElementById('sectionStats');
-            const statsContainer = document.getElementById('statsInlineContainer');
-            if (statsSection && statsContainer) {
-                const backBtn = statsSection.querySelector('.section-back');
-                if (backBtn) backBtn.style.display = 'none';
-                statsContainer.appendChild(statsSection);
-                statsSection.style.display = 'block';
-                statsSection.classList.add('active');
-            }
         }
 
         function updateDate() {
@@ -3947,11 +3778,6 @@
                     list.innerHTML = `<div class="commande-empty"><div class="commande-empty-icon">${icons[aCommanderFilter] || '📦'}</div><p>Onglet ${names[aCommanderFilter] || ''}<br><span style="font-size:12px;color:#aaa;">À gérer manuellement</span></p></div>`;
                 }
             }
-            // Sync to inet_aCommander panel
-            const list2 = document.getElementById('aCommanderList2');
-            const count2 = document.getElementById('aCommanderCount2');
-            if (list2) list2.innerHTML = list.innerHTML;
-            if (count2) count2.textContent = document.getElementById('aCommanderCount')?.textContent || '';
         }
 
         function getStockInfo(p) {
@@ -5492,7 +5318,158 @@
             validateDelpechForm();
         }
 
+
+        // ─── HOME REORGANISÉE INTERNET / PHARMACIE ───
+        let currentHomeTab = 'internet';
+        let currentHomePickingTab = 'nast';
+
+        function switchHomeTab(tab) {
+            currentHomeTab = tab;
+            document.getElementById('homeTabInternet')?.classList.toggle('active', tab === 'internet');
+            document.getElementById('homeTabPharmacie')?.classList.toggle('active', tab === 'pharmacie');
+            document.getElementById('homeInternetPanel')?.classList.toggle('active', tab === 'internet');
+            document.getElementById('homePharmaciePanel')?.classList.toggle('active', tab === 'pharmacie');
+            document.getElementById('headerTitle').textContent = tab === 'internet' ? 'Internet' : 'Pharmacie';
+            if (tab === 'internet') refreshHomeDashboard();
+            if (tab === 'pharmacie') renderHomePersoTasks();
+        }
+
+        function switchHomePicking(tab) {
+            currentHomePickingTab = tab;
+            ['nast','mlp','lcdp'].forEach(function(name){
+                document.getElementById('homePickTab' + capitalize(name))?.classList.toggle('active', name === tab);
+                document.getElementById('homePicking' + capitalize(name))?.classList.toggle('active', name === tab);
+            });
+        }
+
+        function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+        function forceSwitchSection(section, panel, color) {
+            const container = document.getElementById('section' + capitalize(section));
+            if (!container) return;
+            container.querySelectorAll('.section-subtab').forEach(b => b.classList.remove('active','active-blue','active-purple','active-green'));
+            const targetPanel = document.getElementById(section + '_' + panel);
+            container.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+            if (targetPanel) targetPanel.classList.add('active');
+            const targetBtn = Array.from(container.querySelectorAll('.section-subtab')).find(function(btn){
+                return (btn.getAttribute('onclick') || '').includes("'" + panel + "'");
+            });
+            if (targetBtn) {
+                const cls = color ? 'active-' + color : 'active';
+                targetBtn.classList.add(cls);
+            }
+            if (panel === 'picking') loadPicking();
+            if (panel === 'traiter') loadCommandes();
+            if (panel === 'traiterMlp') loadMLP();
+            if (panel === 'aCommander') loadACommander();
+            if (panel === 'dashboard') loadSheetData();
+        }
+
+        async function refreshHomeDashboard() {
+            try {
+                await Promise.allSettled([
+                    loadCommandes(),
+                    loadMLP(),
+                    loadTodoNast(),
+                    loadTodoWeb(),
+                    loadRuptures()
+                ]);
+            } catch (e) {}
+            renderHomeDashboardFromData();
+        }
+
+        function renderHomeDashboardFromData() {
+            const nastCount = Array.isArray(commandesData) ? commandesData.length : 0;
+            const mlpCount = Array.isArray(mlpData) ? mlpData.length : 0;
+            const todoWebCount = Array.isArray(todoWebData) ? todoWebData.filter(t => t.statut !== 'done').length : 0;
+            const todoNastCount = Array.isArray(todoNastData) ? todoNastData.filter(t => t.statut !== 'done').length : 0;
+            const todoTotal = todoWebCount + todoNastCount;
+            const rupturesCount = (() => {
+                const list = document.getElementById('rupturesList');
+                if (!list) return 0;
+                const items = list.querySelectorAll('.todo-card, .recent-item, .commande-card, .card, .sav-ticket, .rupture-item');
+                return items.length || 0;
+            })();
+
+            setText('homeStatNast', nastCount);
+            setText('homeStatMlp', mlpCount);
+            setText('homeStatTodos', todoTotal);
+            setText('homeCounterNast', nastCount);
+            setText('homeCounterMlp', mlpCount);
+            setText('homeCounterSav', todoTotal);
+            setText('homeCounterRuptures', rupturesCount);
+
+            const totalCA = (Array.isArray(commandesData) ? commandesData : []).reduce((sum, c) => sum + (parseFloat(c.total) || 0), 0)
+                + (Array.isArray(mlpData) ? mlpData : []).reduce((sum, c) => sum + (parseFloat(c.total) || 0), 0);
+            const totalMarge = (() => {
+                let marge = 0;
+                [...(Array.isArray(commandesData) ? commandesData : []), ...(Array.isArray(mlpData) ? mlpData : [])].forEach(c => {
+                    (c.produits || []).forEach(p => {
+                        if (p.prixVente && p.prixAchat) marge += ((p.prixVente / 1.2) - p.prixAchat) * (p.qty || 1);
+                    });
+                });
+                return marge;
+            })();
+            setText('homeStatCA', totalCA ? (Math.round(totalCA) + '€') : '0€');
+            const caSub = document.querySelector('.home-summary-stats .home-summary-sub');
+            if (caSub) caSub.textContent = 'Marge estimée ' + (totalMarge ? Math.round(totalMarge) + '€' : '0€');
+
+            const taskBox = document.getElementById('homeInternetTasks');
+            if (taskBox) {
+                const todos = [
+                    ...(Array.isArray(todoNastData) ? todoNastData.filter(t => t.statut !== 'done').slice(0,2).map(t => ({titre:t.titre, sub:'NAST.COM · ' + (t.priorite || 'normal')})) : []),
+                    ...(Array.isArray(todoWebData) ? todoWebData.filter(t => t.statut !== 'done').slice(0,2).map(t => ({titre:t.titre, sub:'WEB / TELEGRAM · ' + (t.priorite || 'normal')})) : [])
+                ].slice(0,4);
+                taskBox.innerHTML = todos.length ? todos.map(function(t){
+                    return '<div class="home-list-item"><div class="home-list-main"><div class="home-list-title">' + escapeHtml(t.titre || 'Tâche') + '</div><div class="home-list-sub">' + escapeHtml(t.sub || '') + '</div></div><button class="home-link-btn" style="padding:8px 10px;" onclick="openSection(&quot;ecran&quot;)">Voir</button></div>';
+                }).join('') : '<div class="home-empty-box">Aucune tâche active pour le moment.</div>';
+            }
+        }
+
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+        }
+
+        function getHomePersoTasks() {
+            try { return JSON.parse(localStorage.getItem('homePersoTasks') || '[]'); } catch(e) { return []; }
+        }
+        function saveHomePersoTasks(tasks) {
+            localStorage.setItem('homePersoTasks', JSON.stringify(tasks));
+        }
+        function renderHomePersoTasks() {
+            const list = document.getElementById('homePersoTaskList');
+            if (!list) return;
+            const tasks = getHomePersoTasks();
+            list.innerHTML = tasks.length ? tasks.map(function(t, idx){
+                return '<div class="home-list-item"><div class="home-list-main"><div class="home-list-title">' + escapeHtml(t) + '</div></div><button class="home-remove-btn" onclick="removeHomePersoTask(' + idx + ')">×</button></div>';
+            }).join('') : '<div class="home-empty-box">Aucune tâche perso.</div>';
+        }
+        function addHomePersoTask() {
+            const input = document.getElementById('homePersoTaskInput');
+            if (!input) return;
+            const value = (input.value || '').trim();
+            if (!value) return;
+            const tasks = getHomePersoTasks();
+            tasks.unshift(value);
+            saveHomePersoTasks(tasks);
+            input.value = '';
+            renderHomePersoTasks();
+        }
+        function removeHomePersoTask(idx) {
+            const tasks = getHomePersoTasks();
+            tasks.splice(idx, 1);
+            saveHomePersoTasks(tasks);
+            renderHomePersoTasks();
+        }
+
         init();
+        switchHomeTab('internet');
+        renderHomePersoTasks();
 
         // ═══════════════════════════════════════════
         // 📊 STATISTIQUES
@@ -5594,9 +5571,7 @@
                             map[key].produits.push({
                                 ean: ean,
                                 nom: String(r['Nom produit'] || '').trim() || 'Produit inconnu',
-                                qty: parseInt(r['Quantité']) || 1,
-                                prixVente: parseFloat(String(r['Prix unitaire produit TTC'] || '0').replace(',', '.')) || 0,
-                                prixAchat: parseFloat(String(r['Prix Achat HT'] || '0').replace(',', '.')) || 0
+                                qty: parseInt(r['Quantité']) || 1
                             });
                         }
                     }
@@ -5630,27 +5605,6 @@
             document.getElementById('statTotalProduits').textContent = totalProduits.toLocaleString('fr-FR');
             document.getElementById('statTotalCA').textContent = totalCA.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €';
             document.getElementById('statPanierMoyen').textContent = totalCmd ? (totalCA / totalCmd).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' €' : '0 €';
-
-            // === Marge brute approximative ===
-            // PV HT ≈ PV TTC / 1.10 (10% TVA moyenne)
-            // Marge = PV HT - PA HT par produit × quantité
-            let totalMargeEuros = 0;
-            let totalPVHT = 0;
-            let totalPAHT = 0;
-            filtered.forEach(c => {
-                c.produits.forEach(p => {
-                    const pvHT = (p.prixVente || 0) / 1.10;
-                    const paHT = p.prixAchat || 0;
-                    if (pvHT > 0 && paHT > 0) {
-                        totalPVHT += pvHT * p.qty;
-                        totalPAHT += paHT * p.qty;
-                        totalMargeEuros += (pvHT - paHT) * p.qty;
-                    }
-                });
-            });
-            const tauxMargeMoyen = totalPVHT > 0 ? ((totalMargeEuros / totalPVHT) * 100) : 0;
-            document.getElementById('statMargeEuros').textContent = totalMargeEuros.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €';
-            document.getElementById('statTauxMarge').textContent = tauxMargeMoyen.toFixed(1) + '%';
 
             // === Répartition par plateforme ===
             const platforms = {};
@@ -5804,81 +5758,6 @@
             mlp: '1wTgsjRgKssS6c_gc-FrJH5A-F9aj2hSI',
             lcdp: '1xh3M7zwb7xBsGKUxF1xa2moY4aScihGu'
         };
-
-        // Quick photo from commande detail
-        async function handlePhotoCommande(event, source) {
-            const file = event.target.files[0];
-            if (!file) return;
-            event.target.value = '';
-
-            const commande = source === 'nast' ? currentCommande : currentMlp;
-            if (!commande) { showToast('Aucune commande ouverte', 'error'); return; }
-
-            const previewId = source === 'nast' ? 'photoCommandePreview' : 'photoMlpCommandePreview';
-            const preview = document.getElementById(previewId);
-
-            // Déterminer la plateforme
-            let platform = source;
-            if (source === 'nast' && commande.statut?.toLowerCase().includes('docmorris')) platform = 'docmorris';
-
-            const webhookUrl = localStorage.getItem('webhookPhotoCommande') || '';
-            if (!webhookUrl) {
-                showToast('Configurez le webhook Photos dans Réglages', 'error');
-                return;
-            }
-
-            // Show preview + loading
-            const url = URL.createObjectURL(file);
-            preview.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:#f0f4f8;border-radius:10px;">
-                <img src="${url}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
-                <div style="flex:1;">
-                    <div style="font-size:12px;font-weight:600;">📤 Envoi en cours…</div>
-                    <div style="font-size:11px;color:#888;">#${commande.num}</div>
-                </div>
-            </div>`;
-
-            try {
-                const base64 = await fileToBase64(file);
-                const dateStr = new Date().toISOString().slice(0, 10);
-                const timeStr = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
-                const platformNames = { docmorris: 'DocMorris', nast: 'NAST', mlp: 'MLP', lcdp: 'LCDP' };
-                const fileName = `${commande.num}_${platformNames[platform]}_${dateStr}_${timeStr}.jpg`;
-
-                const payload = {
-                    numCommande: commande.num,
-                    platform: platform,
-                    folderId: PHOTO_FOLDERS[platform],
-                    fileName,
-                    commentaire: '',
-                    date: new Date().toISOString(),
-                    image: base64,
-                    photoIndex: 1,
-                    totalPhotos: 1
-                };
-
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    preview.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:#e8f5e9;border-radius:10px;">
-                        <img src="${url}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
-                        <div style="flex:1;">
-                            <div style="font-size:12px;font-weight:600;color:#2e7d32;">✅ Photo envoyée !</div>
-                            <div style="font-size:11px;color:#888;">${fileName}</div>
-                        </div>
-                    </div>`;
-                    showToast('📸 Photo #' + commande.num + ' envoyée !', 'success');
-                } else {
-                    throw new Error('Erreur serveur');
-                }
-            } catch(e) {
-                preview.innerHTML = `<div style="padding:8px;background:#fce4ec;border-radius:10px;font-size:12px;color:#c62828;">❌ Erreur envoi photo</div>`;
-                showToast('Erreur envoi photo', 'error');
-            }
-        }
 
         let selectedPlatform = null;
         let photoFiles = []; // tableau de {file, dataUrl}
