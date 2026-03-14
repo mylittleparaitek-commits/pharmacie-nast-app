@@ -2996,7 +2996,7 @@
                         stockNast: parseInt(r['Stock NAST']) || 0,
                         stockMontf: parseInt(r['Stock Montfermeil']) || 0,
                         prixAchat: parseFloat(String(r['Prix Achat HT'] || '0').replace(',', '.')) || 0,
-                        tauxMarque: parseFloat(String(r['Taux de Marque'] || '0').replace(',', '.').replace('%', '')) || 0
+                        tauxMarque: (() => { let v = parseFloat(String(r['Taux de Marque'] || '0').replace(',', '.').replace('%', '')) || 0; return v > 0 && v < 1 ? v * 100 : v; })()
                     });
                 }
             }
