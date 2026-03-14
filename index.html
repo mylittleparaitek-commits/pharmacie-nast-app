@@ -6475,7 +6475,7 @@
         }
 
         async function sendPdPhotos() {
-            const webhookUrl = getVal('photo_webhook_url');
+            const webhookUrl = getVal('webhookPhotoCommande') || localStorage.getItem('webhookPhotoCommande');
             if (!webhookUrl) { showToast('Webhook photos non configuré dans Réglages', 'error'); return; }
             if (!pdCurrentCmd || !pdPhotos.length) return;
             const btn = document.getElementById('pdSendBtn');
@@ -6531,7 +6531,7 @@
         }
 
         async function sendCmdPhotos() {
-            const webhookUrl = getVal('photo_webhook_url');
+            const webhookUrl = getVal('webhookPhotoCommande') || localStorage.getItem('webhookPhotoCommande');
             if (!webhookUrl) { showToast('Webhook photos non configuré dans Réglages', 'error'); return; }
             if (!currentCommande || !cmdPhotos.length) return;
             const btn = document.getElementById('cmdSendBtn');
