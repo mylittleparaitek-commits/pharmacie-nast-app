@@ -1271,33 +1271,6 @@
             border-color: #43A047;
         }
 
-        /* Main tabs INTERNET / PHARMACIE */
-        .main-tab {
-            flex: 1;
-            padding: 10px 0;
-            border: none;
-            background: rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.7);
-            font-family: var(--font-body);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 10px 10px 0 0;
-        }
-        .main-tab.active {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-        }
-
-        /* Main panels */
-        .main-panel { display: none; }
-        .main-panel.active { display: block; }
-
-        /* Internet sub-panels */
-        .internet-panel { display: none; }
-        .internet-panel.active { display: block; }
-
         .section-panel { display: none; }
         .section-panel.active { display: block; }
 
@@ -1404,202 +1377,57 @@
                     </div>
                     <span class="logo-text">Pharmacie Nast</span>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <span class="header-date" id="headerDate"></span>
-                    <button onclick="openSection('settings')" style="background:none;border:none;cursor:pointer;color:white;font-size:18px;">⚙️</button>
-                </div>
+                <span class="header-date" id="headerDate"></span>
             </div>
-            <!-- 2 onglets principaux -->
-            <div style="display:flex;gap:0;margin-top:10px;">
-                <button id="mainTabInternet" class="main-tab active" onclick="switchMainTab('internet')">🌐 Internet</button>
-                <button id="mainTabPharma" class="main-tab" onclick="switchMainTab('pharma')">🏥 Pharmacie</button>
-            </div>
+            <h1 id="headerTitle">Accueil</h1>
         </header>
 
         <!-- Content -->
         <main class="content">
 
-            <!-- ═══ ONGLET INTERNET ═══ -->
-            <div class="main-panel active" id="panelInternet">
-
-                <!-- Greeting + compteurs -->
+            <!-- ═══ MENU PRINCIPAL ═══ -->
+            <div class="menu-home" id="menuHome">
                 <div class="menu-greeting">
                     <div class="menu-greeting-hello">👋 Bonjour !</div>
                     <div class="menu-greeting-sub" id="menuDate"></div>
                 </div>
-
-                <!-- Compteurs À traiter -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;" id="internetCounters">
-                    <div style="background:#e3f2fd;border-radius:12px;padding:12px;border-left:3px solid #1976D2;">
-                        <div style="font-size:22px;font-weight:800;color:#1976D2;" id="counterNast">—</div>
-                        <div style="font-size:11px;color:#5a6a7e;">Commandes NAST</div>
+                <div class="menu-grid">
+                    <div class="menu-card menu-card-photos" onclick="openSection('photos')">
+                        <div class="menu-card-icon">📸</div>
+                        <div class="menu-card-title">Photos</div>
+                        <div class="menu-card-sub">Preuves commandes</div>
                     </div>
-                    <div style="background:#f3e5f5;border-radius:12px;padding:12px;border-left:3px solid #9C27B0;">
-                        <div style="font-size:22px;font-weight:800;color:#9C27B0;" id="counterMlp">—</div>
-                        <div style="font-size:11px;color:#5a6a7e;">Commandes MLP</div>
+                    <div class="menu-card menu-card-stats" onclick="openSection('stats')">
+                        <div class="menu-card-icon">📊</div>
+                        <div class="menu-card-title">Stats</div>
+                        <div class="menu-card-sub">Ventes · Plateformes</div>
                     </div>
-                    <div style="background:#fce4ec;border-radius:12px;padding:12px;border-left:3px solid #e74c3c;">
-                        <div style="font-size:22px;font-weight:800;color:#e74c3c;" id="counterRuptures">—</div>
-                        <div style="font-size:11px;color:#5a6a7e;">Produits en rupture</div>
+                    <div class="menu-card menu-card-ecran" onclick="openSection('ecran')">
+                        <div class="menu-card-icon">🖥️</div>
+                        <div class="menu-card-title">Écran</div>
+                        <div class="menu-card-sub">Commandes · Équipe</div>
                     </div>
-                    <div style="background:#e8f5e9;border-radius:12px;padding:12px;border-left:3px solid #43A047;">
-                        <div style="font-size:22px;font-weight:800;color:#43A047;" id="counterMontf">—</div>
-                        <div style="font-size:11px;color:#5a6a7e;">À récupérer Montf</div>
+                    <div class="menu-card menu-card-pharma" onclick="openSection('pharma')">
+                        <div class="menu-card-icon">🏥</div>
+                        <div class="menu-card-title">Pharmacie</div>
+                        <div class="menu-card-sub">Officine · Quotidien</div>
                     </div>
-                </div>
-
-                <!-- Sous-onglets Internet -->
-                <div class="section-subtabs" id="internetSubtabs">
-                    <button class="section-subtab active-blue" onclick="switchInternetPanel('picking',this)">📋 Picking</button>
-                    <button class="section-subtab" onclick="switchInternetPanel('stats',this)">📊 Stats</button>
-                    <button class="section-subtab" onclick="switchInternetPanel('aCommander',this)">🛒 À commander</button>
-                    <button class="section-subtab" onclick="switchInternetPanel('taches',this)">✅ Tâches</button>
-                </div>
-
-                <!-- Panel Picking -->
-                <div class="internet-panel active" id="inet_picking">
-
-                    <!-- Vue liste picking groupé -->
-                    <div id="pickingListView">
-                        <!-- Onglets source -->
-                        <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;" id="pickingSourceTabs">
-                            <button class="sav-filter active" onclick="switchPickingTabNew('nast',this)">🛒 NAST</button>
-                            <button class="sav-filter" onclick="switchPickingTabNew('mlp',this)">💜 MLP</button>
-                            <button class="sav-filter" onclick="switchPickingTabNew('lcdp',this)" style="opacity:0.5;">🏪 LCDP</button>
-                        </div>
-
-                        <!-- Compteur + actualiser -->
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                            <span style="font-size:13px;font-weight:600;color:var(--text-secondary);" id="pickingNewCount"></span>
-                            <button onclick="refreshCurrentPicking()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                                Actualiser
-                            </button>
-                        </div>
-
-                        <!-- Barre progression globale -->
-                        <div style="margin-bottom:12px;">
-                            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                                <span style="font-size:11px;font-weight:600;color:var(--text-secondary);">Picking global</span>
-                                <span style="font-size:11px;font-weight:700;color:var(--nast-pink);" id="pickingNewGlobalProgress">0/0</span>
-                            </div>
-                            <div class="picking-bar-bg"><div class="picking-bar-fill" id="pickingNewGlobalBar" style="width:0%"></div></div>
-                        </div>
-
-                        <!-- Légende commandes cliquables -->
-                        <div id="pickingNewLegend" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;"></div>
-
-                        <!-- Liste picking groupée -->
-                        <div id="pickingNewList"></div>
+                    <div class="menu-card menu-card-nast" onclick="openSection('nastcom')">
+                        <div class="menu-card-icon">🛒</div>
+                        <div class="menu-card-title">Nast.com</div>
+                        <div class="menu-card-sub">Commandes · Site web</div>
                     </div>
-
-                    <!-- Vue détail commande (inline) -->
-                    <div id="pickingDetailView" style="display:none;">
-                        <button onclick="closePickingDetail()" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:13px;font-weight:600;margin-bottom:12px;padding:0;">
-                            ← Retour picking
-                        </button>
-
-                        <div class="detail-header" id="pickingDetailHeader">
-                            <div class="detail-header-top">
-                                <div>
-                                    <div class="detail-ref" id="pickingDetailRef"></div>
-                                    <div class="detail-client" id="pickingDetailClient"></div>
-                                    <div class="detail-date" id="pickingDetailDate"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="picking-progress">
-                            <div class="picking-progress-top">
-                                <span class="picking-label">Picking</span>
-                                <span class="picking-count" id="pickingDetailCount">0 / 0</span>
-                            </div>
-                            <div class="picking-bar-bg"><div class="picking-bar-fill" id="pickingDetailBar" style="width:0%"></div></div>
-                        </div>
-
-                        <!-- Scanner + Photo directement ici -->
-                        <div style="display:flex;gap:8px;margin-bottom:12px;">
-                            <button onclick="startPickingDetailScan()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:13px;background:var(--nast-pink);color:white;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">
-                                📷 Scanner
-                            </button>
-                            <button onclick="openPickingDetailPhoto()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:13px;background:#FF9800;color:white;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">
-                                📸 Photo
-                            </button>
-                        </div>
-
-                        <!-- Zone photo rapide -->
-                        <div id="pickingDetailPhotoZone" style="display:none;background:#fff8f0;border:2px dashed #FF9800;border-radius:var(--radius);padding:14px;margin-bottom:12px;">
-                            <div style="display:flex;gap:8px;margin-bottom:8px;">
-                                <button onclick="document.getElementById('pickingDetailPhotoCap').click()" style="flex:1;padding:10px;border:none;border-radius:var(--radius-sm);background:#FF9800;color:white;font-weight:600;font-size:13px;cursor:pointer;">📷 Caméra</button>
-                                <button onclick="document.getElementById('pickingDetailPhotoFile').click()" style="flex:1;padding:10px;border:none;border-radius:var(--radius-sm);background:#f2f2f2;color:#555;font-weight:600;font-size:13px;cursor:pointer;">📁 Galerie</button>
-                            </div>
-                            <input type="file" accept="image/*" capture="environment" id="pickingDetailPhotoCap" style="display:none" onchange="handlePickingDetailPhoto(event)">
-                            <input type="file" accept="image/*" multiple id="pickingDetailPhotoFile" style="display:none" onchange="handlePickingDetailPhoto(event)">
-                            <div id="pickingDetailPhotoThumbs" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;"></div>
-                            <div id="pickingDetailPhotoStatus" style="display:none;margin-top:8px;text-align:center;font-size:13px;font-weight:600;"></div>
-                            <button onclick="sendPickingDetailPhotos()" id="pickingDetailSendBtn" style="display:none;width:100%;margin-top:8px;padding:12px;background:#FF9800;color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-body);">📸 Envoyer les photos</button>
-                        </div>
-
-                        <div class="produits-list" id="pickingDetailProduits"></div>
+                    <div class="menu-card menu-card-mlp" onclick="openSection('mlp')">
+                        <div class="menu-card-icon">💜</div>
+                        <div class="menu-card-title">My Little Para</div>
+                        <div class="menu-card-sub">MLP · E-commerce</div>
                     </div>
-
-                    <!-- Input scanner caché -->
-                    <input type="file" accept="image/*" capture="environment" id="pickingDetailScanInput" style="display:none" onchange="handlePickingDetailScan(event)">
-                </div>
-
-                <!-- Panel A commander -->
-                <div class="internet-panel" id="inet_aCommander">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot" style="background:#ff9800;"></span>À commander</div>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <span style="font-size:12px;color:var(--text-muted);font-weight:600;" id="aCommanderCount2"></span>
-                            <button onclick="loadACommander()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                                Actualiser
-                            </button>
-                        </div>
-                    </div>
-                    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="aCommanderTabs2">
-                        <button class="sav-filter active" data-source="montf" onclick="syncFilterACommander('montf',this)">🏪 MONTF</button>
-                        <button class="sav-filter" data-source="rupture" onclick="syncFilterACommander('rupture',this)">❌ RUPTURE</button>
-                        <button class="sav-filter" data-source="ferry" onclick="syncFilterACommander('ferry',this)">🚢 FERRY</button>
-                        <button class="sav-filter" data-source="stocksante" onclick="syncFilterACommander('stocksante',this)">💊 STOCK SANTÉ</button>
-                        <button class="sav-filter" data-source="cerp" onclick="syncFilterACommander('cerp',this)">🏭 CERP</button>
-                        <button class="sav-filter" data-source="d2p" onclick="syncFilterACommander('d2p',this)">📦 D2P</button>
-                    </div>
-                    <div id="aCommanderList2" class="commandes-list"></div>
-                </div>
-
-                <!-- Panel Stats -->
-                <div class="internet-panel" id="inet_stats">
-                    <div id="statsInlineContainer"></div>
-                </div>
-
-                <!-- Panel Tâches — liste directe depuis le webhook -->
-                <div class="internet-panel" id="inet_taches">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot" style="background:#1976D2;"></span>Tâches</div>
-                        <button onclick="loadTachesInline()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                            Actualiser
-                        </button>
-                    </div>
-                    <div id="tachesInlineContainer">
-                        <div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune tâche</p></div>
+                    <div class="menu-card menu-card-settings" onclick="openSection('settings')">
+                        <div class="menu-card-icon">⚙️</div>
+                        <div class="menu-card-title">Réglages</div>
+                        <div class="menu-card-sub">Webhooks · Compte</div>
                     </div>
                 </div>
-
-            </div><!-- /panelInternet -->
-
-            <!-- ═══ ONGLET PHARMACIE ═══ -->
-            <div class="main-panel" id="panelPharma">
-                <div id="pharmaInlineContainer"></div>
-            </div><!-- /panelPharma -->
-
-            <!-- On garde les sections existantes cachées pour réutiliser leur contenu -->
-            <!-- Le menu home est supprimé, remplacé par les onglets -->
-
-            <div class="menu-home" id="menuHome" style="display:none;">
             </div>
 
             <!-- ═══ SECTION STATS ═══ -->
@@ -1640,19 +1468,11 @@
                             </div>
                             <div class="stat-kpi" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-left:4px solid #FF9800;">
                                 <div class="stat-kpi-value" id="statTotalCA">0 €</div>
-                                <div class="stat-kpi-label">CA TTC</div>
+                                <div class="stat-kpi-label">CA</div>
                             </div>
                             <div class="stat-kpi" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);border-left:4px solid #E91E63;">
                                 <div class="stat-kpi-value" id="statPanierMoyen">0 €</div>
                                 <div class="stat-kpi-label">Panier moyen</div>
-                            </div>
-                            <div class="stat-kpi" style="background:linear-gradient(135deg,#e0f2f1,#b2dfdb);border-left:4px solid #00897B;">
-                                <div class="stat-kpi-value" id="statMargeEuros">0 €</div>
-                                <div class="stat-kpi-label">Marge brute ≈</div>
-                            </div>
-                            <div class="stat-kpi" style="background:linear-gradient(135deg,#ede7f6,#d1c4e9);border-left:4px solid #5E35B1;">
-                                <div class="stat-kpi-value" id="statTauxMarge">0%</div>
-                                <div class="stat-kpi-label">Taux marge moy.</div>
                             </div>
                         </div>
 
@@ -2229,13 +2049,6 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
                         Scanner un produit
                     </button>
-
-                    <!-- Photo preuve commande -->
-                    <input type="file" accept="image/*" capture="environment" id="photoCommandeInput" style="display:none" onchange="handlePhotoCommande(event, 'nast')">
-                    <button onclick="document.getElementById('photoCommandeInput').click()" style="width:100%;margin-top:8px;padding:14px;border:2px dashed var(--nast-pink);border-radius:12px;background:var(--nast-pink-light);color:var(--nast-pink-dark);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-                        📸 Photo preuve commande
-                    </button>
-                    <div id="photoCommandePreview" style="margin-top:8px;"></div>
                 </div>
                 </div>
 
@@ -2426,13 +2239,6 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
                         Scanner un produit
                     </button>
-
-                    <!-- Photo preuve commande MLP -->
-                    <input type="file" accept="image/*" capture="environment" id="photoMlpCommandeInput" style="display:none" onchange="handlePhotoCommande(event, 'mlp')">
-                    <button onclick="document.getElementById('photoMlpCommandeInput').click()" style="width:100%;margin-top:8px;padding:14px;border:2px dashed #9C27B0;border-radius:12px;background:#f3e5f5;color:#7b1fa2;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-                        📸 Photo preuve commande
-                    </button>
-                    <div id="photoMlpCommandePreview" style="margin-top:8px;"></div>
                 </div>
                 </div>
 
@@ -2717,494 +2523,11 @@
         
         // ─── NAVIGATION MENU PRINCIPAL ───
         let currentSection = null;
-        let currentMainTab = 'internet';
-        let currentInternetPanel = 'picking';
-        let currentPickingSource = 'nast';
-        let currentCommandesSource = 'nast';
 
-        function switchMainTab(tab) {
-            currentMainTab = tab;
-            document.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
-            document.getElementById(tab === 'internet' ? 'mainTabInternet' : 'mainTabPharma').classList.add('active');
-            document.querySelectorAll('.main-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(tab === 'internet' ? 'panelInternet' : 'panelPharma').classList.add('active');
-            // Hide any open section views
-            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
-            if (tab === 'internet') {
-                updateInternetCounters();
-            }
-        }
-
-        function switchInternetPanel(panel, btn) {
-            currentInternetPanel = panel;
-            document.querySelectorAll('#internetSubtabs .section-subtab').forEach(b => b.classList.remove('active', 'active-blue', 'active-green'));
-            btn.classList.add('active-blue');
-            document.querySelectorAll('.internet-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById('inet_' + panel).classList.add('active');
-
-            if (panel === 'picking') loadPickingForSource();
-            if (panel === 'commandes') loadCommandesForSource();
-            if (panel === 'aCommander') loadACommander();
-            if (panel === 'stats') loadStats();
-            if (panel === 'taches') loadTachesInline();
-        }
-
-        function switchPickingSource(source, btn) {
-            currentPickingSource = source;
-            btn.parentElement.querySelectorAll('.sav-filter').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            if (source === 'lcdp') {
-                document.getElementById('pickingContainer').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">🏪</div><p>LCDP — Bientôt disponible</p></div>';
-                return;
-            }
-            loadPickingForSource();
-        }
-
-        function switchCommandesSource(source, btn) {
-            currentCommandesSource = source;
-            btn.parentElement.querySelectorAll('.sav-filter').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            loadCommandesForSource();
-        }
-
-        async function loadPickingForSource() {
-            closePickingDetail();
-            const dot = document.getElementById('pickingHeaderDot');
-            const label = document.getElementById('pickingHeaderLabel');
-            if (currentPickingSource === 'nast') {
-                if (dot) dot.style.background = '#1976D2';
-                if (label) label.textContent = 'NAST.COM — Picking du jour';
-                document.getElementById('pickingStatus2').style.display = 'block';
-                document.getElementById('pickingGroupedList2').innerHTML = '';
-                try {
-                    if (!commandesData.length) {
-                        const res = await fetch(COMMANDES_WEBHOOK + '?t=' + Date.now());
-                        const rows = await res.json();
-                        if (rows?.length) commandesData = parseWebhookCommandes(rows);
-                    }
-                    renderPickingGrouped2(commandesData, 'nast');
-                } catch(e) {
-                    document.getElementById('pickingGroupedList2').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Erreur chargement</p></div>';
-                }
-                document.getElementById('pickingStatus2').style.display = 'none';
-            } else if (currentPickingSource === 'mlp') {
-                if (dot) dot.style.background = '#9C27B0';
-                if (label) label.textContent = 'MLP — Picking du jour';
-                document.getElementById('pickingStatus2').style.display = 'block';
-                document.getElementById('pickingGroupedList2').innerHTML = '';
-                try {
-                    if (!mlpData.length) {
-                        const res = await fetch(MLP_WEBHOOK + '?t=' + Date.now());
-                        const rows = await res.json();
-                        if (rows?.length) mlpData = parseWebhookCommandes(rows);
-                    }
-                    renderPickingGrouped2(mlpData, 'mlp');
-                } catch(e) {
-                    document.getElementById('pickingGroupedList2').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Erreur chargement</p></div>';
-                }
-                document.getElementById('pickingStatus2').style.display = 'none';
-            } else if (currentPickingSource === 'lcdp') {
-                if (dot) dot.style.background = '#FF6F00';
-                if (label) label.textContent = 'LCDP — Picking';
-                document.getElementById('pickingGroupedList2').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">🏪</div><p>LCDP — Bientôt disponible</p></div>';
-                document.getElementById('pickingProgressCard').style.display = 'none';
-                document.getElementById('pickingLegend2').style.display = 'none';
-                updateInternetCounters();
-                return;
-            }
-            document.getElementById('pickingProgressCard').style.display = '';
-            updateInternetCounters();
-        }
-
-        // Picking groupé v2 — utilise les nouveaux IDs directement dans inet_picking
-        function renderPickingGrouped2(data, source) {
-            const list = document.getElementById('pickingGroupedList2');
-            if (!data.length) {
-                list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande</p></div>';
-                document.getElementById('pickingGlobalCount2').textContent = '';
-                document.getElementById('pickingGlobalProgress2').textContent = '0 / 0';
-                document.getElementById('pickingGlobalBar2').style.width = '0%';
-                document.getElementById('pickingLegend2').style.display = 'none';
-                return;
-            }
-            const storageKey = source + '_picking_checked_' + new Date().toISOString().split('T')[0];
-            const savedChecked = getVal(storageKey);
-            const checked = savedChecked ? JSON.parse(savedChecked) : {};
-
-            const cmdColorMap = {};
-            data.forEach((c, i) => { cmdColorMap[c.num] = PICKING_COLORS[i % PICKING_COLORS.length]; });
-
-            const grouped = {};
-            data.forEach(c => {
-                c.produits.forEach(p => {
-                    const key = p.ean || p.nom;
-                    if (!grouped[key]) grouped[key] = { ean: p.ean, nom: p.nom, totalQty: 0, stockNast: p.stockNast || 0, stockMontf: p.stockMontf || 0, commandes: [] };
-                    grouped[key].totalQty += p.qty;
-                    grouped[key].commandes.push({ num: c.num, client: c.client, qty: p.qty, color: cmdColorMap[c.num] });
-                });
-            });
-            const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
-
-            const total = items.length;
-            const done = items.filter(p => checked[p.ean || p.nom]).length;
-            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-            document.getElementById('pickingGlobalCount2').textContent = total + ' produit' + (total > 1 ? 's' : '');
-            document.getElementById('pickingGlobalProgress2').textContent = done + ' / ' + total;
-            document.getElementById('pickingGlobalBar2').style.width = pct + '%';
-            document.getElementById('pickingGlobalBar2').className = 'picking-bar-fill' + (pct === 100 ? ' done' : '');
-
-            // Légende
-            const legend = document.getElementById('pickingLegend2');
-            legend.style.display = 'flex';
-            legend.innerHTML = data.map(c => `<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;color:white;background:${cmdColorMap[c.num]};cursor:pointer;" onclick="openPickingDetail('${c.num}','${source}')">#${c.num} ${(c.client||'').split(' ')[0]}</span>`).join('');
-
-            list.innerHTML = items.map((item, idx) => {
-                const key = item.ean || item.nom;
-                const isPicked = checked[key];
-                const s = getStockInfo(item);
-                const cmdsHtml = item.commandes.map(c =>
-                    `<span class="pick-cmd-tag" style="background:${c.color};cursor:pointer;" onclick="event.stopPropagation();openPickingDetail('${c.num}','${source}')">#${c.num} × ${c.qty}</span>`
-                ).join('');
-                return `<div class="pick-item ${isPicked ? 'picked' : ''}" style="${(s.bg ? 'background:' + s.bg + ';' : '') + (s.border || '')}">
-                    <div class="pick-main" onclick="togglePickItem2('${key}','${source}')">
-                        <div class="pick-check">${isPicked ? '✓' : ''}</div>
-                        <div class="pick-body">
-                            <div class="pick-nom">${item.nom || 'Produit inconnu'}</div>
-                            <div class="pick-ean">${item.ean || ''}</div>
-                            <div style="margin-top:2px;"><span style="font-size:10px;font-weight:600;color:${s.labelColor};background:${s.labelBg};padding:1px 6px;border-radius:5px;">${s.label}</span></div>
-                        </div>
-                        <div class="pick-qty-total">${item.totalQty}</div>
-                    </div>
-                    <div class="pick-cmds">${cmdsHtml}</div>
-                </div>`;
-            }).join('');
-        }
-
-        function togglePickItem2(key, source) {
-            const storageKey = source + '_picking_checked_' + new Date().toISOString().split('T')[0];
-            const saved = getVal(storageKey);
-            const checked = saved ? JSON.parse(saved) : {};
-            checked[key] = !checked[key];
-            setVal(storageKey, JSON.stringify(checked));
-            const data = source === 'mlp' ? mlpData : commandesData;
-            renderPickingGrouped2(data, source);
-        }
-
-        function refreshCurrentPicking() {
-            // Force reload from network
-            if (currentPickingSource === 'nast') commandesData = [];
-            else if (currentPickingSource === 'mlp') mlpData = [];
-            loadPickingForSource();
-        }
-
-        // ── Détail commande inline dans le picking ──
-        let currentPickingDetailCommande = null;
-        let currentPickingDetailSource = 'nast';
-        let pickingDetailState = {};
-
-        function openPickingDetail(cmdNum, source) {
-            const data = source === 'mlp' ? mlpData : commandesData;
-            const cmd = data.find(c => String(c.num) === String(cmdNum));
-            if (!cmd) return;
-            currentPickingDetailCommande = cmd;
-            currentPickingDetailSource = source;
-            pickingDetailState = {};
-            cmd.produits.forEach(p => { pickingDetailState[p.ean] = 0; });
-
-            document.getElementById('pickingListView').style.display = 'none';
-            document.getElementById('pickingDetailView').style.display = 'block';
-
-            const d = new Date(cmd.date);
-            const dateStr = isNaN(d) ? cmd.date : d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}) + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-            document.getElementById('pickingDetailRef').textContent = '#' + cmd.num + (cmd.ref ? ' — ' + cmd.ref : '');
-            document.getElementById('pickingDetailClient').textContent = '👤 ' + (cmd.client || '—') + (cmd.ville ? ' · ' + cmd.ville : '');
-            document.getElementById('pickingDetailDate').textContent = '🕐 ' + dateStr;
-            document.getElementById('pickingDetailPhotoPreview').innerHTML = '';
-            renderPickingDetailProduits();
-            updatePickingDetailProgress();
-        }
-
-        function closePickingDetail() {
-            currentPickingDetailCommande = null;
-            document.getElementById('pickingListView').style.display = '';
-            document.getElementById('pickingDetailView').style.display = 'none';
-        }
-
-        function renderPickingDetailProduits() {
-            const cmd = currentPickingDetailCommande;
-            if (!cmd) return;
-            const list = document.getElementById('pickingDetailProduits');
-            list.innerHTML = cmd.produits.map((p, idx) => {
-                const done = (pickingDetailState[p.ean] || 0) >= p.qty;
-                const partial = (pickingDetailState[p.ean] || 0) > 0 && !done;
-                const orgClass = p.stockNast > 0 ? 'origine-nast' : p.stockMontf > 0 ? 'origine-montf' : 'origine-ext';
-                const orgLabel = p.stockNast > 0 ? 'NAST' : p.stockMontf > 0 ? 'MONTF' : 'RUPTURE';
-                return `<div class="produit-item ${done ? 'scanned' : ''}" onclick="showScanPopupByIndexInline(${idx})">
-                    <div class="produit-check">${done ? '✓' : partial ? '~' : ''}</div>
-                    <div class="produit-info">
-                        <div class="produit-nom">${p.nom || p.ean}</div>
-                        <div class="produit-ean">${p.ean}</div>
-                    </div>
-                    <span class="produit-origine ${orgClass}">${orgLabel}</span>
-                    <div class="produit-qty">×${p.qty}</div>
-                </div>`;
-            }).join('');
-        }
-
-        function updatePickingDetailProgress() {
-            const cmd = currentPickingDetailCommande;
-            if (!cmd) return;
-            const total = cmd.produits.length;
-            const done = cmd.produits.filter(p => (pickingDetailState[p.ean] || 0) >= p.qty).length;
-            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-            document.getElementById('pickingDetailCount').textContent = done + ' / ' + total;
-            document.getElementById('pickingDetailBar').style.width = pct + '%';
-            document.getElementById('pickingDetailBar').className = 'picking-bar-fill' + (pct === 100 ? ' done' : '');
-        }
-
-        function showScanPopupByIndexInline(idx) {
-            const p = currentPickingDetailCommande?.produits[idx];
-            if (!p) return;
-            const existing = document.getElementById('scanPopupInline');
-            if (existing) existing.remove();
-            const alreadyDone = pickingDetailState[p.ean] || 0;
-            const defaultQty = p.qty || 1;
-            const popup = document.createElement('div');
-            popup.id = 'scanPopupInline';
-            popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;display:flex;align-items:flex-end;justify-content:center;';
-            popup.innerHTML = `<div style="background:white;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;">
-                <div style="width:40px;height:4px;background:#e8ecf0;border-radius:2px;margin:0 auto 20px;"></div>
-                <div style="text-align:center;margin-bottom:20px;">
-                    <div style="font-size:11px;color:#9aa8b8;font-family:monospace;margin-bottom:6px;">${p.ean}</div>
-                    <div style="font-size:15px;font-weight:600;color:#1a2332;line-height:1.4;padding:0 10px;">${p.nom || 'Produit'}</div>
-                    <div style="margin-top:8px;font-size:13px;color:#5a6a7e;">Qté attendue : <strong>${p.qty}</strong>${alreadyDone ? ' · <span style="color:#26C6DA;">✓ Déjà : ' + alreadyDone + '</span>' : ''}</div>
-                </div>
-                <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:24px;">
-                    <button id="inlineMinus" style="width:48px;height:48px;border-radius:50%;border:2px solid #e8ecf0;background:white;font-size:24px;cursor:pointer;">−</button>
-                    <div style="text-align:center;">
-                        <div id="inlineQtyVal" style="font-size:42px;font-weight:700;color:#E91E63;line-height:1;">${defaultQty}</div>
-                        <div style="font-size:11px;color:#9aa8b8;margin-top:2px;">quantité</div>
-                    </div>
-                    <button id="inlinePlus" style="width:48px;height:48px;border-radius:50%;border:2px solid #e8ecf0;background:white;font-size:24px;cursor:pointer;">+</button>
-                </div>
-                <button id="inlineValider" style="width:100%;padding:16px;background:#E91E63;color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;margin-bottom:10px;">✓ Valider</button>
-                <button id="inlineAnnuler" style="width:100%;padding:13px;background:#f2f5f8;color:#5a6a7e;border:none;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">Annuler</button>
-            </div>`;
-            document.body.appendChild(popup);
-            let qty = defaultQty;
-            popup.querySelector('#inlineMinus').addEventListener('click', () => { qty = Math.max(1, qty - 1); popup.querySelector('#inlineQtyVal').textContent = qty; });
-            popup.querySelector('#inlinePlus').addEventListener('click',  () => { qty++; popup.querySelector('#inlineQtyVal').textContent = qty; });
-            popup.querySelector('#inlineValider').addEventListener('click', () => {
-                popup.remove();
-                pickingDetailState[p.ean] = qty;
-                renderPickingDetailProduits();
-                updatePickingDetailProgress();
-                const doneCount = cmd.produits.filter(pr => (pickingDetailState[pr.ean] || 0) >= pr.qty).length;
-                showToast(doneCount === cmd.produits.length ? '✅ Picking complet !' : '✓ Produit validé', 'success');
-            });
-            popup.querySelector('#inlineAnnuler').addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', e => { if (e.target === popup) popup.remove(); });
-            const cmd = currentPickingDetailCommande;
-        }
-
-        function handlePickingDetailPhoto(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const preview = document.getElementById('pickingDetailPhotoPreview');
-                const img = document.createElement('img');
-                img.src = ev.target.result;
-                img.style.cssText = 'width:100%;border-radius:10px;margin-top:6px;border:1px solid var(--border);';
-                preview.innerHTML = '';
-                preview.appendChild(img);
-                // Envoyer via webhook photo commande
-                const cmd = currentPickingDetailCommande;
-                const webhookUrl = getVal('webhookPhotoCommande') || localStorage.getItem('webhookPhotoCommande');
-                if (cmd && webhookUrl) {
-                    fetch(webhookUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            num: cmd.num, client: cmd.client,
-                            platform: currentPickingDetailSource,
-                            date: new Date().toISOString(),
-                            photo: ev.target.result
-                        })
-                    }).then(() => showToast('📸 Photo envoyée !', 'success')).catch(() => showToast('⚠️ Erreur envoi photo', 'error'));
-                } else {
-                    showToast('📸 Photo ajoutée (webhook non configuré)', 'success');
-                }
-            };
-            reader.readAsDataURL(file);
-            event.target.value = '';
-        }
-
-        function renderMlpPickingInPanel() {
-            // Simple: redirect to MLP commandes list
-            const container = document.getElementById('pickingContainer');
-            if (!mlpData.length) {
-                container.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">💜</div><p>Aucune commande MLP</p></div>';
-                return;
-            }
-            // Reuse the grouped picking approach from NAST but with MLP data
-            const cmdColorMap = {};
-            mlpData.forEach((c, i) => { cmdColorMap[c.num] = PICKING_COLORS[i % PICKING_COLORS.length]; });
-            const grouped = {};
-            mlpData.forEach(c => {
-                c.produits.forEach(p => {
-                    const key = p.ean || p.nom;
-                    if (!grouped[key]) grouped[key] = { ean: p.ean, nom: p.nom, totalQty: 0, stockNast: p.stockNast || 0, stockMontf: p.stockMontf || 0, commandes: [] };
-                    grouped[key].totalQty += p.qty;
-                    grouped[key].commandes.push({ num: c.num, client: c.client, qty: p.qty, color: cmdColorMap[c.num] });
-                });
-            });
-            const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
-            const savedPicking = getVal('mlp_picking_checked_' + new Date().toISOString().split('T')[0]);
-            const mlpPickChecked = savedPicking ? JSON.parse(savedPicking) : {};
-            
-            container.innerHTML = `
-                <div style="margin-bottom:10px;">
-                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-                        ${mlpData.map(c => `<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;color:white;background:${cmdColorMap[c.num]}">#${c.num} ${(c.client || '').split(' ')[0]}</span>`).join('')}
-                    </div>
-                </div>
-                ${items.map((item, idx) => {
-                    const key = item.ean || item.nom;
-                    const isPicked = mlpPickChecked[key];
-                    const stock = getStockInfo(item);
-                    const cmdsHtml = item.commandes.map(c => `<span class="pick-cmd-tag" style="background:${c.color}">#${c.num} × ${c.qty}</span>`).join('');
-                    return `<div class="pick-item ${isPicked ? 'picked' : ''}" style="${(stock.bg ? 'background:' + stock.bg + ';' : '') + (stock.border || '')}">
-                        <div class="pick-main" onclick="toggleMlpPickItem('${key}')">
-                            <div class="pick-check">${isPicked ? '✓' : ''}</div>
-                            <div class="pick-body">
-                                <div class="pick-nom">${item.nom || 'Produit inconnu'}</div>
-                                <div class="pick-ean">${item.ean}</div>
-                                <div style="margin-top:2px;"><span style="font-size:10px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:1px 6px;border-radius:5px;">${stock.label}</span></div>
-                            </div>
-                            <div class="pick-qty-total">${item.totalQty}</div>
-                        </div>
-                        <div class="pick-cmds">${cmdsHtml}</div>
-                    </div>`;
-                }).join('')}
-            `;
-        }
-
-        function toggleMlpPickItem(key) {
-            const today = new Date().toISOString().split('T')[0];
-            const saved = getVal('mlp_picking_checked_' + today);
-            const checked = saved ? JSON.parse(saved) : {};
-            checked[key] = !checked[key];
-            setVal('mlp_picking_checked_' + today, JSON.stringify(checked));
-            renderMlpPickingInPanel();
-        }
-
-        async function loadCommandesForSource() {
-            const container = document.getElementById('commandesContainer');
-            if (currentCommandesSource === 'nast') {
-                if (!commandesData.length) {
-                    const res = await fetch(COMMANDES_WEBHOOK + '?t=' + Date.now());
-                    const rows = await res.json();
-                    if (rows?.length) commandesData = parseWebhookCommandes(rows);
-                }
-                renderCommandesInPanel(commandesData, 'nast');
-            } else {
-                if (!mlpData.length) {
-                    const res = await fetch(MLP_WEBHOOK + '?t=' + Date.now());
-                    const rows = await res.json();
-                    if (rows?.length) mlpData = parseWebhookCommandes(rows);
-                }
-                renderCommandesInPanel(mlpData, 'mlp');
-            }
-            updateInternetCounters();
-        }
-
-        function renderCommandesInPanel(data, source) {
-            const container = document.getElementById('commandesContainer');
-            if (!data.length) {
-                container.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Toutes les commandes sont traitées !</p></div>';
-                return;
-            }
-            container.innerHTML = `<div style="margin-bottom:8px;font-size:13px;font-weight:600;color:var(--text-secondary);">${data.length} commande${data.length > 1 ? 's' : ''} à traiter</div>` +
-                data.map((c, idx) => {
-                    const d = new Date(c.date);
-                    const dateStr = isNaN(d) ? c.date : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-                    const statut = c.statut?.trim() || '';
-                    const statutClass = statut.toLowerCase().includes('docmorris') ? 'statut-docmorris' : statut.toLowerCase().includes('payplug') ? 'statut-payplug' : 'statut-autre';
-                    return `<div class="commande-card" onclick="${source === 'nast' ? 'openCommandeDetail(' + idx + ')' : 'openMlpDetail(' + idx + ')'}">
-                        <div class="commande-card-top">
-                            <span class="commande-ref">#${c.num}</span>
-                            <span class="commande-statut ${statutClass}">${statut}</span>
-                        </div>
-                        <div class="commande-client">${c.client || '—'}</div>
-                        <div class="commande-meta">
-                            <span>📦 ${c.produits.length} produit(s)</span>
-                            <span>📍 ${c.ville || '—'}</span>
-                            <span>🕐 ${dateStr}</span>
-                        </div>
-                    </div>`;
-                }).join('');
-        }
-
-        function updateInternetCounters() {
-            document.getElementById('counterNast').textContent = commandesData.length || '—';
-            document.getElementById('counterMlp').textContent = mlpData.length || '—';
-            let ruptures = 0, montfItems = 0;
-            const allData = [...commandesData, ...mlpData];
-            const seen = {};
-            allData.forEach(c => c.produits.forEach(p => {
-                const key = p.ean || p.nom;
-                if (!seen[key]) {
-                    seen[key] = true;
-                    if ((p.stockNast || 0) === 0 && (p.stockMontf || 0) === 0) ruptures++;
-                    if ((p.stockNast || 0) === 0 && (p.stockMontf || 0) > 0) montfItems++;
-                }
-            }));
-            document.getElementById('counterRuptures').textContent = ruptures || '0';
-            document.getElementById('counterMontf').textContent = montfItems || '0';
-        }
-
-        async function loadTachesInline() {
-            const container = document.getElementById('tachesInlineContainer');
-            container.innerHTML = '<div style="text-align:center;padding:20px;color:#888;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/></svg> Chargement…</div>';
-            try {
-                const tRes = await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/ecran-taches?t=' + Date.now());
-                const tJson = await tRes.json();
-                if (!Array.isArray(tJson) || !tJson.length) {
-                    container.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune tâche en attente</p></div>';
-                    return;
-                }
-                container.innerHTML = tJson.map(t => {
-                    const type = String(t.type || '').toLowerCase();
-                    const icon = type.includes('probleme') || type.includes('problème') ? '🔴' : type.includes('sav') ? '🟠' : '📋';
-                    const bgColor = type.includes('probleme') || type.includes('problème') ? 'rgba(231,76,60,0.06)' : type.includes('sav') ? 'rgba(255,152,0,0.06)' : '#f7f9fb';
-                    return `<div style="background:${bgColor};border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border);">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                            <span style="font-weight:600;font-size:13px;">${icon} ${t.type || 'Tâche'}</span>
-                            <span style="font-size:11px;color:#888;">${t.date || ''}</span>
-                        </div>
-                        <div style="font-size:13px;color:var(--text-primary);">${t.message || t.contenu || ''}</div>
-                        ${t.numCommande ? `<div style="margin-top:4px;font-size:11px;color:#1976D2;font-weight:600;">#${t.numCommande}</div>` : ''}
-                        ${t.reponse ? `<div style="margin-top:6px;padding:8px;background:#e8f5e9;border-radius:8px;font-size:12px;color:#2e7d32;">✅ ${t.reponse}</div>` : ''}
-                    </div>`;
-                }).join('');
-            } catch(e) {
-                container.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Erreur chargement tâches</p></div>';
-            }
-        }
-
-        // Keep openSection for pharma sub-sections and settings
         function openSection(section) {
-            // Hide main panels for full-screen sections
-            if (section === 'settings') {
-                document.querySelectorAll('.main-panel').forEach(p => p.classList.remove('active'));
-                document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
-                document.getElementById('sectionSettings').classList.add('active');
-                currentSection = section;
-                return;
-            }
-            // For pharma sub-sections opened from within pharma panel
+            document.getElementById('menuHome').classList.add('hidden');
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            
             const sectionMap = {
                 'pharma': 'sectionPharma',
                 'nastcom': 'sectionNastcom',
@@ -3214,18 +2537,39 @@
                 'stats': 'sectionStats',
                 'ecran': 'sectionEcran'
             };
+            
+            const titles = {
+                'pharma': '🏥 Pharmacie Nast',
+                'nastcom': '🛒 Nast.com',
+                'mlp': '💜 My Little Para',
+                'settings': '⚙️ Réglages',
+                'photos': '📸 Photos',
+                'stats': '📊 Stats',
+                'ecran': '🖥️ Écran'
+            };
+            
             const el = document.getElementById(sectionMap[section]);
             if (el) el.classList.add('active');
+            document.getElementById('headerTitle').textContent = titles[section] || '';
             currentSection = section;
+            
+            // Auto-load data
             if (section === 'nastcom') loadCommandes();
             if (section === 'mlp') loadMLP();
+            if (section === 'photos') initPhotoSection();
             if (section === 'stats') loadStats();
+            if (section === 'ecran') openEcranMode();
+            if (section === 'pharma') {
+                // Check quel panel est actif
+                const activePanel = document.querySelector('#sectionPharma .section-panel.active');
+                if (activePanel?.id === 'pharma_dashboard') loadSheetData();
+            }
         }
 
         function goHome() {
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
-            // Return to current main tab
-            document.getElementById(currentMainTab === 'internet' ? 'panelInternet' : 'panelPharma').classList.add('active');
+            document.getElementById('menuHome').classList.remove('hidden');
+            document.getElementById('headerTitle').textContent = 'Accueil';
             currentSection = null;
         }
 
@@ -3288,39 +2632,6 @@
             setupRuptures();
             setupPhotosTg();
             setupPerimes();
-
-            // Wire existing sections into new layout
-            wireSectionsToNewLayout();
-
-            // Auto-load internet data
-            setTimeout(() => {
-                loadPickingNew();
-            }, 500);
-        }
-
-        function wireSectionsToNewLayout() {
-            // Move Pharmacie content into panelPharma
-            const pharmaSection = document.getElementById('sectionPharma');
-            const pharmaContainer = document.getElementById('pharmaInlineContainer');
-            if (pharmaSection && pharmaContainer) {
-                // Remove the back button from pharma since we have tabs now
-                const backBtn = pharmaSection.querySelector('.section-back');
-                if (backBtn) backBtn.style.display = 'none';
-                pharmaContainer.appendChild(pharmaSection);
-                pharmaSection.style.display = 'block';
-                pharmaSection.classList.add('active');
-            }
-
-            // Move Stats content into inet_stats
-            const statsSection = document.getElementById('sectionStats');
-            const statsContainer = document.getElementById('statsInlineContainer');
-            if (statsSection && statsContainer) {
-                const backBtn = statsSection.querySelector('.section-back');
-                if (backBtn) backBtn.style.display = 'none';
-                statsContainer.appendChild(statsSection);
-                statsSection.style.display = 'block';
-                statsSection.classList.add('active');
-            }
         }
 
         function updateDate() {
@@ -4156,26 +3467,16 @@
         let aCommanderData = [];
         let aCommanderFilter = 'montf';
 
-        async function loadACommander() {
-            // Charger les données MLP si pas encore chargées
+        function loadACommander() {
+            // Utilise mlpData déjà chargé
             if (!mlpData.length) {
-                try {
-                    const res = await fetch(MLP_WEBHOOK + '?t=' + Date.now());
-                    const rows = await res.json();
-                    if (rows?.length) mlpData = parseWebhookCommandes(rows);
-                } catch(e) {}
-            }
-
-            // Collecter tous les produits sans stock NAST (stockNast === 0) — depuis MLP + NAST
-            const allData = [...mlpData, ...commandesData];
-            if (!allData.length) {
-                const listEl2 = document.getElementById('aCommanderList2');
-                if (listEl2) listEl2.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Chargez d\'abord les commandes</p></div>';
+                document.getElementById('aCommanderList').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Chargez d\'abord les commandes MLP</p></div>';
                 return;
             }
 
+            // Collecter tous les produits sans stock NAST (stockNast === 0)
             aCommanderData = [];
-            allData.forEach(c => {
+            mlpData.forEach(c => {
                 c.produits.forEach(p => {
                     if ((p.stockNast || 0) === 0) {
                         aCommanderData.push({
@@ -4188,8 +3489,8 @@
                 });
             });
 
+            document.getElementById('aCommanderCount').textContent = aCommanderData.length + ' produit' + (aCommanderData.length > 1 ? 's' : '');
             renderACommander();
-            updateInternetCounters();
         }
 
         function filterACommander(source, btn) {
@@ -4200,42 +3501,59 @@
         }
 
         function renderACommander() {
-            // Utilise aCommanderList2 (panneau internet) et aCommanderList (ancienne section) si dispo
-            const listEl2 = document.getElementById('aCommanderList2');
-            const listEl = document.getElementById('aCommanderList');
-            const countEl = document.getElementById('aCommanderCount2') || document.getElementById('aCommanderCount');
+            const list = document.getElementById('aCommanderList');
 
-            function buildHtml() {
-                if (aCommanderFilter === 'montf') {
-                    const filtered = aCommanderData.filter(p => p.source === 'montf');
-                    if (!filtered.length) return { html: '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucun produit à récupérer à Montfermeil</p></div>', count: '' };
-                    const grouped = {};
-                    filtered.forEach(p => {
-                        const key = p.ean || p.nom;
-                        if (!grouped[key]) grouped[key] = { ...p, totalQty: 0, commandes: [] };
-                        grouped[key].totalQty += p.qty;
-                        grouped[key].commandes.push({ num: p.cmdNum, client: p.client, qty: p.qty });
-                    });
-                    const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
-                    const countLabel = items.length + ' produit' + (items.length > 1 ? 's' : '') + ' · ' + items.reduce((s, i) => s + i.totalQty, 0) + ' unités';
-                    return {
-                        count: countLabel,
-                        html: items.map(item => {
-                            const cmdsHtml = item.commandes.map(c => `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:rgba(156,39,176,0.1);color:#7b1fa2;">#${c.num} × ${c.qty}</span>`).join(' ');
-                            return `<div class="produit-item" style="background:rgba(156,39,176,0.05);border-left:3px solid #9c27b0;margin-bottom:8px;">
-                                <div class="produit-info" style="flex:1;">
-                                    <div class="produit-nom">${item.nom || 'Produit inconnu'}</div>
-                                    <div class="produit-ean">${item.ean}</div>
-                                    <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${cmdsHtml}</div>
-                                    <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:#7b1fa2;background:rgba(156,39,176,0.1);padding:2px 8px;border-radius:6px;">${item.stockMontf || 0} en stock Montfermeil</span></div>
-                                </div>
-                                <span class="produit-qty" style="font-size:18px;font-weight:700;">×${item.totalQty}</span>
-                            </div>`;
-                        }).join('')
-                    };
-                } else if (aCommanderFilter === 'rupture') {
+            if (aCommanderFilter === 'montf') {
+                // Produits avec 0 stock NAST mais dispo Montfermeil
+                const filtered = aCommanderData.filter(p => p.source === 'montf');
+                if (!filtered.length) {
+                    list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucun produit à récupérer à Montfermeil</p></div>';
+                    return;
+                }
+
+                // Grouper par EAN
+                const grouped = {};
+                filtered.forEach(p => {
+                    const key = p.ean || p.nom;
+                    if (!grouped[key]) grouped[key] = { ...p, totalQty: 0, commandes: [] };
+                    grouped[key].totalQty += p.qty;
+                    grouped[key].commandes.push({ num: p.cmdNum, client: p.client, qty: p.qty });
+                });
+
+                const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+                const countLabel = items.length + ' produit' + (items.length > 1 ? 's' : '') + ' · ' + items.reduce((s, i) => s + i.totalQty, 0) + ' unités';
+                document.getElementById('aCommanderCount').textContent = countLabel;
+
+                list.innerHTML = items.map(item => {
+                    const cmdsHtml = item.commandes.map(c =>
+                        `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:rgba(156,39,176,0.1);color:#7b1fa2;">#${c.num} × ${c.qty}</span>`
+                    ).join(' ');
+
+                    return `<div class="produit-item" style="background:rgba(156,39,176,0.05);border-left:3px solid #9c27b0;margin-bottom:8px;">
+                        <div class="produit-info" style="flex:1;">
+                            <div class="produit-nom">${item.nom || 'Produit inconnu'}</div>
+                            <div class="produit-ean">${item.ean}</div>
+                            <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${cmdsHtml}</div>
+                            <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:#7b1fa2;background:rgba(156,39,176,0.1);padding:2px 8px;border-radius:6px;">${item.stockMontf || 0} en stock Montfermeil</span></div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;min-width:40px;">
+                            <span class="produit-qty" style="font-size:18px;font-weight:700;">×${item.totalQty}</span>
+                        </div>
+                    </div>`;
+                }).join('');
+
+            } else {
+                // FERRY, STOCK SANTE, CERP, D2P, RUPTURE → liste vide, à remplir manuellement
+                const icons = { ferry: '🚢', stocksante: '💊', cerp: '🏭', d2p: '📦', rupture: '❌' };
+                const names = { ferry: 'Ferry', stocksante: 'Stock Santé', cerp: 'CERP Altapharm', d2p: 'D2P', rupture: 'Rupture totale' };
+                
+                if (aCommanderFilter === 'rupture') {
+                    // Montrer les produits en rupture totale (0 partout)
                     const ruptureItems = aCommanderData.filter(p => p.source === 'rupture');
-                    if (!ruptureItems.length) return { html: '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune rupture totale</p></div>', count: '' };
+                    if (!ruptureItems.length) {
+                        list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune rupture totale</p></div>';
+                        return;
+                    }
                     const grouped = {};
                     ruptureItems.forEach(p => {
                         const key = p.ean || p.nom;
@@ -4244,32 +3562,29 @@
                         grouped[key].commandes.push({ num: p.cmdNum, client: p.client, qty: p.qty });
                     });
                     const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
-                    return {
-                        count: items.length + ' produit' + (items.length > 1 ? 's' : '') + ' en rupture',
-                        html: items.map(item => {
-                            const cmdsHtml = item.commandes.map(c => `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:rgba(231,76,60,0.1);color:#c62828;">#${c.num} × ${c.qty}</span>`).join(' ');
-                            return `<div class="produit-item" style="background:rgba(231,76,60,0.05);border-left:3px solid #e74c3c;margin-bottom:8px;">
-                                <div class="produit-info" style="flex:1;">
-                                    <div class="produit-nom">${item.nom || 'Produit inconnu'}</div>
-                                    <div class="produit-ean">${item.ean}</div>
-                                    <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${cmdsHtml}</div>
-                                    <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:#c62828;background:rgba(231,76,60,0.1);padding:2px 8px;border-radius:6px;">0 NAST / 0 MONTF</span></div>
-                                </div>
+                    document.getElementById('aCommanderCount').textContent = items.length + ' produit' + (items.length > 1 ? 's' : '') + ' en rupture';
+
+                    list.innerHTML = items.map(item => {
+                        const cmdsHtml = item.commandes.map(c =>
+                            `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:rgba(231,76,60,0.1);color:#c62828;">#${c.num} × ${c.qty}</span>`
+                        ).join(' ');
+                        return `<div class="produit-item" style="background:rgba(231,76,60,0.05);border-left:3px solid #e74c3c;margin-bottom:8px;">
+                            <div class="produit-info" style="flex:1;">
+                                <div class="produit-nom">${item.nom || 'Produit inconnu'}</div>
+                                <div class="produit-ean">${item.ean}</div>
+                                <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${cmdsHtml}</div>
+                                <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:#c62828;background:rgba(231,76,60,0.1);padding:2px 8px;border-radius:6px;">0 NAST / 0 MONTF</span></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:flex-end;min-width:40px;">
                                 <span class="produit-qty" style="font-size:18px;font-weight:700;">×${item.totalQty}</span>
-                            </div>`;
-                        }).join('')
-                    };
+                            </div>
+                        </div>`;
+                    }).join('');
                 } else {
-                    const icons = { ferry: '🚢', stocksante: '💊', cerp: '🏭', d2p: '📦' };
-                    const names = { ferry: 'Ferry', stocksante: 'Stock Santé', cerp: 'CERP Altapharm', d2p: 'D2P' };
-                    return { html: `<div class="commande-empty"><div class="commande-empty-icon">${icons[aCommanderFilter] || '📦'}</div><p>${names[aCommanderFilter] || ''}<br><span style="font-size:12px;color:#aaa;">À gérer manuellement</span></p></div>`, count: '' };
+                    document.getElementById('aCommanderCount').textContent = '';
+                    list.innerHTML = `<div class="commande-empty"><div class="commande-empty-icon">${icons[aCommanderFilter] || '📦'}</div><p>Onglet ${names[aCommanderFilter] || ''}<br><span style="font-size:12px;color:#aaa;">À gérer manuellement</span></p></div>`;
                 }
             }
-
-            const { html, count } = buildHtml();
-            if (listEl2) listEl2.innerHTML = html;
-            if (listEl) listEl.innerHTML = html;
-            if (countEl) countEl.textContent = count;
         }
 
         function getStockInfo(p) {
@@ -5912,9 +5227,7 @@
                             map[key].produits.push({
                                 ean: ean,
                                 nom: String(r['Nom produit'] || '').trim() || 'Produit inconnu',
-                                qty: parseInt(r['Quantité']) || 1,
-                                prixVente: parseFloat(String(r['Prix unitaire produit TTC'] || '0').replace(',', '.')) || 0,
-                                prixAchat: parseFloat(String(r['Prix Achat HT'] || '0').replace(',', '.')) || 0
+                                qty: parseInt(r['Quantité']) || 1
                             });
                         }
                     }
@@ -5948,27 +5261,6 @@
             document.getElementById('statTotalProduits').textContent = totalProduits.toLocaleString('fr-FR');
             document.getElementById('statTotalCA').textContent = totalCA.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €';
             document.getElementById('statPanierMoyen').textContent = totalCmd ? (totalCA / totalCmd).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' €' : '0 €';
-
-            // === Marge brute approximative ===
-            // PV HT ≈ PV TTC / 1.10 (10% TVA moyenne)
-            // Marge = PV HT - PA HT par produit × quantité
-            let totalMargeEuros = 0;
-            let totalPVHT = 0;
-            let totalPAHT = 0;
-            filtered.forEach(c => {
-                c.produits.forEach(p => {
-                    const pvHT = (p.prixVente || 0) / 1.10;
-                    const paHT = p.prixAchat || 0;
-                    if (pvHT > 0 && paHT > 0) {
-                        totalPVHT += pvHT * p.qty;
-                        totalPAHT += paHT * p.qty;
-                        totalMargeEuros += (pvHT - paHT) * p.qty;
-                    }
-                });
-            });
-            const tauxMargeMoyen = totalPVHT > 0 ? ((totalMargeEuros / totalPVHT) * 100) : 0;
-            document.getElementById('statMargeEuros').textContent = totalMargeEuros.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' €';
-            document.getElementById('statTauxMarge').textContent = tauxMargeMoyen.toFixed(1) + '%';
 
             // === Répartition par plateforme ===
             const platforms = {};
@@ -6122,81 +5414,6 @@
             mlp: '1wTgsjRgKssS6c_gc-FrJH5A-F9aj2hSI',
             lcdp: '1xh3M7zwb7xBsGKUxF1xa2moY4aScihGu'
         };
-
-        // Quick photo from commande detail
-        async function handlePhotoCommande(event, source) {
-            const file = event.target.files[0];
-            if (!file) return;
-            event.target.value = '';
-
-            const commande = source === 'nast' ? currentCommande : currentMlp;
-            if (!commande) { showToast('Aucune commande ouverte', 'error'); return; }
-
-            const previewId = source === 'nast' ? 'photoCommandePreview' : 'photoMlpCommandePreview';
-            const preview = document.getElementById(previewId);
-
-            // Déterminer la plateforme
-            let platform = source;
-            if (source === 'nast' && commande.statut?.toLowerCase().includes('docmorris')) platform = 'docmorris';
-
-            const webhookUrl = localStorage.getItem('webhookPhotoCommande') || '';
-            if (!webhookUrl) {
-                showToast('Configurez le webhook Photos dans Réglages', 'error');
-                return;
-            }
-
-            // Show preview + loading
-            const url = URL.createObjectURL(file);
-            preview.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:#f0f4f8;border-radius:10px;">
-                <img src="${url}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
-                <div style="flex:1;">
-                    <div style="font-size:12px;font-weight:600;">📤 Envoi en cours…</div>
-                    <div style="font-size:11px;color:#888;">#${commande.num}</div>
-                </div>
-            </div>`;
-
-            try {
-                const base64 = await fileToBase64(file);
-                const dateStr = new Date().toISOString().slice(0, 10);
-                const timeStr = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
-                const platformNames = { docmorris: 'DocMorris', nast: 'NAST', mlp: 'MLP', lcdp: 'LCDP' };
-                const fileName = `${commande.num}_${platformNames[platform]}_${dateStr}_${timeStr}.jpg`;
-
-                const payload = {
-                    numCommande: commande.num,
-                    platform: platform,
-                    folderId: PHOTO_FOLDERS[platform],
-                    fileName,
-                    commentaire: '',
-                    date: new Date().toISOString(),
-                    image: base64,
-                    photoIndex: 1,
-                    totalPhotos: 1
-                };
-
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    preview.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:#e8f5e9;border-radius:10px;">
-                        <img src="${url}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
-                        <div style="flex:1;">
-                            <div style="font-size:12px;font-weight:600;color:#2e7d32;">✅ Photo envoyée !</div>
-                            <div style="font-size:11px;color:#888;">${fileName}</div>
-                        </div>
-                    </div>`;
-                    showToast('📸 Photo #' + commande.num + ' envoyée !', 'success');
-                } else {
-                    throw new Error('Erreur serveur');
-                }
-            } catch(e) {
-                preview.innerHTML = `<div style="padding:8px;background:#fce4ec;border-radius:10px;font-size:12px;color:#c62828;">❌ Erreur envoi photo</div>`;
-                showToast('Erreur envoi photo', 'error');
-            }
-        }
 
         let selectedPlatform = null;
         let photoFiles = []; // tableau de {file, dataUrl}
