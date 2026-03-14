@@ -2994,7 +2994,9 @@
                         nom: String(r['Nom produit'] || '').trim(),
                         qty: parseInt(r['Quantité']) || 1,
                         stockNast: parseInt(r['Stock NAST']) || 0,
-                        stockMontf: parseInt(r['Stock Montfermeil']) || 0
+                        stockMontf: parseInt(r['Stock Montfermeil']) || 0,
+                        prixAchat: parseFloat(String(r['Prix Achat HT'] || '0').replace(',', '.')) || 0,
+                        tauxMarque: parseFloat(String(r['Taux de Marque'] || '0').replace(',', '.').replace('%', '')) || 0
                     });
                 }
             }
@@ -3190,12 +3192,19 @@
                 const validated = pickingState[p.ean] || 0;
                 const scanned   = validated > 0;
                 const stock = getStockInfo(p);
+                const prixInfo = p.prixAchat ? `${p.prixAchat.toFixed(2)}€ HT` : '';
+                const marqueInfo = p.tauxMarque ? `${p.tauxMarque.toFixed(1)}%` : '';
+                const marqueColor = p.tauxMarque >= 30 ? '#2e7d32' : p.tauxMarque >= 20 ? '#ff9800' : '#c62828';
                 return `<div class="produit-item ${scanned ? 'scanned' : ''}" style="${stock.bg ? 'background:' + stock.bg + ';' : ''}${stock.border || ''}">
                     <div class="produit-check" onclick="showScanPopupByIndex(${idx})" style="cursor:pointer;">${scanned ? '✓' : ''}</div>
                     <div class="produit-info">
                         <div class="produit-nom">${p.nom || 'Produit'}</div>
                         <div class="produit-ean">${p.ean}</div>
-                        <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span></div>
+                        <div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+                            <span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span>
+                            ${prixInfo ? `<span style="font-size:10px;color:#5a6a7e;background:#f2f5f8;padding:2px 6px;border-radius:5px;">${prixInfo}</span>` : ''}
+                            ${marqueInfo ? `<span style="font-size:10px;font-weight:700;color:${marqueColor};background:${marqueColor}15;padding:2px 6px;border-radius:5px;">⬆${marqueInfo}</span>` : ''}
+                        </div>
                     </div>
                     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
                         <span class="produit-qty">${scanned ? validated + '/' : ''}×${p.qty}</span>
@@ -3592,12 +3601,19 @@
                 const validated = mlpPickingState[p.ean] || 0;
                 const scanned = validated > 0;
                 const stock = getStockInfo(p);
+                const prixInfo = p.prixAchat ? `${p.prixAchat.toFixed(2)}€ HT` : '';
+                const marqueInfo = p.tauxMarque ? `${p.tauxMarque.toFixed(1)}%` : '';
+                const marqueColor = p.tauxMarque >= 30 ? '#2e7d32' : p.tauxMarque >= 20 ? '#ff9800' : '#c62828';
                 return `<div class="produit-item ${scanned ? 'scanned' : ''}" style="${stock.bg ? 'background:' + stock.bg + ';' : ''}${stock.border || ''}">
                     <div class="produit-check" onclick="showMlpPopup(${JSON.stringify(p).replace(/"/g,'&quot;')})" style="cursor:pointer;">${scanned ? '✓' : ''}</div>
                     <div class="produit-info">
                         <div class="produit-nom">${p.nom || 'Produit'}</div>
                         <div class="produit-ean">${p.ean}</div>
-                        <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span></div>
+                        <div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+                            <span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span>
+                            ${prixInfo ? `<span style="font-size:10px;color:#5a6a7e;background:#f2f5f8;padding:2px 6px;border-radius:5px;">${prixInfo}</span>` : ''}
+                            ${marqueInfo ? `<span style="font-size:10px;font-weight:700;color:${marqueColor};background:${marqueColor}15;padding:2px 6px;border-radius:5px;">⬆${marqueInfo}</span>` : ''}
+                        </div>
                     </div>
                     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
                         <span class="produit-qty">${scanned ? validated + '/' : ''}×${p.qty}</span>
