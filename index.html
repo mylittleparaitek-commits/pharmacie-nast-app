@@ -1985,7 +1985,7 @@
                 <div class="section-subtabs" id="nastcomSubtabs">
                     <button class="section-subtab active-blue" onclick="switchSection('nastcom','traiter',this,'blue')">📦 À traiter</button>
                     <button class="section-subtab" onclick="switchSection('nastcom','picking',this,'blue')">📋 Picking</button>
-                    <button class="section-subtab" onclick="switchSection('nastcom','todoNast',this,'blue')">✅ Todo</button>
+                    <button class="section-subtab" onclick="switchSection('nastcom','todoNast',this,'blue');loadTachesDirectes()">📋 Tâches</button>
                     <button class="section-subtab" onclick="switchSection('nastcom','savNast',this,'blue')">💬 SAV</button>
                 </div>
 
@@ -2049,68 +2049,133 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
                         Scanner un produit
                     </button>
+
+                    <!-- Photo rapide sur la commande -->
+                    <button onclick="toggleCmdPhotoZone()" style="width:100%;margin-top:8px;padding:13px;border:2px dashed #FF9800;border-radius:var(--radius);background:#fff8f0;color:#FF9800;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                        📸 Photo de la commande
+                    </button>
+                    <div id="cmdPhotoZone" style="display:none;background:#fff8f0;border:2px dashed #FF9800;border-radius:var(--radius);padding:12px;margin-top:8px;">
+                        <div style="display:flex;gap:8px;margin-bottom:8px;">
+                            <button onclick="document.getElementById('cmdPhotoCap').click()" style="flex:1;padding:10px;border:none;border-radius:var(--radius-sm);background:#FF9800;color:white;font-weight:600;font-size:13px;cursor:pointer;">📷 Caméra</button>
+                            <button onclick="document.getElementById('cmdPhotoFile').click()" style="flex:1;padding:10px;border:none;border-radius:var(--radius-sm);background:#f0f0f0;color:#555;font-weight:600;font-size:13px;cursor:pointer;">📁 Galerie</button>
+                        </div>
+                        <input type="file" accept="image/*" capture="environment" id="cmdPhotoCap" style="display:none" onchange="handleCmdPhoto(event)">
+                        <input type="file" accept="image/*" multiple id="cmdPhotoFile" style="display:none" onchange="handleCmdPhoto(event)">
+                        <div id="cmdPhotoThumbs" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;"></div>
+                        <div id="cmdPhotoStatus" style="display:none;margin-top:8px;text-align:center;font-size:13px;font-weight:600;"></div>
+                        <button onclick="sendCmdPhotos()" id="cmdSendBtn" style="display:none;width:100%;margin-top:8px;padding:12px;background:#FF9800;color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-body);">📸 Envoyer les photos</button>
+                    </div>
                 </div>
                 </div>
 
                 <div class="section-panel" id="nastcom_picking">
-                    <div class="commandes-header">
-                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot"></span>Picking du jour</div>
-                        <div style="display:flex;gap:8px;align-items:center;">
+
+                    <!-- ── Vue liste picking groupé ── -->
+                    <div id="pickingListView">
+
+                        <!-- Onglets source NAST / MLP / LCDP -->
+                        <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;" id="pickingSourceTabs">
+                            <button class="sav-filter active" onclick="switchPickingSource('nast',this)">🛒 NAST</button>
+                            <button class="sav-filter" onclick="switchPickingSource('mlp',this)">💜 MLP</button>
+                            <button class="sav-filter" onclick="switchPickingSource('lcdp',this)" style="opacity:0.5;">🏪 LCDP</button>
+                        </div>
+
+                        <!-- Compteur + actualiser -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
                             <span class="commandes-count" id="pickingGlobalCount"></span>
-                            <button onclick="loadPicking()" style="background:none;border:none;cursor:pointer;color:#1976D2;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                            <button onclick="loadPickingForCurrentSource()" style="background:none;border:none;cursor:pointer;color:#1976D2;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                                 Actualiser
                             </button>
                         </div>
-                    </div>
 
-                    <!-- Barre de progression -->
-                    <div class="picking-progress" style="margin-bottom:14px;">
-                        <div class="picking-progress-top">
-                            <span class="picking-label">Progression picking</span>
-                            <span class="picking-count" id="pickingGlobalProgress">0 / 0</span>
+                        <!-- Barre de progression globale -->
+                        <div class="picking-progress" style="margin-bottom:12px;">
+                            <div class="picking-progress-top">
+                                <span class="picking-label">Progression picking</span>
+                                <span class="picking-count" id="pickingGlobalProgress">0 / 0</span>
+                            </div>
+                            <div class="picking-bar-bg">
+                                <div class="picking-bar-fill" id="pickingGlobalBar" style="width:0%"></div>
+                            </div>
                         </div>
-                        <div class="picking-bar-bg">
-                            <div class="picking-bar-fill" id="pickingGlobalBar" style="width:0%"></div>
+
+                        <!-- Légende commandes — chaque pastille est cliquable → ouvre le détail -->
+                        <div id="pickingLegend" style="display:none;margin-bottom:12px;padding:10px 12px;background:var(--bg-card);border-radius:var(--radius-xs);border:1px solid var(--border);flex-wrap:wrap;gap:6px;"></div>
+
+                        <div id="pickingStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+                            Chargement…
                         </div>
+
+                        <div id="pickingGroupedList"></div>
                     </div>
 
-                    <!-- Légende couleurs commandes -->
-                    <div id="pickingLegend" style="display:none;margin-bottom:12px;padding:10px 12px;background:var(--bg-card);border-radius:var(--radius-xs);border:1px solid var(--border);"></div>
+                    <!-- ── Vue détail commande depuis picking ── -->
+                    <div id="pickingDetailInline" style="display:none;">
+                        <button onclick="closePickingDetail()" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:13px;font-weight:600;margin-bottom:12px;padding:0;">
+                            ← Retour picking
+                        </button>
 
-                    <div id="pickingStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
-                        Chargement…
+                        <div class="detail-header" id="pdDetailHeader">
+                            <div class="detail-header-top">
+                                <div>
+                                    <div class="detail-ref" id="pdDetailRef"></div>
+                                    <div class="detail-client" id="pdDetailClient"></div>
+                                    <div class="detail-date" id="pdDetailDate"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="picking-progress" style="margin-bottom:12px;">
+                            <div class="picking-progress-top">
+                                <span class="picking-label">Picking</span>
+                                <span class="picking-count" id="pdPickingCount">0 / 0</span>
+                            </div>
+                            <div class="picking-bar-bg"><div class="picking-bar-fill" id="pdPickingBar" style="width:0%"></div></div>
+                        </div>
+
+                        <!-- Boutons scanner + photo -->
+                        <div style="display:flex;gap:8px;margin-bottom:12px;">
+                            <button onclick="document.getElementById('pdScanInput').click()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:13px;background:var(--nast-pink);color:white;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">
+                                📷 Scanner
+                            </button>
+                            <button onclick="togglePdPhotoZone()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:13px;background:#FF9800;color:white;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">
+                                📸 Photo
+                            </button>
+                        </div>
+                        <input type="file" accept="image/*" capture="environment" id="pdScanInput" style="display:none" onchange="handlePdScan(event)">
+
+                        <!-- Zone photo rapide -->
+                        <div id="pdPhotoZone" style="display:none;background:#fff8f0;border:2px dashed #FF9800;border-radius:var(--radius);padding:12px;margin-bottom:12px;">
+                            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                                <button onclick="document.getElementById('pdPhotoCap').click()" style="flex:1;padding:10px;border:none;border-radius:var(--radius-sm);background:#FF9800;color:white;font-weight:600;font-size:13px;cursor:pointer;">📷 Caméra</button>
+                                <button onclick="document.getElementById('pdPhotoFile').click()" style="flex:1;padding:10px;border:none;border-radius:var(--radius-sm);background:#f0f0f0;color:#555;font-weight:600;font-size:13px;cursor:pointer;">📁 Galerie</button>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" id="pdPhotoCap" style="display:none" onchange="handlePdPhoto(event)">
+                            <input type="file" accept="image/*" multiple id="pdPhotoFile" style="display:none" onchange="handlePdPhoto(event)">
+                            <div id="pdPhotoThumbs" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;"></div>
+                            <div id="pdPhotoStatus" style="display:none;margin-top:8px;text-align:center;font-size:13px;font-weight:600;color:#FF9800;"></div>
+                            <button onclick="sendPdPhotos()" id="pdSendBtn" style="display:none;width:100%;margin-top:8px;padding:12px;background:#FF9800;color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-body);">📸 Envoyer les photos</button>
+                        </div>
+
+                        <div class="produits-list" id="pdProduitsList"></div>
                     </div>
-                    <div id="pickingGroupedList"></div>
+
                 </div>
 
                 <div class="section-panel" id="nastcom_todoNast">
-                    <button class="todo-add-btn" onclick="toggleTodoForm('nast')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Nouvelle tâche
-                    </button>
-                    <div class="todo-form" id="todoFormNast">
-                        <input type="text" id="todoNastTitre" placeholder="Titre de la tâche *">
-                        <textarea id="todoNastNotes" placeholder="Notes / description (optionnel)" rows="2" style="resize:none;"></textarea>
-                        <select id="todoNastPrio">
-                            <option value="normal">🔵 Normal</option>
-                            <option value="urgent">🔴 Urgent</option>
-                            <option value="faible">🟣 Faible</option>
-                        </select>
-                        <div class="todo-form-btns">
-                            <button class="btn-todo-save" onclick="saveTodoNast()">Ajouter</button>
-                            <button class="btn-todo-cancel" onclick="toggleTodoForm('nast')">Annuler</button>
-                        </div>
+                    <!-- Tâches directes depuis le webhook -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot" style="background:#1976D2;"></span>Tâches en cours</div>
+                        <button onclick="loadTachesDirectes()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                            Actualiser
+                        </button>
                     </div>
-                    <div class="todo-filters">
-                        <button class="todo-filter active" onclick="filterTodo('nast','tous',this)">Tous</button>
-                        <button class="todo-filter" onclick="filterTodo('nast','urgent',this)">🔴 Urgent</button>
-                        <button class="todo-filter" onclick="filterTodo('nast','normal',this)">🔵 Normal</button>
-                        <button class="todo-filter" onclick="filterTodo('nast','done',this)">✅ Résolus</button>
+                    <div id="tachesDirectesList">
+                        <div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune tâche en cours</p></div>
                     </div>
-                    <div id="todoNastStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>
-                    <div id="todoNastList"></div>
                 </div><!-- /nastcom_todoNast -->
 
                 <!-- Panel SAV Nast.com -->
@@ -6085,6 +6150,459 @@
 
         function saveEcranState() {
             localStorage.setItem('ecranState', JSON.stringify(ecranState));
+        }
+
+        // ═══════════════════════════════════════════════════
+        // ── PICKING UNIFIÉ NAST / MLP / LCDP ──
+        // ═══════════════════════════════════════════════════
+
+        let currentPickingSource = 'nast';
+        let pickingUnifiedChecked = {};
+        let pickingUnifiedData = []; // données actuellement affichées
+        let pdCurrentCmd = null;     // commande ouverte dans le détail inline
+        let pdPickingState = {};     // état picking de la commande ouverte
+        let pdPhotos = [];           // photos en attente d'envoi
+
+        function switchPickingSource(source, btn) {
+            currentPickingSource = source;
+            btn.parentElement.querySelectorAll('.sav-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (source === 'lcdp') {
+                document.getElementById('pickingGroupedList').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">🏪</div><p>LCDP — Bientôt disponible</p></div>';
+                document.getElementById('pickingGlobalCount').textContent = '';
+                document.getElementById('pickingGlobalProgress').textContent = '0 / 0';
+                document.getElementById('pickingGlobalBar').style.width = '0%';
+                document.getElementById('pickingLegend').style.display = 'none';
+                return;
+            }
+            loadPickingForCurrentSource();
+        }
+
+        async function loadPickingForCurrentSource() {
+            // Fermer le détail si ouvert
+            closePickingDetail();
+
+            const status = document.getElementById('pickingStatus');
+            const list = document.getElementById('pickingGroupedList');
+            status.style.display = 'block';
+            list.innerHTML = '';
+
+            try {
+                let data = [];
+                if (currentPickingSource === 'nast') {
+                    if (!commandesData.length) {
+                        const res = await fetch(COMMANDES_WEBHOOK + '?t=' + Date.now());
+                        const rows = await res.json();
+                        if (rows?.length) commandesData = parseWebhookCommandes(rows);
+                    }
+                    data = commandesData;
+                } else if (currentPickingSource === 'mlp') {
+                    if (!mlpData.length) {
+                        const res = await fetch(MLP_WEBHOOK + '?t=' + Date.now());
+                        const rows = await res.json();
+                        if (rows?.length) mlpData = parseWebhookCommandes(rows);
+                    }
+                    data = mlpData;
+                }
+                pickingUnifiedData = data;
+                renderPickingUnified(data);
+            } catch(e) {
+                list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Erreur chargement</p></div>';
+            }
+            status.style.display = 'none';
+        }
+
+        function renderPickingUnified(data) {
+            const list = document.getElementById('pickingGroupedList');
+            const legend = document.getElementById('pickingLegend');
+
+            if (!data.length) {
+                list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande à préparer</p></div>';
+                legend.style.display = 'none';
+                document.getElementById('pickingGlobalCount').textContent = '0 produit';
+                document.getElementById('pickingGlobalProgress').textContent = '0 / 0';
+                document.getElementById('pickingGlobalBar').style.width = '0%';
+                return;
+            }
+
+            // Couleurs par commande
+            const cmdColorMap = {};
+            data.forEach((c, i) => { cmdColorMap[c.num] = PICKING_COLORS[i % PICKING_COLORS.length]; });
+
+            // Légende cliquable
+            legend.style.display = 'flex';
+            legend.style.flexWrap = 'wrap';
+            legend.style.gap = '6px';
+            legend.innerHTML = data.map((c, i) =>
+                `<span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:10px;color:white;background:${cmdColorMap[c.num]};cursor:pointer;" onclick="openPickingDetailInline(${i})">#${c.num} ${(c.client||'').split(' ')[0]}</span>`
+            ).join('');
+
+            // Grouper par EAN
+            const grouped = {};
+            data.forEach(c => {
+                c.produits.forEach(p => {
+                    const key = p.ean || p.nom;
+                    if (!grouped[key]) grouped[key] = { ean: p.ean, nom: p.nom, totalQty: 0, stockNast: p.stockNast||0, stockMontf: p.stockMontf||0, commandes: [] };
+                    grouped[key].totalQty += p.qty;
+                    grouped[key].commandes.push({ num: c.num, client: c.client, qty: p.qty, color: cmdColorMap[c.num], idx: data.indexOf(c) });
+                });
+            });
+
+            // Restaurer état coché
+            const today = new Date().toISOString().split('T')[0];
+            const saved = getVal('picking_unified_' + currentPickingSource + '_' + today);
+            pickingUnifiedChecked = saved ? JSON.parse(saved) : {};
+
+            const items = Object.values(grouped).sort((a, b) => (a.nom||'').localeCompare(b.nom||''));
+            const done = items.filter(p => pickingUnifiedChecked[p.ean||p.nom]).length;
+            const total = items.length;
+            const pct = total > 0 ? Math.round(done / total * 100) : 0;
+
+            document.getElementById('pickingGlobalCount').textContent = total + ' produit' + (total>1?'s':'') + ' · ' + data.length + ' commande' + (data.length>1?'s':'');
+            document.getElementById('pickingGlobalProgress').textContent = done + ' / ' + total;
+            const bar = document.getElementById('pickingGlobalBar');
+            bar.style.width = pct + '%';
+            bar.className = 'picking-bar-fill' + (done === total && total > 0 ? ' done' : '');
+
+            list.innerHTML = items.map(item => {
+                const key = item.ean || item.nom;
+                const isPicked = pickingUnifiedChecked[key];
+                const stock = getStockInfo(item);
+                const cmdsHtml = item.commandes.map(c =>
+                    `<span class="pick-cmd-tag" style="background:${c.color};cursor:pointer;" onclick="event.stopPropagation();openPickingDetailInline(${c.idx})">#${c.num} ×${c.qty}</span>`
+                ).join('');
+                return `<div class="pick-item ${isPicked?'picked':''}" style="${(stock.bg?'background:'+stock.bg+';':'')+(stock.border||'')}">
+                    <div class="pick-main" onclick="togglePickingUnified('${key}')">
+                        <div class="pick-check">${isPicked?'✓':''}</div>
+                        <div class="pick-body">
+                            <div class="pick-nom">${item.nom||'Produit inconnu'}</div>
+                            <div class="pick-ean">${item.ean||''}</div>
+                            <div style="margin-top:2px;"><span style="font-size:10px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:1px 6px;border-radius:5px;">${stock.label}</span></div>
+                        </div>
+                        <div class="pick-qty-total">${item.totalQty}</div>
+                    </div>
+                    <div class="pick-cmds">${cmdsHtml}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function togglePickingUnified(key) {
+            pickingUnifiedChecked[key] = !pickingUnifiedChecked[key];
+            const today = new Date().toISOString().split('T')[0];
+            setVal('picking_unified_' + currentPickingSource + '_' + today, JSON.stringify(pickingUnifiedChecked));
+            renderPickingUnified(pickingUnifiedData);
+        }
+
+        function openPickingDetailInline(idx) {
+            const data = pickingUnifiedData;
+            if (!data[idx]) return;
+            pdCurrentCmd = data[idx];
+            pdPickingState = {};
+            pdCurrentCmd.produits.forEach(p => { pdPickingState[p.ean] = 0; });
+            pdPhotos = [];
+
+            document.getElementById('pickingListView').style.display = 'none';
+            document.getElementById('pickingDetailInline').style.display = 'block';
+
+            const d = new Date(pdCurrentCmd.date);
+            const dateStr = isNaN(d) ? pdCurrentCmd.date : d.toLocaleDateString('fr-FR', {weekday:'short',day:'numeric',month:'short'}) + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+            document.getElementById('pdDetailRef').textContent = '#' + pdCurrentCmd.num + (pdCurrentCmd.ref ? ' — ' + pdCurrentCmd.ref : '');
+            document.getElementById('pdDetailClient').textContent = '👤 ' + (pdCurrentCmd.client||'—') + (pdCurrentCmd.ville ? ' · ' + pdCurrentCmd.ville : '');
+            document.getElementById('pdDetailDate').textContent = '🕐 ' + dateStr;
+
+            // Reset photo zone
+            document.getElementById('pdPhotoZone').style.display = 'none';
+            document.getElementById('pdPhotoThumbs').innerHTML = '';
+            document.getElementById('pdPhotoStatus').style.display = 'none';
+            document.getElementById('pdSendBtn').style.display = 'none';
+
+            renderPdProduits();
+            updatePdProgress();
+        }
+
+        function closePickingDetail() {
+            const detail = document.getElementById('pickingDetailInline');
+            const listView = document.getElementById('pickingListView');
+            if (detail) detail.style.display = 'none';
+            if (listView) listView.style.display = '';
+            pdCurrentCmd = null;
+        }
+
+        function renderPdProduits() {
+            const list = document.getElementById('pdProduitsList');
+            if (!pdCurrentCmd?.produits.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Aucun produit</div>'; return; }
+            list.innerHTML = pdCurrentCmd.produits.map((p, idx) => {
+                const validated = pdPickingState[p.ean] || 0;
+                const scanned = validated > 0;
+                const stock = getStockInfo(p);
+                const pvInfo = p.prixVente ? `PV ${p.prixVente.toFixed(2)}€` : '';
+                const prixInfo = p.prixAchat ? `PA ${p.prixAchat.toFixed(2)}€` : '';
+                const marqueInfo = p.tauxMarque ? `${p.tauxMarque.toFixed(1)}%` : '';
+                const marqueColor = p.tauxMarque >= 30 ? '#2e7d32' : p.tauxMarque >= 20 ? '#ff9800' : '#c62828';
+                return `<div class="produit-item ${scanned?'scanned':''}" style="${stock.bg?'background:'+stock.bg+';':''}${stock.border||''}">
+                    <div class="produit-check" onclick="showPdPopup(${idx})" style="cursor:pointer;">${scanned?'✓':''}</div>
+                    <div class="produit-info">
+                        <div class="produit-nom">${p.nom||'Produit'}</div>
+                        <div class="produit-ean">${p.ean}</div>
+                        <div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;">
+                            <span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span>
+                        </div>
+                        <div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;">
+                            ${pvInfo?`<span style="font-size:10px;font-weight:600;color:#1976D2;background:#e3f2fd;padding:2px 6px;border-radius:5px;">${pvInfo}</span>`:''}
+                            ${prixInfo?`<span style="font-size:10px;color:#5a6a7e;background:#f2f5f8;padding:2px 6px;border-radius:5px;">${prixInfo}</span>`:''}
+                            ${marqueInfo?`<span style="font-size:10px;font-weight:700;color:${marqueColor};background:${marqueColor}15;padding:2px 6px;border-radius:5px;">⬆${marqueInfo}</span>`:''}
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                        <span class="produit-qty">${scanned?validated+'/':''}×${p.qty}</span>
+                        ${!scanned
+                            ? `<button onclick="showPdPopup(${idx})" style="font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:8px;background:white;color:var(--text-muted);cursor:pointer;">Valider</button>`
+                            : `<button onclick="resetPdProduit('${p.ean}')" style="font-size:10px;padding:3px 8px;border:1px solid #fce4ec;border-radius:8px;background:#fce4ec;color:#E91E63;cursor:pointer;">Annuler</button>`}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function showPdPopup(idx) {
+            const p = pdCurrentCmd?.produits[idx];
+            if (!p) return;
+            const alreadyDone = pdPickingState[p.ean] || 0;
+            const popup = document.createElement('div');
+            popup.id = 'pdPopup';
+            popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;display:flex;align-items:flex-end;justify-content:center;';
+            popup.innerHTML = `<div style="background:white;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;">
+                <div style="width:40px;height:4px;background:#e8ecf0;border-radius:2px;margin:0 auto 20px;"></div>
+                <div style="text-align:center;margin-bottom:20px;">
+                    <div style="font-size:11px;color:#9aa8b8;font-family:monospace;margin-bottom:6px;">${p.ean}</div>
+                    <div style="font-size:15px;font-weight:600;color:#1a2332;line-height:1.4;padding:0 10px;">${p.nom||'Produit'}</div>
+                    <div style="margin-top:8px;font-size:13px;color:#5a6a7e;">Qté attendue : <strong>${p.qty}</strong>${alreadyDone?' · <span style="color:#26C6DA;">✓ Déjà validé ('+alreadyDone+')</span>':''}</div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:24px;">
+                    <button id="pdMinus" style="width:48px;height:48px;border-radius:50%;border:2px solid #e8ecf0;background:white;font-size:24px;cursor:pointer;">−</button>
+                    <div style="text-align:center;"><div id="pdQtyVal" style="font-size:42px;font-weight:700;color:#E91E63;line-height:1;">${p.qty}</div><div style="font-size:11px;color:#9aa8b8;">quantité</div></div>
+                    <button id="pdPlus" style="width:48px;height:48px;border-radius:50%;border:2px solid #e8ecf0;background:white;font-size:24px;cursor:pointer;">+</button>
+                </div>
+                <button id="pdValider" style="width:100%;padding:16px;background:#E91E63;color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;margin-bottom:10px;">✓ Valider</button>
+                <button id="pdAnnuler" style="width:100%;padding:13px;background:#f2f5f8;color:#5a6a7e;border:none;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">Annuler</button>
+            </div>`;
+            document.body.appendChild(popup);
+            let qty = p.qty;
+            popup.querySelector('#pdMinus').addEventListener('click', () => { qty = Math.max(1,qty-1); popup.querySelector('#pdQtyVal').textContent = qty; });
+            popup.querySelector('#pdPlus').addEventListener('click', () => { qty++; popup.querySelector('#pdQtyVal').textContent = qty; });
+            popup.querySelector('#pdValider').addEventListener('click', () => {
+                popup.remove();
+                pdPickingState[p.ean] = qty;
+                renderPdProduits();
+                updatePdProgress();
+                const done = Object.values(pdPickingState).filter(v => v > 0).length;
+                showToast(done === pdCurrentCmd.produits.length ? '✅ Picking complet !' : '✓ Produit validé', 'success');
+            });
+            popup.querySelector('#pdAnnuler').addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', e => { if (e.target === popup) popup.remove(); });
+        }
+
+        function resetPdProduit(ean) {
+            pdPickingState[ean] = 0;
+            renderPdProduits();
+            updatePdProgress();
+        }
+
+        function updatePdProgress() {
+            if (!pdCurrentCmd) return;
+            const total = pdCurrentCmd.produits.length;
+            const done = Object.values(pdPickingState).filter(v => v > 0).length;
+            const pct = total > 0 ? Math.round(done/total*100) : 0;
+            document.getElementById('pdPickingCount').textContent = done + ' / ' + total;
+            const bar = document.getElementById('pdPickingBar');
+            bar.style.width = pct + '%';
+            bar.className = 'picking-bar-fill' + (done === total && total > 0 ? ' done' : '');
+        }
+
+        function handlePdScan(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if ('BarcodeDetector' in window) {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = async () => {
+                    try {
+                        const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','upc_a','upc_e'] });
+                        const codes = await detector.detect(img);
+                        URL.revokeObjectURL(url);
+                        if (codes.length > 0) {
+                            const eanStr = String(codes[0].rawValue).trim();
+                            const produit = pdCurrentCmd?.produits.find(p =>
+                                String(p.ean) === eanStr || String(p.ean) === eanStr.replace(/^0+/,'') ||
+                                ('0'+String(p.ean)) === eanStr || String(p.ean).replace(/^0+/,'') === eanStr.replace(/^0+/,'')
+                            );
+                            if (produit) showPdPopup(pdCurrentCmd.produits.indexOf(produit));
+                            else showToast('✗ EAN non trouvé : ' + eanStr, 'error');
+                        } else { showToast('Aucun code-barre détecté', 'error'); }
+                    } catch(err) { URL.revokeObjectURL(url); showToast('Erreur lecture', 'error'); }
+                };
+                img.src = url;
+            } else { showToast('Scanner non disponible sur cet appareil', 'error'); }
+            e.target.value = '';
+        }
+
+        function togglePdPhotoZone() {
+            const z = document.getElementById('pdPhotoZone');
+            z.style.display = z.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function handlePdPhoto(e) {
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    processImage(ev.target.result, processed => {
+                        pdPhotos.push({ data: processed, name: file.name });
+                        renderPdPhotoThumbs();
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = '';
+        }
+
+        function renderPdPhotoThumbs() {
+            document.getElementById('pdPhotoThumbs').innerHTML = pdPhotos.map((p,i) =>
+                `<div style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+                    <img src="${p.data}" style="width:100%;height:100%;object-fit:cover;">
+                    <button onclick="pdPhotos.splice(${i},1);renderPdPhotoThumbs()" style="position:absolute;top:2px;right:2px;width:18px;height:18px;background:#e74c3c;color:white;border:none;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+                </div>`
+            ).join('');
+            document.getElementById('pdSendBtn').style.display = pdPhotos.length > 0 ? 'block' : 'none';
+        }
+
+        async function sendPdPhotos() {
+            const webhookUrl = getVal('photo_webhook_url');
+            if (!webhookUrl) { showToast('Webhook photos non configuré dans Réglages', 'error'); return; }
+            if (!pdCurrentCmd || !pdPhotos.length) return;
+            const btn = document.getElementById('pdSendBtn');
+            const status = document.getElementById('pdPhotoStatus');
+            btn.disabled = true; btn.textContent = '⏳ Envoi…';
+            status.style.display = 'block'; status.textContent = 'Envoi…'; status.style.color = '#FF9800';
+            try {
+                const payload = {
+                    numCommande: pdCurrentCmd.num, client: pdCurrentCmd.client,
+                    platform: currentPickingSource.toUpperCase(), date: new Date().toISOString(),
+                    photos: pdPhotos.map((p,i) => ({ index: i+1, data: p.data.split(',')[1], mimeType:'image/jpeg', filename:`CMD_${pdCurrentCmd.num}_p${i+1}.jpg` }))
+                };
+                const res = await fetch(webhookUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+                if (res.ok) {
+                    status.textContent = '✅ Photos envoyées !'; status.style.color = '#2e7d32';
+                    pdPhotos = []; renderPdPhotoThumbs();
+                    setTimeout(() => { status.style.display='none'; }, 3000);
+                } else throw new Error();
+            } catch { status.textContent = '❌ Erreur envoi'; status.style.color = '#c62828'; }
+            btn.disabled = false; btn.textContent = '📸 Envoyer les photos';
+        }
+
+        // ── Photo rapide sur vue détail commande NAST (commandeDetailView) ──
+        let cmdPhotos = [];
+
+        function toggleCmdPhotoZone() {
+            const z = document.getElementById('cmdPhotoZone');
+            z.style.display = z.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function handleCmdPhoto(e) {
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    processImage(ev.target.result, processed => {
+                        cmdPhotos.push({ data: processed });
+                        renderCmdPhotoThumbs();
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = '';
+        }
+
+        function renderCmdPhotoThumbs() {
+            document.getElementById('cmdPhotoThumbs').innerHTML = cmdPhotos.map((p,i) =>
+                `<div style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+                    <img src="${p.data}" style="width:100%;height:100%;object-fit:cover;">
+                    <button onclick="cmdPhotos.splice(${i},1);renderCmdPhotoThumbs()" style="position:absolute;top:2px;right:2px;width:18px;height:18px;background:#e74c3c;color:white;border:none;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+                </div>`
+            ).join('');
+            document.getElementById('cmdSendBtn').style.display = cmdPhotos.length > 0 ? 'block' : 'none';
+        }
+
+        async function sendCmdPhotos() {
+            const webhookUrl = getVal('photo_webhook_url');
+            if (!webhookUrl) { showToast('Webhook photos non configuré dans Réglages', 'error'); return; }
+            if (!currentCommande || !cmdPhotos.length) return;
+            const btn = document.getElementById('cmdSendBtn');
+            const status = document.getElementById('cmdPhotoStatus');
+            btn.disabled = true; btn.textContent = '⏳ Envoi…';
+            status.style.display = 'block'; status.textContent = 'Envoi…'; status.style.color = '#FF9800';
+            try {
+                const payload = {
+                    numCommande: currentCommande.num, client: currentCommande.client,
+                    platform: 'NAST', date: new Date().toISOString(),
+                    photos: cmdPhotos.map((p,i) => ({ index: i+1, data: p.data.split(',')[1], mimeType:'image/jpeg', filename:`CMD_${currentCommande.num}_p${i+1}.jpg` }))
+                };
+                const res = await fetch(webhookUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+                if (res.ok) {
+                    status.textContent = '✅ Envoyé !'; status.style.color = '#2e7d32';
+                    cmdPhotos = []; renderCmdPhotoThumbs();
+                    setTimeout(() => { status.style.display='none'; }, 3000);
+                } else throw new Error();
+            } catch { status.textContent = '❌ Erreur'; status.style.color = '#c62828'; }
+            btn.disabled = false; btn.textContent = '📸 Envoyer les photos';
+        }
+
+        // Reset photos quand on ferme le détail commande
+        const _origCloseCommandeDetail = typeof closeCommandeDetail === 'function' ? closeCommandeDetail : null;
+        function closeCommandeDetail() {
+            stopScan();
+            currentCommande = null;
+            cmdPhotos = [];
+            const cz = document.getElementById('cmdPhotoZone');
+            if (cz) cz.style.display = 'none';
+            document.getElementById('commandesListView').classList.remove('hidden');
+            document.getElementById('commandeDetailView').classList.remove('active');
+        }
+
+        // ── Tâches directes depuis webhook ──
+        async function loadTachesDirectes() {
+            const container = document.getElementById('tachesDirectesList');
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/></svg> Chargement…</div>';
+            try {
+                const res = await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/ecran-taches?t=' + Date.now());
+                const json = await res.json();
+                if (!Array.isArray(json) || !json.length) {
+                    container.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune tâche en cours</p></div>';
+                    return;
+                }
+                container.innerHTML = json.map(t => {
+                    const type = String(t.type||'').toLowerCase();
+                    const icon = type.includes('probleme')||type.includes('problème') ? '🔴' : type.includes('sav') ? '🟠' : '📋';
+                    const bg = type.includes('probleme')||type.includes('problème') ? 'rgba(231,76,60,0.06)' : type.includes('sav') ? 'rgba(255,152,0,0.06)' : '#f7f9fb';
+                    return `<div style="background:${bg};border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                            <span style="font-weight:600;font-size:13px;">${icon} ${t.type||'Tâche'}</span>
+                            <span style="font-size:11px;color:#888;">${t.date||''}</span>
+                        </div>
+                        <div style="font-size:13px;color:var(--text-primary);">${t.message||t.contenu||''}</div>
+                        ${t.numCommande?`<div style="margin-top:4px;font-size:11px;color:#1976D2;font-weight:600;">#${t.numCommande}</div>`:''}
+                        ${t.reponse?`<div style="margin-top:6px;padding:8px;background:#e8f5e9;border-radius:8px;font-size:12px;color:#2e7d32;">✅ ${t.reponse}</div>`:''}
+                    </div>`;
+                }).join('');
+            } catch(e) {
+                container.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Erreur chargement tâches</p></div>';
+            }
+        }
+
+        // Overrider switchSection pour auto-charger le picking unifié
+        const _origSwitchSection = switchSection;
+        function switchSection(section, panel, btn, color) {
+            _origSwitchSection(section, panel, btn, color);
+            if (section === 'nastcom' && panel === 'picking') {
+                loadPickingForCurrentSource();
+            }
         }
     </script>
 </body>
