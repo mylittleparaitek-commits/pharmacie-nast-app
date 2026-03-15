@@ -5452,142 +5452,129 @@
         // ═══════════════════════════════════════════
 
         // ══════════════════════════════════════════════════
-        // 📊 STATISTIQUES — 100% JSON depuis Apps Script
+        // 📊 STATISTIQUES — 1 seul fetch vers l'agrégateur NAST+MLP
         // ══════════════════════════════════════════════════
 
-        const APPS_SCRIPT_MLP  = 'https://script.google.com/macros/s/AKfycbw3bnmInEz9JLpPvGrEhURor4ivm_D9QSD33_v6CZU23wDujNz0uVRvrkmEUwyO9Nci/exec';
-        const APPS_SCRIPT_NAST = 'https://script.google.com/macros/s/AKfycbyAeenpMcO_MkuGLUBxT8nq8RZBjLxjx5OobyJdlhPMCM5MjKnIsmBci-RGroCelOJJNw/exec';
+        const APPS_SCRIPT_AGREGATEUR = 'https://script.google.com/macros/s/AKfycbx0IVm_HupVvXwjT8yoBhrj2TwhsZzvQgAdZ2poumlqj2X5GuZjLTgyqNdO4VOy__f3/exec';
+        const APPS_SCRIPT_MLP  = APPS_SCRIPT_AGREGATEUR;
+        const APPS_SCRIPT_NAST = APPS_SCRIPT_AGREGATEUR;
 
         let currentStatsPeriod = 'jour';
-        // Garder pour compatibilité avec l'ancien code picking
-        let allStatsCommandes = [];
+        let allStatsCommandes  = [];
 
         function switchStatsPeriod(period, btn) {
             currentStatsPeriod = period;
             document.querySelectorAll('#statsSubtabs .section-subtab').forEach(b => b.classList.remove('active-green'));
             btn.classList.add('active-green');
-            renderStatsDashboard();
+            // Si données déjà chargées → re-render instantané, sinon fetch
+            if (window._agregStats) {
+                renderStatsDashboard();
+            } else {
+                loadStats();
+            }
         }
 
         async function loadStats() {
             document.getElementById('statsLoading').style.display = 'block';
             document.getElementById('statsContent').style.display = 'none';
             try {
-                const [nastRes, mlpRes] = await Promise.all([
-                    fetch(APPS_SCRIPT_NAST + '?t=' + Date.now()),
-                    fetch(APPS_SCRIPT_MLP  + '?t=' + Date.now())
-                ]);
-                window._nastStats = await nastRes.json();
-                window._mlpStats  = await mlpRes.json();
-                // Stocker aussi pour la section home
-                window._mlpStatsJson = window._mlpStats;
+                const res  = await fetch(APPS_SCRIPT_AGREGATEUR + '?t=' + Date.now());
+                const data = await res.json();
+                // Stocker le JSON agrégateur
+                window._agregStats = data;
+                // Compatibilité avec l'ancien code
+                window._nastStats    = data;
+                window._mlpStats     = data;
+                window._mlpStatsJson = data;
                 renderStatsDashboard();
             } catch(e) {
                 document.getElementById('statsLoading').innerHTML =
-                    '<p style="color:#c62828;padding:20px;">❌ Erreur : ' + e.message + '</p>';
+                    '<p style="color:#c62828;padding:20px;">❌ Erreur chargement stats : ' + e.message + '</p>';
             }
         }
 
         function renderStatsDashboard() {
-            const nast = window._nastStats;
-            const mlp  = window._mlpStats;
-            if (!nast && !mlp) return;
+            const d = window._agregStats;
+            if (!d) return;
 
             const key = currentStatsPeriod; // 'jour','hier','semaine','mois','j7'
-            const np  = nast?.[key] || {};
-            const mp  = mlp?.[key]  || {};
+            const p   = d[key] || {};       // données de la période sélectionnée
 
-            // ── Totaux fusionnés ──
-            const totalCmds     = (np.commandes||0) + (mp.commandes||0);
-            const totalProduits = (np.produits||0)  + (mp.produits||0);
-            const totalCA       = (np.ca||0)        + (mp.ca||0);
-            const totalMarge    = (np.marge||0)     + (mp.marge||0);
-            const panierMoyen   = totalCmds > 0 ? totalCA / totalCmds : 0;
-
-            const fmt  = n => n.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0});
+            const fmt  = n => (n||0).toLocaleString('fr-FR', {maximumFractionDigits:0});
             const fmtE = n => fmt(n) + ' €';
-            const fmtD = (n, d=1) => n.toLocaleString('fr-FR', {minimumFractionDigits:d, maximumFractionDigits:d});
-
-            // Plateformes NAST
-            const nastPlat = nast?.plateformes || {};
-            const nastCmds = nastPlat.nast?.commandes || np.commandes || 0;
-            const dmCmds   = nastPlat.docmorris?.commandes || 0;
-            const nastCA   = nastPlat.nast?.ca || np.ca || 0;
-            const dmCA     = nastPlat.docmorris?.ca || 0;
+            const fmtD = (n, dec=1) => (n||0).toLocaleString('fr-FR', {minimumFractionDigits:dec, maximumFractionDigits:dec});
 
             let html = '';
 
             // ── KPI GLOBAL ──
             html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
                 <div style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:14px;padding:14px;border-left:4px solid #1976D2;">
-                    <div style="font-size:28px;font-weight:800;color:#1976D2;line-height:1;">${totalCmds}</div>
+                    <div style="font-size:28px;font-weight:800;color:#1976D2;line-height:1;">${p.commandes||0}</div>
                     <div style="font-size:11px;color:#5a6a7e;margin-top:3px;">Commandes totales</div>
                 </div>
                 <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:14px;padding:14px;border-left:4px solid #43A047;">
-                    <div style="font-size:28px;font-weight:800;color:#43A047;line-height:1;">${totalProduits}</div>
+                    <div style="font-size:28px;font-weight:800;color:#43A047;line-height:1;">${p.produits||0}</div>
                     <div style="font-size:11px;color:#5a6a7e;margin-top:3px;">Produits vendus</div>
                 </div>
                 <div style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:14px;padding:14px;border-left:4px solid #FF9800;">
-                    <div style="font-size:28px;font-weight:800;color:#FF9800;line-height:1;">${fmtE(totalCA)}</div>
+                    <div style="font-size:28px;font-weight:800;color:#FF9800;line-height:1;">${fmtE(p.ca||0)}</div>
                     <div style="font-size:11px;color:#5a6a7e;margin-top:3px;">CA TTC total</div>
                 </div>
                 <div style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);border-radius:14px;padding:14px;border-left:4px solid #E91E63;">
-                    <div style="font-size:28px;font-weight:800;color:#E91E63;line-height:1;">${fmtE(panierMoyen)}</div>
+                    <div style="font-size:28px;font-weight:800;color:#E91E63;line-height:1;">${fmtE(p.panier_moyen||0)}</div>
                     <div style="font-size:11px;color:#5a6a7e;margin-top:3px;">Panier moyen</div>
                 </div>
                 <div style="background:linear-gradient(135deg,#e0f2f1,#b2dfdb);border-radius:14px;padding:14px;border-left:4px solid #00897B;">
-                    <div style="font-size:28px;font-weight:800;color:#00897B;line-height:1;">${fmtE(totalMarge)}</div>
+                    <div style="font-size:28px;font-weight:800;color:#00897B;line-height:1;">${fmtE(p.marge||0)}</div>
                     <div style="font-size:11px;color:#5a6a7e;margin-top:3px;">Marge brute ≈</div>
                 </div>
                 <div style="background:linear-gradient(135deg,#ede7f6,#d1c4e9);border-radius:14px;padding:14px;border-left:4px solid #5E35B1;">
-                    <div style="font-size:28px;font-weight:800;color:#5E35B1;line-height:1;">${fmtD(((np.taux_marque||0)+(mp.taux_marque||0))/2)} %</div>
+                    <div style="font-size:28px;font-weight:800;color:#5E35B1;line-height:1;">${fmtD(p.taux_marque||0)} %</div>
                     <div style="font-size:11px;color:#5a6a7e;margin-top:3px;">Taux de marque moy.</div>
                 </div>
             </div>`;
 
             // ── RÉPARTITION PAR PLATEFORME ──
+            const plats = d.plateformes || {};
             const platData = [
-                { nom:'NAST.COM',   cmds:nastCmds, ca:nastCA,   color:'#1976D2', bg:'#e3f2fd' },
-                { nom:'DocMorris',  cmds:dmCmds,   ca:dmCA,     color:'#0D47A1', bg:'#e8eaf6' },
-                { nom:'MLP',        cmds:mp.commandes||0, ca:mp.ca||0, color:'#9C27B0', bg:'#f3e5f5' }
-            ].filter(p => p.cmds > 0);
+                { nom:'NAST.COM',  cmds:plats.nast?.commandes||0,      ca:plats.nast?.ca||0,      color:'#1976D2', bg:'#e3f2fd' },
+                { nom:'DocMorris', cmds:plats.docmorris?.commandes||0, ca:plats.docmorris?.ca||0, color:'#0D47A1', bg:'#e8eaf6' },
+                { nom:'MLP',       cmds:plats.mlp?.commandes||0,       ca:plats.mlp?.ca||0,       color:'#9C27B0', bg:'#f3e5f5' }
+            ].filter(pp => pp.cmds > 0);
 
             if (platData.length) {
-                const maxPlatCmds = Math.max(...platData.map(p => p.cmds), 1);
+                const totalCmds = platData.reduce((s, pp) => s + pp.cmds, 0);
+                const maxCmds   = Math.max(...platData.map(pp => pp.cmds), 1);
                 html += `<div style="background:white;border-radius:14px;border:1.5px solid var(--border);padding:14px;margin-bottom:12px;">
                     <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">🏪 Répartition par plateforme</div>
-                    ${platData.map(p => {
-                        const pct = totalCmds > 0 ? Math.round(p.cmds/totalCmds*100) : 0;
-                        const w   = Math.round(p.cmds/maxPlatCmds*100);
+                    ${platData.map(pp => {
+                        const pct = totalCmds > 0 ? Math.round(pp.cmds/totalCmds*100) : 0;
+                        const w   = Math.round(pp.cmds/maxCmds*100);
                         return `<div style="margin-bottom:10px;">
                             <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                                <span style="font-size:12px;font-weight:700;color:${p.color};">${p.nom}</span>
-                                <span style="font-size:12px;color:var(--text-muted);">${p.cmds} cmd · ${fmtE(p.ca)} · ${pct}%</span>
+                                <span style="font-size:12px;font-weight:700;color:${pp.color};">${pp.nom}</span>
+                                <span style="font-size:12px;color:var(--text-muted);">${pp.cmds} cmd · ${fmtE(pp.ca)} · ${pct}%</span>
                             </div>
                             <div style="height:8px;background:#f0f0f0;border-radius:99px;">
-                                <div style="height:8px;width:${w}%;background:${p.color};border-radius:99px;"></div>
+                                <div style="height:8px;width:${w}%;background:${pp.color};border-radius:99px;"></div>
                             </div>
                         </div>`;
                     }).join('')}
                 </div>`;
             }
 
-            // ── HEURES DE POINTE — combiné NAST + MLP ──
-            const nastH = nast?.heures || {};
-            const mlpH  = mlp?.heures  || {};
-            const heures = {};
-            for (let h = 0; h < 24; h++) {
-                heures[h] = { nb: (nastH[h]?.nb||0) + (mlpH[h]?.nb||0), ca: (nastH[h]?.ca||0) + (mlpH[h]?.ca||0) };
-            }
-            const maxH = Math.max(...Object.values(heures).map(h => h.nb), 1);
+            // ── HEURES DE POINTE ──
+            const heures = d.heures || {};
+            const maxH   = Math.max(...Object.values(heures).map(h => h.nb||0), 1);
             html += `<div style="background:white;border-radius:14px;border:1.5px solid var(--border);padding:14px;margin-bottom:12px;">
                 <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FF9800;margin-bottom:10px;">🕐 Commandes par heure — 7 derniers jours</div>
                 <div style="display:flex;align-items:flex-end;gap:2px;height:70px;">
-                    ${Object.entries(heures).map(([h, d]) => {
-                        const pct = d.nb > 0 ? Math.max(Math.round(d.nb/maxH*100), 8) : 3;
+                    ${Object.entries(heures).map(([h, hd]) => {
+                        const nb  = hd.nb || 0;
+                        const pct = nb > 0 ? Math.max(Math.round(nb/maxH*100), 8) : 3;
                         return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;">
-                            ${d.nb > 0 ? `<div style="font-size:7px;font-weight:700;color:#FF9800;">${d.nb}</div>` : '<div style="font-size:7px;color:transparent;">0</div>'}
-                            <div style="width:100%;height:${pct}px;border-radius:2px 2px 0 0;background:${d.nb>0?'#FF9800':'#f0f0f0'};"></div>
+                            ${nb > 0 ? `<div style="font-size:7px;font-weight:700;color:#FF9800;">${nb}</div>` : '<div style="font-size:7px;color:transparent;">0</div>'}
+                            <div style="width:100%;height:${pct}px;border-radius:2px 2px 0 0;background:${nb>0?'#FF9800':'#f0f0f0'};"></div>
                             <div style="font-size:7px;color:#bbb;">${h}h</div>
                         </div>`;
                     }).join('')}
@@ -5597,110 +5584,86 @@
             // ── JOURS DE SEMAINE ──
             const JNOMS = ['dim','lun','mar','mer','jeu','ven','sam'];
             const JFULL = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-            const nastJ = nast?.jours || {};
-            const mlpJ  = mlp?.jours  || {};
+            const jours = d.jours || {};
             const joursData = [1,2,3,4,5,6,0].map(i => ({
-                nom : JFULL[i],
-                nb  : (nastJ[JNOMS[i]]?.nb||0) + (mlpJ[JNOMS[i]]?.nb||0),
-                ca  : (nastJ[JNOMS[i]]?.ca||0) + (mlpJ[JNOMS[i]]?.ca||0)
+                nom: JFULL[i],
+                nb:  jours[JNOMS[i]]?.nb || 0,
+                ca:  jours[JNOMS[i]]?.ca || 0
             }));
             const maxJ = Math.max(...joursData.map(j => j.nb), 1);
             html += `<div style="background:white;border-radius:14px;border:1.5px solid var(--border);padding:14px;margin-bottom:12px;">
                 <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9C27B0;margin-bottom:10px;">📅 Commandes par jour de semaine</div>
                 <div style="display:flex;gap:6px;">
                     ${joursData.map(j => {
-                        const pct = j.nb > 0 ? Math.max(Math.round(j.nb/maxJ*100), 10) : 4;
+                        const pct = j.nb > 0 ? Math.max(Math.round(j.nb/maxJ*60), 10) : 4;
                         return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
                             <div style="font-size:10px;font-weight:700;color:${j.nb>0?'#9C27B0':'#ddd'};">${j.nb}</div>
-                            <div style="width:100%;height:${pct*0.6}px;border-radius:4px;background:${j.nb>0?'#9C27B0':'#f0f0f0'};"></div>
+                            <div style="width:100%;height:${pct}px;border-radius:4px;background:${j.nb>0?'#9C27B0':'#f0f0f0'};"></div>
                             <div style="font-size:9px;color:#999;">${j.nom.slice(0,3)}</div>
                         </div>`;
                     }).join('')}
                 </div>
             </div>`;
 
-            // ── TOP PRODUITS NAST (avec stock) ──
-            const nastTop = nast?.top_produits || [];
-            if (nastTop.length) {
-                html += `<div style="background:white;border-radius:14px;border:1.5px solid #bbdefb;padding:14px;margin-bottom:12px;">
-                    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1976D2;margin-bottom:10px;">🏆 Top produits NAST + DocMorris</div>
-                    ${nastTop.map((p, i) => {
-                        const sc = p.stock_nast > 0 ? '#2e7d32' : p.stock_montf > 0 ? '#7b1fa2' : '#c62828';
-                        const sb = p.stock_nast > 0 ? '#e8f5e9' : p.stock_montf > 0 ? '#f3e5f5' : '#ffebee';
-                        const sl = p.stock_nast > 0 ? '✅ '+p.stock_nast : p.stock_montf > 0 ? '🟣 '+p.stock_montf : '🔴';
-                        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);">
-                            <span style="font-size:11px;font-weight:800;color:#1976D2;min-width:18px;">${i+1}</span>
-                            <div style="flex:1;min-width:0;">
-                                <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.nom}</div>
-                                <div style="font-size:10px;color:var(--text-muted);">×${p.qte} · ${p.ca} €</div>
-                            </div>
-                            <span style="font-size:10px;font-weight:700;color:${sc};background:${sb};padding:2px 6px;border-radius:6px;flex-shrink:0;">${sl}</span>
-                        </div>`;
-                    }).join('')}
+            // ── Fonction helper produit ──
+            const prodRow = (prod, color) => prod.map((pp, i) => {
+                const sc = pp.stock_nast > 0 ? '#2e7d32' : pp.stock_montf > 0 ? '#7b1fa2' : '#c62828';
+                const sb = pp.stock_nast > 0 ? '#e8f5e9' : pp.stock_montf > 0 ? '#f3e5f5' : '#ffebee';
+                const sl = pp.stock_nast > 0 ? '✅ '+pp.stock_nast : pp.stock_montf > 0 ? '🟣 '+pp.stock_montf : '🔴';
+                return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);">
+                    <span style="font-size:11px;font-weight:800;color:${color};min-width:18px;">${i+1}</span>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pp.nom}</div>
+                        <div style="font-size:10px;color:var(--text-muted);">×${pp.qte} · ${pp.ca} €</div>
+                    </div>
+                    <span style="font-size:10px;font-weight:700;color:${sc};background:${sb};padding:2px 6px;border-radius:6px;flex-shrink:0;">${sl}</span>
                 </div>`;
-            }
+            }).join('');
 
-            // ── TOP PRODUITS MLP (avec stock) ──
-            const mlpTop = mlp?.top_produits || [];
-            if (mlpTop.length) {
-                html += `<div style="background:white;border-radius:14px;border:1.5px solid #e1bee7;padding:14px;margin-bottom:12px;">
-                    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9C27B0;margin-bottom:10px;">🏆 Top produits MLP</div>
-                    ${mlpTop.map((p, i) => {
-                        const sc = p.stock_nast > 0 ? '#2e7d32' : p.stock_montf > 0 ? '#7b1fa2' : '#c62828';
-                        const sb = p.stock_nast > 0 ? '#e8f5e9' : p.stock_montf > 0 ? '#f3e5f5' : '#ffebee';
-                        const sl = p.stock_nast > 0 ? '✅ '+p.stock_nast : p.stock_montf > 0 ? '🟣 '+p.stock_montf : '🔴';
-                        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);">
-                            <span style="font-size:11px;font-weight:800;color:#9C27B0;min-width:18px;">${i+1}</span>
-                            <div style="flex:1;min-width:0;">
-                                <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.nom}</div>
-                                <div style="font-size:10px;color:var(--text-muted);">×${p.qte} · ${p.ca} €</div>
-                            </div>
-                            <span style="font-size:10px;font-weight:700;color:${sc};background:${sb};padding:2px 6px;border-radius:6px;flex-shrink:0;">${sl}</span>
-                        </div>`;
-                    }).join('')}
-                </div>`;
-            }
+            // ── TOP PRODUITS NAST ──
+            const nastTop = d.top_produits_nast || [];
+            if (nastTop.length) html += `<div style="background:white;border-radius:14px;border:1.5px solid #bbdefb;padding:14px;margin-bottom:12px;">
+                <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1976D2;margin-bottom:10px;">🏆 Top produits NAST + DocMorris</div>
+                ${prodRow(nastTop, '#1976D2')}
+            </div>`;
 
-            // ── TOP CLIENTS NAST ──
-            const nastClients = nast?.top_clients || [];
-            const mlpClients  = mlp?.top_clients  || [];
-            if (nastClients.length || mlpClients.length) {
+            // ── TOP PRODUITS MLP ──
+            const mlpTop = d.top_produits_mlp || [];
+            if (mlpTop.length) html += `<div style="background:white;border-radius:14px;border:1.5px solid #e1bee7;padding:14px;margin-bottom:12px;">
+                <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9C27B0;margin-bottom:10px;">🏆 Top produits MLP</div>
+                ${prodRow(mlpTop, '#9C27B0')}
+            </div>`;
+
+            // ── TOP CLIENTS ──
+            const nastCl = d.top_clients_nast || [];
+            const mlpCl  = d.top_clients_mlp  || [];
+            if (nastCl.length || mlpCl.length) {
+                const clientRow = (clients, color) => clients.map((c, i) =>
+                    `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-light);">
+                        <span style="font-size:11px;font-weight:800;color:${color};min-width:18px;">${i+1}</span>
+                        <div style="flex:1;min-width:0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.nom}</div>
+                        <span style="font-size:10px;color:var(--text-muted);">${c.ville||''}</span>
+                        <span style="font-size:11px;font-weight:700;color:${color};">${c.ca} €</span>
+                    </div>`).join('');
+
                 html += `<div style="background:white;border-radius:14px;border:1.5px solid #fce4ec;padding:14px;margin-bottom:12px;">
-                    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#E91E63;margin-bottom:10px;">👥 Top clients (ce mois)</div>`;
-                if (nastClients.length) {
-                    html += `<div style="font-size:10px;font-weight:700;color:#1976D2;margin-bottom:6px;">NAST + DocMorris</div>`;
-                    html += nastClients.map((c, i) => `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-light);">
-                        <span style="font-size:11px;font-weight:800;color:#1976D2;min-width:18px;">${i+1}</span>
-                        <div style="flex:1;min-width:0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.nom}</div>
-                        <span style="font-size:10px;color:var(--text-muted);">${c.ville}</span>
-                        <span style="font-size:11px;font-weight:700;color:#1976D2;">${c.ca} €</span>
-                    </div>`).join('');
-                }
-                if (mlpClients.length) {
-                    html += `<div style="font-size:10px;font-weight:700;color:#9C27B0;margin-top:10px;margin-bottom:6px;">MLP</div>`;
-                    html += mlpClients.map((c, i) => `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-light);">
-                        <span style="font-size:11px;font-weight:800;color:#9C27B0;min-width:18px;">${i+1}</span>
-                        <div style="flex:1;min-width:0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.nom}</div>
-                        <span style="font-size:10px;color:var(--text-muted);">${c.ville}</span>
-                        <span style="font-size:11px;font-weight:700;color:#9C27B0;">${c.ca} €</span>
-                    </div>`).join('');
-                }
-                html += '</div>';
+                    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#E91E63;margin-bottom:10px;">👥 Top clients (ce mois)</div>
+                    ${nastCl.length ? `<div style="font-size:10px;font-weight:700;color:#1976D2;margin-bottom:6px;">NAST + DocMorris</div>${clientRow(nastCl,'#1976D2')}` : ''}
+                    ${mlpCl.length  ? `<div style="font-size:10px;font-weight:700;color:#9C27B0;margin-top:8px;margin-bottom:6px;">MLP</div>${clientRow(mlpCl,'#9C27B0')}` : ''}
+                </div>`;
             }
 
             // ── ALERTES STOCK ──
-            const nastAl = nast?.alertes_stock || [];
-            const mlpAl  = mlp?.alertes_stock  || [];
-            const allAl  = [...nastAl, ...mlpAl];
-            if (allAl.length) {
+            const alertes = d.alertes_stock || [];
+            if (alertes.length) {
                 html += `<div style="background:white;border-radius:14px;border:1.5px solid #ffebee;padding:14px;margin-bottom:12px;">
                     <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e74c3c;margin-bottom:10px;">🚨 Alertes stock — aujourd'hui</div>
-                    ${allAl.map(a => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);">
+                    ${alertes.map(a => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);">
                         <div style="flex:1;min-width:0;">
                             <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.nom}</div>
                             <div style="font-size:10px;color:var(--text-muted);">×${a.qte} demandée</div>
                         </div>
-                        <span style="font-size:10px;font-weight:700;color:${a.stock_montf>0?'#7b1fa2':'#c62828'};background:${a.stock_montf>0?'#f3e5f5':'#ffebee'};padding:2px 7px;border-radius:6px;flex-shrink:0;">${a.statut}</span>
+                        <span style="font-size:10px;font-weight:700;color:${(a.stock_montf||0)>0?'#7b1fa2':'#c62828'};background:${(a.stock_montf||0)>0?'#f3e5f5':'#ffebee'};padding:2px 7px;border-radius:6px;flex-shrink:0;">${a.statut}</span>
                     </div>`).join('')}
                 </div>`;
             } else {
@@ -5708,17 +5671,17 @@
             }
 
             // ── Timestamp ──
-            const maj = nast?.mise_a_jour || mlp?.mise_a_jour;
+            const maj = d.mise_a_jour;
             if (maj) {
-                const d = new Date(maj);
-                html += `<div style="text-align:center;font-size:10px;color:var(--text-muted);padding:8px;">Données actualisées le ${d.toLocaleDateString('fr-FR')} à ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>`;
+                const dt = new Date(maj);
+                html += `<div style="text-align:center;font-size:10px;color:var(--text-muted);padding:8px;">
+                    Données actualisées le ${dt.toLocaleDateString('fr-FR')} à ${dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+                </div>`;
             }
 
-            // Injecter
-            const sc = document.getElementById('statsContent');
-            sc.innerHTML = html;
+            document.getElementById('statsContent').innerHTML = html;
             document.getElementById('statsLoading').style.display = 'none';
-            sc.style.display = 'block';
+            document.getElementById('statsContent').style.display = 'block';
         }
 
         // Alias pour compatibilité
