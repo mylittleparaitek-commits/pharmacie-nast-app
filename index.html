@@ -2304,6 +2304,22 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h10M7 17h10"/></svg>
                         Scanner un produit
                     </button>
+
+                    <!-- Photo rapide sur la commande MLP -->
+                    <button onclick="toggleMlpPhotoZone()" style="width:100%;margin-top:8px;padding:13px;border:2px dashed #FF9800;border-radius:var(--radius);background:#fff8f0;color:#FF9800;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                        📸 Photo de la commande
+                    </button>
+                    <div id="mlpPhotoZone" style="display:none;background:#fff8f0;border:2px dashed #FF9800;border-radius:var(--radius);padding:12px;margin-top:8px;">
+                        <div style="display:flex;gap:8px;margin-bottom:8px;">
+                            <button onclick="document.getElementById('mlpPhotoCap').click()" style="flex:1;padding:10px;border:none;border-radius:var(--radius-sm);background:#FF9800;color:white;font-weight:600;font-size:13px;cursor:pointer;">📷 Caméra</button>
+                            <button onclick="document.getElementById('mlpPhotoFile').click()" style="flex:1;padding:10px;border:none;border-radius:var(--radius-sm);background:#f0f0f0;color:#555;font-weight:600;font-size:13px;cursor:pointer;">📁 Galerie</button>
+                        </div>
+                        <input type="file" accept="image/*" capture="environment" id="mlpPhotoCap" style="display:none" onchange="handleMlpPhoto(event)">
+                        <input type="file" accept="image/*" multiple id="mlpPhotoFile" style="display:none" onchange="handleMlpPhoto(event)">
+                        <div id="mlpPhotoThumbs" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;"></div>
+                        <div id="mlpPhotoStatus" style="display:none;margin-top:8px;text-align:center;font-size:13px;font-weight:600;"></div>
+                        <button onclick="sendMlpPhotos()" id="mlpSendBtn" style="display:none;width:100%;margin-top:8px;padding:12px;background:#FF9800;color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-body);">📸 Envoyer les photos</button>
+                    </div>
                 </div>
                 </div>
 
@@ -6478,23 +6494,52 @@
             const webhookUrl = getVal('webhookPhotoCommande') || localStorage.getItem('webhookPhotoCommande');
             if (!webhookUrl) { showToast('Webhook photos non configuré dans Réglages', 'error'); return; }
             if (!pdCurrentCmd || !pdPhotos.length) return;
+
             const btn = document.getElementById('pdSendBtn');
             const status = document.getElementById('pdPhotoStatus');
-            btn.disabled = true; btn.textContent = '⏳ Envoi…';
-            status.style.display = 'block'; status.textContent = 'Envoi…'; status.style.color = '#FF9800';
-            try {
-                const payload = {
-                    numCommande: pdCurrentCmd.num, client: pdCurrentCmd.client,
-                    platform: currentPickingSource.toUpperCase(), date: new Date().toISOString(),
-                    photos: pdPhotos.map((p,i) => ({ index: i+1, data: p.data.split(',')[1], mimeType:'image/jpeg', filename:`CMD_${pdCurrentCmd.num}_p${i+1}.jpg` }))
-                };
-                const res = await fetch(webhookUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-                if (res.ok) {
-                    status.textContent = '✅ Photos envoyées !'; status.style.color = '#2e7d32';
-                    pdPhotos = []; renderPdPhotoThumbs();
-                    setTimeout(() => { status.style.display='none'; }, 3000);
-                } else throw new Error();
-            } catch { status.textContent = '❌ Erreur envoi'; status.style.color = '#c62828'; }
+            btn.disabled = true;
+            status.style.display = 'block'; status.style.color = '#FF9800';
+
+            const platformKey = currentPickingSource; // 'nast' | 'mlp' | 'lcdp'
+            const folderId = PHOTO_FOLDERS[platformKey] || PHOTO_FOLDERS['nast'];
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0, 10);
+            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
+            const totalPhotos = pdPhotos.length;
+            const platformNames = { nast: 'NAST', mlp: 'MLP', lcdp: 'LCDP', docmorris: 'DocMorris' };
+
+            let sent = 0, errors = 0;
+            for (let i = 0; i < totalPhotos; i++) {
+                btn.textContent = `⏳ Envoi ${i+1}/${totalPhotos}…`;
+                status.textContent = `Envoi ${i+1}/${totalPhotos}…`;
+                try {
+                    const suffix = totalPhotos > 1 ? `_${i+1}de${totalPhotos}` : '';
+                    const fileName = `${pdCurrentCmd.num}_${platformNames[platformKey]}_${dateStr}_${timeStr}${suffix}.jpg`;
+                    const payload = {
+                        numCommande: pdCurrentCmd.num,
+                        platform: platformKey,
+                        folderId,
+                        fileName,
+                        commentaire: i === 0 ? `Picking ${pdCurrentCmd.client||''}` : '',
+                        date: now.toISOString(),
+                        image: pdPhotos[i].data.split(',')[1],
+                        photoIndex: i + 1,
+                        totalPhotos
+                    };
+                    const res = await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (res.ok) sent++; else errors++;
+                } catch { errors++; }
+            }
+
+            if (errors === 0) {
+                status.textContent = `✅ ${sent} photo${sent>1?'s':''} → ${platformNames[platformKey]}`;
+                status.style.color = '#2e7d32';
+                pdPhotos = []; renderPdPhotoThumbs();
+                setTimeout(() => { status.style.display = 'none'; }, 3000);
+            } else {
+                status.textContent = `⚠️ ${sent} envoyée${sent>1?'s':''}, ${errors} erreur${errors>1?'s':''}`;
+                status.style.color = '#E65100';
+            }
             btn.disabled = false; btn.textContent = '📸 Envoyer les photos';
         }
 
@@ -6534,28 +6579,146 @@
             const webhookUrl = getVal('webhookPhotoCommande') || localStorage.getItem('webhookPhotoCommande');
             if (!webhookUrl) { showToast('Webhook photos non configuré dans Réglages', 'error'); return; }
             if (!currentCommande || !cmdPhotos.length) return;
+
             const btn = document.getElementById('cmdSendBtn');
             const status = document.getElementById('cmdPhotoStatus');
-            btn.disabled = true; btn.textContent = '⏳ Envoi…';
-            status.style.display = 'block'; status.textContent = 'Envoi…'; status.style.color = '#FF9800';
-            try {
-                const payload = {
-                    numCommande: currentCommande.num, client: currentCommande.client,
-                    platform: 'NAST', date: new Date().toISOString(),
-                    photos: cmdPhotos.map((p,i) => ({ index: i+1, data: p.data.split(',')[1], mimeType:'image/jpeg', filename:`CMD_${currentCommande.num}_p${i+1}.jpg` }))
-                };
-                const res = await fetch(webhookUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-                if (res.ok) {
-                    status.textContent = '✅ Envoyé !'; status.style.color = '#2e7d32';
-                    cmdPhotos = []; renderCmdPhotoThumbs();
-                    setTimeout(() => { status.style.display='none'; }, 3000);
-                } else throw new Error();
-            } catch { status.textContent = '❌ Erreur'; status.style.color = '#c62828'; }
+            btn.disabled = true;
+            status.style.display = 'block'; status.style.color = '#FF9800';
+
+            const folderId = PHOTO_FOLDERS['nast'];
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0, 10);
+            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
+            const totalPhotos = cmdPhotos.length;
+
+            let sent = 0, errors = 0;
+            for (let i = 0; i < totalPhotos; i++) {
+                btn.textContent = `⏳ Envoi ${i+1}/${totalPhotos}…`;
+                status.textContent = `Envoi ${i+1}/${totalPhotos}…`;
+                try {
+                    const suffix = totalPhotos > 1 ? `_${i+1}de${totalPhotos}` : '';
+                    const fileName = `${currentCommande.num}_NAST_${dateStr}_${timeStr}${suffix}.jpg`;
+                    const payload = {
+                        numCommande: currentCommande.num,
+                        platform: 'nast',
+                        folderId,
+                        fileName,
+                        commentaire: i === 0 ? `Commande ${currentCommande.client||''}` : '',
+                        date: now.toISOString(),
+                        image: cmdPhotos[i].data.split(',')[1],
+                        photoIndex: i + 1,
+                        totalPhotos
+                    };
+                    const res = await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (res.ok) sent++; else errors++;
+                } catch { errors++; }
+            }
+
+            if (errors === 0) {
+                status.textContent = `✅ ${sent} photo${sent>1?'s':''} envoyée${sent>1?'s':''} → NAST`;
+                status.style.color = '#2e7d32';
+                cmdPhotos = []; renderCmdPhotoThumbs();
+                setTimeout(() => { status.style.display = 'none'; }, 3000);
+            } else {
+                status.textContent = `⚠️ ${sent} envoyée${sent>1?'s':''}, ${errors} erreur${errors>1?'s':''}`;
+                status.style.color = '#E65100';
+            }
             btn.disabled = false; btn.textContent = '📸 Envoyer les photos';
         }
 
-        // Reset photos quand on ferme le détail commande
-        const _origCloseCommandeDetail = typeof closeCommandeDetail === 'function' ? closeCommandeDetail : null;
+        // Reset photos quand on ferme le détail commande MLP
+        const _origCloseMlpDetail = typeof closeMlpDetail === 'function' ? closeMlpDetail : null;
+        function closeMlpDetail() {
+            currentMlp = null;
+            mlpPhotos = [];
+            const z = document.getElementById('mlpPhotoZone');
+            if (z) z.style.display = 'none';
+            document.getElementById('mlpListView').classList.remove('hidden');
+            document.getElementById('mlpDetailView').classList.remove('active');
+        }
+
+        // ── Photo rapide sur vue détail commande MLP ──
+        let mlpPhotos = [];
+
+        function toggleMlpPhotoZone() {
+            const z = document.getElementById('mlpPhotoZone');
+            z.style.display = z.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function handleMlpPhoto(e) {
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    processImage(ev.target.result, processed => {
+                        mlpPhotos.push({ data: processed });
+                        renderMlpPhotoThumbs();
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = '';
+        }
+
+        function renderMlpPhotoThumbs() {
+            document.getElementById('mlpPhotoThumbs').innerHTML = mlpPhotos.map((p, i) =>
+                `<div style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+                    <img src="${p.data}" style="width:100%;height:100%;object-fit:cover;">
+                    <button onclick="mlpPhotos.splice(${i},1);renderMlpPhotoThumbs()" style="position:absolute;top:2px;right:2px;width:18px;height:18px;background:#e74c3c;color:white;border:none;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+                </div>`
+            ).join('');
+            document.getElementById('mlpSendBtn').style.display = mlpPhotos.length > 0 ? 'block' : 'none';
+        }
+
+        async function sendMlpPhotos() {
+            const webhookUrl = getVal('webhookPhotoCommande') || localStorage.getItem('webhookPhotoCommande');
+            if (!webhookUrl) { showToast('Webhook photos non configuré dans Réglages', 'error'); return; }
+            if (!currentMlp || !mlpPhotos.length) return;
+
+            const btn = document.getElementById('mlpSendBtn');
+            const status = document.getElementById('mlpPhotoStatus');
+            btn.disabled = true;
+            status.style.display = 'block'; status.style.color = '#FF9800';
+
+            const folderId = PHOTO_FOLDERS['mlp'];
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0, 10);
+            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
+            const totalPhotos = mlpPhotos.length;
+
+            let sent = 0, errors = 0;
+            for (let i = 0; i < totalPhotos; i++) {
+                btn.textContent = `⏳ Envoi ${i+1}/${totalPhotos}…`;
+                status.textContent = `Envoi ${i+1}/${totalPhotos}…`;
+                try {
+                    const suffix = totalPhotos > 1 ? `_${i+1}de${totalPhotos}` : '';
+                    const fileName = `${currentMlp.num}_MLP_${dateStr}_${timeStr}${suffix}.jpg`;
+                    const payload = {
+                        numCommande: currentMlp.num,
+                        platform: 'mlp',
+                        folderId,
+                        fileName,
+                        commentaire: i === 0 ? `Commande ${currentMlp.client || ''}` : '',
+                        date: now.toISOString(),
+                        image: mlpPhotos[i].data.split(',')[1],
+                        photoIndex: i + 1,
+                        totalPhotos
+                    };
+                    const res = await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (res.ok) sent++; else errors++;
+                } catch { errors++; }
+            }
+
+            if (errors === 0) {
+                status.textContent = `✅ ${sent} photo${sent>1?'s':''} → MLP`;
+                status.style.color = '#2e7d32';
+                mlpPhotos = []; renderMlpPhotoThumbs();
+                setTimeout(() => { status.style.display = 'none'; }, 3000);
+            } else {
+                status.textContent = `⚠️ ${sent} envoyée${sent>1?'s':''}, ${errors} erreur${errors>1?'s':''}`;
+                status.style.color = '#E65100';
+            }
+            btn.disabled = false; btn.textContent = '📸 Envoyer les photos';
+        }
         function closeCommandeDetail() {
             stopScan();
             currentCommande = null;
