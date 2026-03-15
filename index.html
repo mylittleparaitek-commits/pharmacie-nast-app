@@ -1500,7 +1500,7 @@
                 <!-- Blocs pharmacie : chaque onglet devient un bloc cliquable -->
                 <div style="display:flex;flex-direction:column;gap:10px;">
 
-                    <div onclick="openSection('pharma');switchSection('pharma','reception',document.querySelector('#pharmaSubtabs .section-subtab'),null)" style="background:white;border-radius:16px;border:1.5px solid #fce4ec;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(233,30,99,0.06);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                    <div onclick="openPharmaPanel('reception')" style="background:white;border-radius:16px;border:1.5px solid #fce4ec;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(233,30,99,0.06);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
                         <div style="width:44px;height:44px;border-radius:12px;background:#fce4ec;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">📦</div>
                         <div style="flex:1;">
                             <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Réception BL</div>
@@ -1509,7 +1509,7 @@
                         <div style="color:var(--text-muted);font-size:18px;">›</div>
                     </div>
 
-                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','delpech',document.querySelectorAll('#pharmaSubtabs .section-subtab')[1],null),50)" style="background:white;border-radius:16px;border:1.5px solid #e8eaf6;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                    <div onclick="openPharmaPanel('delpech')" style="background:white;border-radius:16px;border:1.5px solid #e8eaf6;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
                         <div style="width:44px;height:44px;border-radius:12px;background:#e8eaf6;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">💊</div>
                         <div style="flex:1;">
                             <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Delpech Préparatoire</div>
@@ -1518,7 +1518,7 @@
                         <div style="color:var(--text-muted);font-size:18px;">›</div>
                     </div>
 
-                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','todoPharma',document.querySelectorAll('#pharmaSubtabs .section-subtab')[2],null),50)" style="background:white;border-radius:16px;border:1.5px solid #e8f5e9;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                    <div onclick="openPharmaPanel('todoPharma')" style="background:white;border-radius:16px;border:1.5px solid #e8f5e9;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
                         <div style="width:44px;height:44px;border-radius:12px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">💬</div>
                         <div style="flex:1;">
                             <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Messages équipe</div>
@@ -1527,7 +1527,7 @@
                         <div style="color:var(--text-muted);font-size:18px;">›</div>
                     </div>
 
-                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','tickets',document.querySelectorAll('#pharmaSubtabs .section-subtab')[3],null),50)" style="background:white;border-radius:16px;border:1.5px solid #fff3e0;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                    <div onclick="openPharmaPanel('tickets')" style="background:white;border-radius:16px;border:1.5px solid #fff3e0;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
                         <div style="width:44px;height:44px;border-radius:12px;background:#fff3e0;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">🧾</div>
                         <div style="flex:1;">
                             <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Tickets de caisse</div>
@@ -1536,7 +1536,7 @@
                         <div style="color:var(--text-muted);font-size:18px;">›</div>
                     </div>
 
-                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','ruptures',document.querySelectorAll('#pharmaSubtabs .section-subtab')[4],null),50)" style="background:white;border-radius:16px;border:1.5px solid #ffebee;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                    <div onclick="openPharmaPanel('ruptures')" style="background:white;border-radius:16px;border:1.5px solid #ffebee;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
                         <div style="width:44px;height:44px;border-radius:12px;background:#ffebee;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">🚫</div>
                         <div style="flex:1;">
                             <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Ruptures labo</div>
@@ -1545,7 +1545,7 @@
                         <div style="color:var(--text-muted);font-size:18px;">›</div>
                     </div>
 
-                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','perimes',document.querySelectorAll('#pharmaSubtabs .section-subtab')[6],null),50)" style="background:white;border-radius:16px;border:1.5px solid #fff8e1;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                    <div onclick="openPharmaPanel('perimes')" style="background:white;border-radius:16px;border:1.5px solid #fff8e1;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
                         <div style="width:44px;height:44px;border-radius:12px;background:#fff8e1;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">⚠️</div>
                         <div style="flex:1;">
                             <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Périmés</div>
@@ -1554,7 +1554,7 @@
                         <div style="color:var(--text-muted);font-size:18px;">›</div>
                     </div>
 
-                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','dashboard',document.querySelectorAll('#pharmaSubtabs .section-subtab')[7],null),50)" style="background:white;border-radius:16px;border:1.5px solid #e0f2f1;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                    <div onclick="openPharmaPanel('dashboard')" style="background:white;border-radius:16px;border:1.5px solid #e0f2f1;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
                         <div style="width:44px;height:44px;border-radius:12px;background:#e0f2f1;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">📊</div>
                         <div style="flex:1;">
                             <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Dashboard réceptions</div>
@@ -2795,6 +2795,30 @@
 
         let currentMainTab = 'internet';
 
+        function openPharmaPanel(panel) {
+            // Ouvre la section pharma sur le bon sous-panel
+            openSection('pharma');
+            // Trouver le bouton correspondant dans pharmaSubtabs
+            const panelToIdx = { reception:0, delpech:1, todoPharma:2, tickets:3, ruptures:4, photosTg:5, perimes:6, dashboard:7 };
+            const idx = panelToIdx[panel];
+            if (idx === undefined) return;
+            const btn = document.querySelectorAll('#pharmaSubtabs .section-subtab')[idx];
+            if (btn) {
+                // Simuler le click sur le subtab
+                const container = document.getElementById('sectionPharma');
+                container.querySelectorAll('.section-subtab').forEach(b => b.classList.remove('active', 'active-blue', 'active-purple'));
+                btn.classList.add('active');
+                container.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+                const panelEl = document.getElementById('pharma_' + panel);
+                if (panelEl) panelEl.classList.add('active');
+                // Auto-loads
+                if (panel === 'todoPharma') loadTodoPharma();
+                if (panel === 'dashboard') loadSheetData();
+                if (panel === 'ruptures') loadRuptures();
+                if (panel === 'perimes') loadPerimes();
+            }
+        }
+
         function switchMainTab(tab) {
             currentMainTab = tab;
             const isInternet = tab === 'internet';
@@ -2942,16 +2966,17 @@
         }
 
         function switchSection(section, panel, btn, color) {
-            const container = btn.closest('.section-view');
-            
+            const container = btn ? btn.closest('.section-view') : document.getElementById('section' + section.charAt(0).toUpperCase() + section.slice(1));
+            if (!container) return;
+
             // Reset tous les subtabs
             container.querySelectorAll('.section-subtab').forEach(b => {
                 b.classList.remove('active', 'active-blue', 'active-purple');
             });
-            
+
             // Activer le bon
             const activeClass = color ? ('active-' + color) : 'active';
-            btn.classList.add(activeClass);
+            if (btn) btn.classList.add(activeClass);
             
             // Changer panels
             container.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
