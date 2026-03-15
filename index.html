@@ -2710,8 +2710,17 @@
             currentSection = section;
             
             // Auto-load data
-            if (section === 'nastcom') loadCommandes();
-            if (section === 'mlp') loadMLP();
+            if (section === 'nastcom') {
+                // Toujours s'assurer que la liste est visible (pas le détail)
+                document.getElementById('commandesListView')?.classList.remove('hidden');
+                document.getElementById('commandeDetailView')?.classList.remove('active');
+                loadCommandes();
+            }
+            if (section === 'mlp') {
+                document.getElementById('mlpListView')?.classList.remove('hidden');
+                document.getElementById('mlpDetailView')?.classList.remove('active');
+                loadMLP();
+            }
             if (section === 'photos') initPhotoSection();
             if (section === 'stats') loadStats();
             if (section === 'ecran') openEcranMode();
