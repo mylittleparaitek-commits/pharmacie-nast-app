@@ -5544,6 +5544,8 @@
             } else {
                 loadStats();
             }
+            // Ré-afficher le bloc Apps Script pour la nouvelle période
+            if (window._mlpStatsJson) renderStatsAppsScript(period);
         }
 
         function filterByPeriod(commandes, period) {
@@ -5594,12 +5596,20 @@
             document.getElementById('statsContent').style.display = 'none';
 
             try {
-                const [nastRes, mlpRes] = await Promise.all([
+                // Charger en parallèle : commandes n8n + stats MLP pré-calculées Apps Script
+                const [nastRes, mlpRes, appsScriptRes] = await Promise.all([
                     fetch(COMMANDES_WEBHOOK + '?t=' + Date.now()),
-                    fetch(MLP_WEBHOOK + '?t=' + Date.now())
+                    fetch(MLP_WEBHOOK + '?t=' + Date.now()),
+                    fetch(APPS_SCRIPT_MLP + '?t=' + Date.now()).catch(() => null)
                 ]);
+
                 const nastRows = await nastRes.json();
-                const mlpRows = await mlpRes.json();
+                const mlpRows  = await mlpRes.json();
+
+                // Stocker les données Apps Script pour enrichissement
+                if (appsScriptRes && appsScriptRes.ok) {
+                    try { window._mlpStatsJson = await appsScriptRes.json(); } catch(e) {}
+                }
 
                 function parseAllCommandes(rows, source) {
                     const map = {};
@@ -5626,7 +5636,7 @@
                         const ean = String(r['reference produit'] || '').trim();
                         if (lastNum && map[key] && ean) {
                             map[key].produits.push({
-                                ean: ean,
+                                ean,
                                 nom: String(r['Nom produit'] || '').trim() || 'Produit inconnu',
                                 qty: parseInt(r['Quantité']) || 1
                             });
@@ -5636,12 +5646,12 @@
                 }
 
                 const nastCommandes = parseAllCommandes(nastRows, 'nast');
-                const mlpCommandes = parseAllCommandes(mlpRows, 'mlp');
-                allStatsCommandes = [...nastCommandes, ...mlpCommandes];
+                const mlpCommandes  = parseAllCommandes(mlpRows, 'mlp');
+                allStatsCommandes   = [...nastCommandes, ...mlpCommandes];
 
                 renderStats(allStatsCommandes);
 
-            } catch (e) {
+            } catch(e) {
                 document.getElementById('statsLoading').innerHTML = '<p style="color:#c62828;">❌ Erreur de chargement : ' + e.message + '</p>';
             }
         }
@@ -5803,6 +5813,94 @@
             // Show
             document.getElementById('statsLoading').style.display = 'none';
             document.getElementById('statsContent').style.display = 'block';
+
+            // ── Enrichissement Apps Script MLP (marge, heures, stock) ──
+            renderStatsAppsScript(currentStatsPeriod);
+        }
+
+        function renderStatsAppsScript(periode) {
+            const d = window._mlpStatsJson;
+            if (!d) return;
+
+            // Clé de période
+            const keyMap = { jour: 'jour', hier: 'hier', semaine: 'semaine', mois: 'mois', tout: 'tout' };
+            const key = keyMap[periode] || 'mois';
+            const p = d[key];
+            if (!p) return;
+
+            // ── Injecter les KPIs enrichis (marge) dans les cartes existantes ──
+            // On ajoute un bloc supplémentaire sous les KPIs existants
+            const existingEnrich = document.getElementById('statsEnrichMlp');
+            const enrichHtml = `<div id="statsEnrichMlp" style="margin-top:16px;">
+                <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9C27B0;margin-bottom:8px;">
+                    💜 MLP — Données enrichies (Apps Script)
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+                    <div style="background:linear-gradient(135deg,#e0f2f1,#b2dfdb);border-radius:12px;padding:12px;border-left:4px solid #00897B;">
+                        <div style="font-size:22px;font-weight:800;color:#00897B;">${p.marge ? p.marge.toLocaleString('fr-FR', {maximumFractionDigits:0}) + ' €' : '—'}</div>
+                        <div style="font-size:11px;color:#5a6a7e;margin-top:2px;">Marge brute MLP</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#ede7f6,#d1c4e9);border-radius:12px;padding:12px;border-left:4px solid #5E35B1;">
+                        <div style="font-size:22px;font-weight:800;color:#5E35B1;">${p.taux_marque ? p.taux_marque.toFixed(1) + ' %' : '—'}</div>
+                        <div style="font-size:11px;color:#5a6a7e;margin-top:2px;">Taux de marque MLP</div>
+                    </div>
+                </div>
+
+                ${d.top_produits && d.top_produits.length ? `
+                <div style="background:white;border-radius:14px;border:1.5px solid var(--border);padding:14px;margin-bottom:12px;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9C27B0;margin-bottom:10px;">🏆 Top 10 produits MLP (ce mois) + Stock</div>
+                    ${d.top_produits.slice(0,10).map((p, i) => {
+                        const stockColor = p.stock_nast > 0 ? '#2e7d32' : p.stock_montf > 0 ? '#7b1fa2' : '#c62828';
+                        const stockBg    = p.stock_nast > 0 ? '#e8f5e9' : p.stock_montf > 0 ? '#f3e5f5' : '#ffebee';
+                        const stockLabel = p.stock_nast > 0 ? '✅ ' + p.stock_nast + ' NAST'
+                                         : p.stock_montf > 0 ? '🟣 ' + p.stock_montf + ' Montf' : '🔴 Rupture';
+                        return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border-light);">
+                            <span style="font-size:11px;font-weight:700;color:#9C27B0;min-width:20px;">${i+1}</span>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.nom}</div>
+                                <div style="font-size:10px;color:var(--text-muted);">×${p.qte} · ${p.ca} €</div>
+                            </div>
+                            <span style="font-size:10px;font-weight:700;color:${stockColor};background:${stockBg};padding:2px 7px;border-radius:6px;flex-shrink:0;">${stockLabel}</span>
+                        </div>`;
+                    }).join('')}
+                </div>` : ''}
+
+                ${d.heures ? `
+                <div style="background:white;border-radius:14px;border:1.5px solid var(--border);padding:14px;margin-bottom:12px;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FF9800;margin-bottom:10px;">🕐 Heures de pointe MLP (7 jours)</div>
+                    <div style="display:flex;align-items:flex-end;gap:2px;height:80px;">
+                        ${Object.entries(d.heures).map(([h, hd]) => {
+                            const maxNb = Math.max(...Object.values(d.heures).map(x => x.nb), 1);
+                            const pct = maxNb > 0 ? Math.max((hd.nb / maxNb) * 100, hd.nb > 0 ? 8 : 2) : 2;
+                            const isActive = hd.nb > 0;
+                            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                                ${hd.nb > 0 ? `<div style="font-size:8px;font-weight:700;color:#FF9800;">${hd.nb}</div>` : '<div style="font-size:8px;color:transparent;">0</div>'}
+                                <div style="width:100%;height:${pct}px;border-radius:3px 3px 0 0;background:${isActive ? '#FF9800' : '#f0f0f0'};"></div>
+                                <div style="font-size:7px;color:#aaa;">${h}h</div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>` : ''}
+
+                ${d.alertes_stock && d.alertes_stock.length ? `
+                <div style="background:white;border-radius:14px;border:1.5px solid #ffebee;padding:14px;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e74c3c;margin-bottom:10px;">🚨 Alertes stock MLP — aujourd'hui</div>
+                    ${d.alertes_stock.map(a => `
+                        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);">
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.nom}</div>
+                                <div style="font-size:10px;color:var(--text-muted);">×${a.qte} demandée</div>
+                            </div>
+                            <span style="font-size:10px;font-weight:700;color:${a.stock_montf > 0 ? '#7b1fa2' : '#c62828'};background:${a.stock_montf > 0 ? '#f3e5f5' : '#ffebee'};padding:2px 7px;border-radius:6px;flex-shrink:0;">${a.statut}</span>
+                        </div>`).join('')}
+                </div>` : ''}
+            </div>`;
+
+            // Injecter ou remplacer le bloc enrichi dans statsContent
+            const statsContent = document.getElementById('statsContent');
+            const existing = document.getElementById('statsEnrichMlp');
+            if (existing) existing.remove();
+            statsContent.insertAdjacentHTML('beforeend', enrichHtml);
         }
 
         // ═══════════════════════════════════════════
