@@ -2906,10 +2906,8 @@
             if (panel === 'photosTg') loadPhotosTg();
             if (panel === 'perimes') loadPerimes();
             if (panel === 'savNast') loadSavNast();
-            if (panel === 'picking') loadPicking();
+            if (panel === 'picking') loadPickingForCurrentSource();
         }
-
-        // Menu date
         function updateMenuDate() {
             const el = document.getElementById('menuDatePharma');
             if (el) {
@@ -5534,12 +5532,12 @@
                 </div>
             </div>`;
 
-            // ── RÉPARTITION PAR PLATEFORME ──
-            const plats = d.plateformes || {};
+            // ── RÉPARTITION PAR PLATEFORME — données de la période courante ──
+            const plats = p.plateformes || d.plateformes || {};
             const platData = [
-                { nom:'NAST.COM',  cmds:plats.nast?.commandes||0,      ca:plats.nast?.ca||0,      color:'#1976D2', bg:'#e3f2fd' },
-                { nom:'DocMorris', cmds:plats.docmorris?.commandes||0, ca:plats.docmorris?.ca||0, color:'#0D47A1', bg:'#e8eaf6' },
-                { nom:'MLP',       cmds:plats.mlp?.commandes||0,       ca:plats.mlp?.ca||0,       color:'#9C27B0', bg:'#f3e5f5' }
+                { nom:'NAST.COM',  cmds:plats.nast?.commandes||0,      ca:plats.nast?.ca||0,      color:'#1976D2' },
+                { nom:'DocMorris', cmds:plats.docmorris?.commandes||0, ca:plats.docmorris?.ca||0, color:'#0D47A1' },
+                { nom:'MLP',       cmds:plats.mlp?.commandes||0,       ca:plats.mlp?.ca||0,       color:'#9C27B0' }
             ].filter(pp => pp.cmds > 0);
 
             if (platData.length) {
@@ -7033,14 +7031,6 @@
             }
         }
 
-        // Overrider switchSection pour auto-charger le picking unifié
-        const _origSwitchSection = switchSection;
-        function switchSection(section, panel, btn, color) {
-            _origSwitchSection(section, panel, btn, color);
-            if (section === 'nastcom' && panel === 'picking') {
-                loadPickingForCurrentSource();
-            }
-        }
     </script>
 </body>
 </html>
