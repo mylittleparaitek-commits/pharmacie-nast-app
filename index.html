@@ -2855,54 +2855,45 @@
         }
 
         async function loadHomeKpis() {
-            // Charger les stats du jour depuis le même webhook que loadStats()
-            // On attend que statsData soit dispo, sinon on déclenche loadStats et on écoute
             try {
-                // Utiliser commandesData + mlpData si déjà chargés pour les compteurs picking
+                // Compteurs picking depuis les données déjà chargées
                 const nastCount = commandesData.length;
-                const mlpCount = mlpData.length;
-
-                // Ruptures NAST (stock 0 partout)
+                const mlpCount  = mlpData.length;
                 let ruptures = 0, montf = 0;
                 [...commandesData, ...mlpData].forEach(c => c.produits.forEach(p => {
                     if ((p.stockNast||0) === 0 && (p.stockMontf||0) === 0) ruptures++;
                     if ((p.stockNast||0) === 0 && (p.stockMontf||0) > 0) montf++;
                 }));
-
                 if (nastCount > 0 || mlpCount > 0) {
-                    document.getElementById('kpiNastCmds').textContent = nastCount || '0';
-                    document.getElementById('kpiNastRup').textContent = ruptures || '0';
-                    document.getElementById('kpiMlpCmds').textContent = mlpCount || '0';
-                    document.getElementById('kpiMlpMontf').textContent = montf || '0';
+                    document.getElementById('kpiNastCmds').textContent = nastCount;
+                    document.getElementById('kpiNastRup').textContent  = ruptures;
+                    document.getElementById('kpiMlpCmds').textContent  = mlpCount;
+                    document.getElementById('kpiMlpMontf').textContent = montf;
                 }
 
-                // Pour les KPIs CA/panier/produits, on utilise statsData si dispo
-                if (typeof statsData !== 'undefined' && statsData.length) {
-                    updateHomeKpiFromStats(statsData);
-                } else {
-                    // Charger les stats du jour silencieusement
-                    await loadStatsForHome();
-                }
+                // KPIs CA/panier depuis Apps Script (pré-calculé)
+                await loadStatsForHome();
+
             } catch(e) { console.log('KPI home error', e); }
         }
 
+        // ── URL Apps Script MLP stats (Google Sheets pre-computed) ──
+        const APPS_SCRIPT_MLP = 'https://script.google.com/macros/s/AKfycbw3bnmInEz9JLpPvGrEhURor4ivm_D9QSD33_v6CZU23wDujNz0uVRvrkmEUwyO9Nci/exec';
+
         async function loadStatsForHome() {
             try {
-                const STATS_URL = 'https://n8n.srv1086994.hstgr.cloud/webhook/ecran-stats';
-                const res = await fetch(STATS_URL + '?periode=jour&t=' + Date.now());
+                const res  = await fetch(APPS_SCRIPT_MLP + '?t=' + Date.now());
                 const data = await res.json();
-                if (data && typeof data === 'object') {
-                    const cmds = data.totalCommandes || data.commandes || 0;
-                    const produits = data.totalProduits || data.produits || 0;
-                    const ca = data.totalCA || data.ca || 0;
-                    const panier = cmds > 0 ? (ca / cmds) : 0;
-                    document.getElementById('kpiCommandes').textContent = cmds;
-                    document.getElementById('kpiProduits').textContent = produits;
-                    document.getElementById('kpiCA').textContent = (ca > 0 ? ca.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0}) : '—') + (ca > 0 ? ' €' : '');
-                    document.getElementById('kpiPanier').textContent = (panier > 0 ? panier.toFixed(1) : '—') + (panier > 0 ? ' €' : '');
+                if (data && data.jour) {
+                    const j = data.jour;
+                    document.getElementById('kpiCommandes').textContent = j.commandes || '0';
+                    document.getElementById('kpiProduits').textContent  = j.produits  || '0';
+                    document.getElementById('kpiCA').textContent        = j.ca ? j.ca.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' €' : '—';
+                    document.getElementById('kpiPanier').textContent    = j.panier_moyen ? j.panier_moyen.toFixed(1) + ' €' : '—';
                 }
             } catch(e) {
-                // Si le webhook stats n'est pas dispo, on laisse les tirets
+                // Si erreur silencieuse → on laisse les tirets
+                console.log('Stats home error:', e);
             }
         }
 
