@@ -1377,55 +1377,190 @@
                     </div>
                     <span class="logo-text">Pharmacie Nast</span>
                 </div>
-                <span class="header-date" id="headerDate"></span>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="header-date" id="headerDate"></span>
+                    <button onclick="openSection('settings')" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;">⚙️</button>
+                </div>
             </div>
-            <h1 id="headerTitle">Accueil</h1>
+            <!-- 2 onglets principaux dans le header -->
+            <div style="display:flex;gap:0;margin-top:10px;background:rgba(255,255,255,0.15);border-radius:10px;padding:3px;">
+                <button id="mainTabInternet" onclick="switchMainTab('internet')" style="flex:1;padding:8px 0;border:none;border-radius:8px;background:white;color:var(--nast-pink);font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;">🌐 Internet</button>
+                <button id="mainTabPharma" onclick="switchMainTab('pharma')" style="flex:1;padding:8px 0;border:none;border-radius:8px;background:transparent;color:rgba(255,255,255,0.8);font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;">🏥 Pharmacie</button>
+            </div>
         </header>
 
         <!-- Content -->
         <main class="content">
 
-            <!-- ═══ MENU PRINCIPAL ═══ -->
-            <div class="menu-home" id="menuHome">
-                <div class="menu-greeting">
-                    <div class="menu-greeting-hello">👋 Bonjour !</div>
-                    <div class="menu-greeting-sub" id="menuDate"></div>
+            <!-- ═══ PANNEAU INTERNET ═══ -->
+            <div id="panelInternet" class="main-panel active">
+
+                <!-- KPIs du jour -->
+                <div id="homeKpiBar" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+                    <div style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:14px;padding:14px 16px;border-left:4px solid #1976D2;">
+                        <div style="font-size:26px;font-weight:800;color:#1976D2;line-height:1;" id="kpiCommandes">—</div>
+                        <div style="font-size:11px;color:#5a6a7e;margin-top:3px;">Commandes</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:14px;padding:14px 16px;border-left:4px solid #43A047;">
+                        <div style="font-size:26px;font-weight:800;color:#43A047;line-height:1;" id="kpiProduits">—</div>
+                        <div style="font-size:11px;color:#5a6a7e;margin-top:3px;">Produits vendus</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:14px;padding:14px 16px;border-left:4px solid #FF9800;">
+                        <div style="font-size:26px;font-weight:800;color:#FF9800;line-height:1;" id="kpiCA">—</div>
+                        <div style="font-size:11px;color:#5a6a7e;margin-top:3px;">CA TTC</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);border-radius:14px;padding:14px 16px;border-left:4px solid #E91E63;cursor:pointer;" onclick="openSection('stats')">
+                        <div style="font-size:26px;font-weight:800;color:#E91E63;line-height:1;" id="kpiPanier">—</div>
+                        <div style="font-size:11px;color:#5a6a7e;margin-top:3px;">Panier moyen · voir stats →</div>
+                    </div>
                 </div>
-                <div class="menu-grid">
-                    <div class="menu-card menu-card-photos" onclick="openSection('photos')">
-                        <div class="menu-card-icon">📸</div>
-                        <div class="menu-card-title">Photos</div>
-                        <div class="menu-card-sub">Preuves commandes</div>
+
+                <!-- Bloc NAST + MLP côte à côte -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+
+                    <!-- BLOC NAST -->
+                    <div onclick="openSection('nastcom')" style="background:white;border-radius:16px;border:1.5px solid #bbdefb;padding:16px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(25,118,210,0.08);transition:all 0.18s;active:transform:scale(0.97);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:#e3f2fd;display:flex;align-items:center;justify-content:center;font-size:20px;">🛒</div>
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#1976D2;">NAST.COM</div>
+                                <div style="font-size:10px;color:var(--text-muted);">Commandes · Picking</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <div style="flex:1;text-align:center;">
+                                <div style="font-size:22px;font-weight:800;color:#1976D2;" id="kpiNastCmds">—</div>
+                                <div style="font-size:10px;color:var(--text-muted);">À traiter</div>
+                            </div>
+                            <div style="flex:1;text-align:center;">
+                                <div style="font-size:22px;font-weight:800;color:#e74c3c;" id="kpiNastRup">—</div>
+                                <div style="font-size:10px;color:var(--text-muted);">Ruptures</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="menu-card menu-card-stats" onclick="openSection('stats')">
-                        <div class="menu-card-icon">📊</div>
-                        <div class="menu-card-title">Stats</div>
-                        <div class="menu-card-sub">Ventes · Plateformes</div>
+
+                    <!-- BLOC MLP -->
+                    <div onclick="openSection('mlp')" style="background:white;border-radius:16px;border:1.5px solid #e1bee7;padding:16px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(156,39,176,0.08);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:#f3e5f5;display:flex;align-items:center;justify-content:center;font-size:20px;">💜</div>
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#9C27B0;">MY LITTLE PARA</div>
+                                <div style="font-size:10px;color:var(--text-muted);">Commandes · SAV</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <div style="flex:1;text-align:center;">
+                                <div style="font-size:22px;font-weight:800;color:#9C27B0;" id="kpiMlpCmds">—</div>
+                                <div style="font-size:10px;color:var(--text-muted);">À traiter</div>
+                            </div>
+                            <div style="flex:1;text-align:center;">
+                                <div style="font-size:22px;font-weight:800;color:#43A047;" id="kpiMlpMontf">—</div>
+                                <div style="font-size:10px;color:var(--text-muted);">↗ Montf</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="menu-card menu-card-ecran" onclick="openSection('ecran')">
-                        <div class="menu-card-icon">🖥️</div>
-                        <div class="menu-card-title">Écran</div>
-                        <div class="menu-card-sub">Commandes · Équipe</div>
+                </div>
+
+                <!-- Ligne : Stats + Photos + Écran -->
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+                    <div onclick="openSection('stats')" style="background:white;border-radius:14px;border:1.5px solid #c8e6c9;padding:14px 10px;cursor:pointer;text-align:center;box-shadow:0 2px 6px rgba(67,160,71,0.07);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+                        <div style="font-size:24px;margin-bottom:4px;">📊</div>
+                        <div style="font-size:11px;font-weight:700;color:#43A047;">Stats</div>
                     </div>
-                    <div class="menu-card menu-card-pharma" onclick="openSection('pharma')">
-                        <div class="menu-card-icon">🏥</div>
-                        <div class="menu-card-title">Pharmacie</div>
-                        <div class="menu-card-sub">Officine · Quotidien</div>
+                    <div onclick="openSection('photos')" style="background:white;border-radius:14px;border:1.5px solid #ffe0b2;padding:14px 10px;cursor:pointer;text-align:center;box-shadow:0 2px 6px rgba(255,152,0,0.07);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+                        <div style="font-size:24px;margin-bottom:4px;">📸</div>
+                        <div style="font-size:11px;font-weight:700;color:#FF9800;">Photos</div>
                     </div>
-                    <div class="menu-card menu-card-nast" onclick="openSection('nastcom')">
-                        <div class="menu-card-icon">🛒</div>
-                        <div class="menu-card-title">Nast.com</div>
-                        <div class="menu-card-sub">Commandes · Site web</div>
+                    <div onclick="openSection('ecran')" style="background:#1a1a2e;border-radius:14px;border:1.5px solid #000;padding:14px 10px;cursor:pointer;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.2);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+                        <div style="font-size:24px;margin-bottom:4px;">🖥️</div>
+                        <div style="font-size:11px;font-weight:700;color:white;">Écran</div>
                     </div>
-                    <div class="menu-card menu-card-mlp" onclick="openSection('mlp')">
-                        <div class="menu-card-icon">💜</div>
-                        <div class="menu-card-title">My Little Para</div>
-                        <div class="menu-card-sub">MLP · E-commerce</div>
+                </div>
+
+                <!-- Tâches prioritaires depuis l'écran -->
+                <div style="background:white;border-radius:16px;border:1.5px solid var(--border);padding:14px 16px;box-shadow:var(--shadow-sm);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);">🔔 Tâches prioritaires</div>
+                        <button onclick="loadHomeTaches()" style="background:none;border:none;cursor:pointer;color:var(--nast-pink);font-size:11px;font-weight:600;">↺ Actualiser</button>
                     </div>
-                    <div class="menu-card menu-card-settings" onclick="openSection('settings')">
-                        <div class="menu-card-icon">⚙️</div>
-                        <div class="menu-card-title">Réglages</div>
-                        <div class="menu-card-sub">Webhooks · Compte</div>
+                    <div id="homeTachesList">
+                        <div style="text-align:center;padding:12px;color:var(--text-muted);font-size:13px;">Chargement…</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ PANNEAU PHARMACIE ═══ -->
+            <div id="panelPharma" class="main-panel" style="display:none;">
+
+                <div style="margin-bottom:16px;">
+                    <div style="font-size:18px;font-weight:700;color:var(--text-primary);">🏥 Pharmacie Nast</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="menuDatePharma"></div>
+                </div>
+
+                <!-- Blocs pharmacie : chaque onglet devient un bloc cliquable -->
+                <div style="display:flex;flex-direction:column;gap:10px;">
+
+                    <div onclick="openSection('pharma');switchSection('pharma','reception',document.querySelector('#pharmaSubtabs .section-subtab'),null)" style="background:white;border-radius:16px;border:1.5px solid #fce4ec;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(233,30,99,0.06);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                        <div style="width:44px;height:44px;border-radius:12px;background:#fce4ec;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">📦</div>
+                        <div style="flex:1;">
+                            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Réception BL</div>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Enregistrer une livraison</div>
+                        </div>
+                        <div style="color:var(--text-muted);font-size:18px;">›</div>
+                    </div>
+
+                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','delpech',document.querySelectorAll('#pharmaSubtabs .section-subtab')[1],null),50)" style="background:white;border-radius:16px;border:1.5px solid #e8eaf6;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                        <div style="width:44px;height:44px;border-radius:12px;background:#e8eaf6;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">💊</div>
+                        <div style="flex:1;">
+                            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Delpech Préparatoire</div>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Préparations magistrales</div>
+                        </div>
+                        <div style="color:var(--text-muted);font-size:18px;">›</div>
+                    </div>
+
+                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','todoPharma',document.querySelectorAll('#pharmaSubtabs .section-subtab')[2],null),50)" style="background:white;border-radius:16px;border:1.5px solid #e8f5e9;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                        <div style="width:44px;height:44px;border-radius:12px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">💬</div>
+                        <div style="flex:1;">
+                            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Messages équipe</div>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Tâches · Notes internes</div>
+                        </div>
+                        <div style="color:var(--text-muted);font-size:18px;">›</div>
+                    </div>
+
+                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','tickets',document.querySelectorAll('#pharmaSubtabs .section-subtab')[3],null),50)" style="background:white;border-radius:16px;border:1.5px solid #fff3e0;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                        <div style="width:44px;height:44px;border-radius:12px;background:#fff3e0;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">🧾</div>
+                        <div style="flex:1;">
+                            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Tickets de caisse</div>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Scanner · Archiver</div>
+                        </div>
+                        <div style="color:var(--text-muted);font-size:18px;">›</div>
+                    </div>
+
+                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','ruptures',document.querySelectorAll('#pharmaSubtabs .section-subtab')[4],null),50)" style="background:white;border-radius:16px;border:1.5px solid #ffebee;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                        <div style="width:44px;height:44px;border-radius:12px;background:#ffebee;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">🚫</div>
+                        <div style="flex:1;">
+                            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Ruptures labo</div>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Signaler · Suivre</div>
+                        </div>
+                        <div style="color:var(--text-muted);font-size:18px;">›</div>
+                    </div>
+
+                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','perimes',document.querySelectorAll('#pharmaSubtabs .section-subtab')[6],null),50)" style="background:white;border-radius:16px;border:1.5px solid #fff8e1;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                        <div style="width:44px;height:44px;border-radius:12px;background:#fff8e1;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">⚠️</div>
+                        <div style="flex:1;">
+                            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Périmés</div>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Signalement · Traçabilité</div>
+                        </div>
+                        <div style="color:var(--text-muted);font-size:18px;">›</div>
+                    </div>
+
+                    <div onclick="openSection('pharma');setTimeout(()=>switchSection('pharma','dashboard',document.querySelectorAll('#pharmaSubtabs .section-subtab')[7],null),50)" style="background:white;border-radius:16px;border:1.5px solid #e0f2f1;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmousedown="this.style.transform='scale(0.99)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.99)'" ontouchend="this.style.transform=''">
+                        <div style="width:44px;height:44px;border-radius:12px;background:#e0f2f1;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">📊</div>
+                        <div style="flex:1;">
+                            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Dashboard réceptions</div>
+                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Historique · Stats BL</div>
+                        </div>
+                        <div style="color:var(--text-muted);font-size:18px;">›</div>
                     </div>
                 </div>
             </div>
@@ -2606,7 +2741,9 @@
         let currentSection = null;
 
         function openSection(section) {
-            document.getElementById('menuHome').classList.add('hidden');
+            // Masquer les panneaux home
+            document.getElementById('panelInternet').style.display = 'none';
+            document.getElementById('panelPharma').style.display = 'none';
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
             
             const sectionMap = {
@@ -2649,9 +2786,159 @@
 
         function goHome() {
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
-            document.getElementById('menuHome').classList.remove('hidden');
-            document.getElementById('headerTitle').textContent = 'Accueil';
+            // Afficher le bon panneau selon l'onglet actif
+            document.getElementById('panelInternet').style.display = currentMainTab === 'pharma' ? 'none' : 'block';
+            document.getElementById('panelPharma').style.display = currentMainTab === 'pharma' ? 'block' : 'none';
+            document.getElementById('headerTitle') && (document.getElementById('headerTitle').textContent = '');
             currentSection = null;
+        }
+
+        let currentMainTab = 'internet';
+
+        function switchMainTab(tab) {
+            currentMainTab = tab;
+            const isInternet = tab === 'internet';
+
+            // Style onglets header
+            const btnI = document.getElementById('mainTabInternet');
+            const btnP = document.getElementById('mainTabPharma');
+            if (btnI) {
+                btnI.style.background = isInternet ? 'white' : 'transparent';
+                btnI.style.color = isInternet ? 'var(--nast-pink)' : 'rgba(255,255,255,0.8)';
+                btnI.style.fontWeight = isInternet ? '700' : '600';
+            }
+            if (btnP) {
+                btnP.style.background = !isInternet ? 'white' : 'transparent';
+                btnP.style.color = !isInternet ? 'var(--nast-pink)' : 'rgba(255,255,255,0.8)';
+                btnP.style.fontWeight = !isInternet ? '700' : '600';
+            }
+
+            document.getElementById('panelInternet').style.display = isInternet ? 'block' : 'none';
+            document.getElementById('panelPharma').style.display = !isInternet ? 'block' : 'none';
+
+            // Fermer toute section ouverte
+            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            currentSection = null;
+
+            if (isInternet) {
+                loadHomeKpis();
+                loadHomeTaches();
+            } else {
+                // Date pharma
+                const dp = document.getElementById('menuDatePharma');
+                if (dp) dp.textContent = new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+            }
+        }
+
+        async function loadHomeKpis() {
+            // Charger les stats du jour depuis le même webhook que loadStats()
+            // On attend que statsData soit dispo, sinon on déclenche loadStats et on écoute
+            try {
+                // Utiliser commandesData + mlpData si déjà chargés pour les compteurs picking
+                const nastCount = commandesData.length;
+                const mlpCount = mlpData.length;
+
+                // Ruptures NAST (stock 0 partout)
+                let ruptures = 0, montf = 0;
+                [...commandesData, ...mlpData].forEach(c => c.produits.forEach(p => {
+                    if ((p.stockNast||0) === 0 && (p.stockMontf||0) === 0) ruptures++;
+                    if ((p.stockNast||0) === 0 && (p.stockMontf||0) > 0) montf++;
+                }));
+
+                if (nastCount > 0 || mlpCount > 0) {
+                    document.getElementById('kpiNastCmds').textContent = nastCount || '0';
+                    document.getElementById('kpiNastRup').textContent = ruptures || '0';
+                    document.getElementById('kpiMlpCmds').textContent = mlpCount || '0';
+                    document.getElementById('kpiMlpMontf').textContent = montf || '0';
+                }
+
+                // Pour les KPIs CA/panier/produits, on utilise statsData si dispo
+                if (typeof statsData !== 'undefined' && statsData.length) {
+                    updateHomeKpiFromStats(statsData);
+                } else {
+                    // Charger les stats du jour silencieusement
+                    await loadStatsForHome();
+                }
+            } catch(e) { console.log('KPI home error', e); }
+        }
+
+        async function loadStatsForHome() {
+            try {
+                const STATS_URL = 'https://n8n.srv1086994.hstgr.cloud/webhook/ecran-stats';
+                const res = await fetch(STATS_URL + '?periode=jour&t=' + Date.now());
+                const data = await res.json();
+                if (data && typeof data === 'object') {
+                    const cmds = data.totalCommandes || data.commandes || 0;
+                    const produits = data.totalProduits || data.produits || 0;
+                    const ca = data.totalCA || data.ca || 0;
+                    const panier = cmds > 0 ? (ca / cmds) : 0;
+                    document.getElementById('kpiCommandes').textContent = cmds;
+                    document.getElementById('kpiProduits').textContent = produits;
+                    document.getElementById('kpiCA').textContent = (ca > 0 ? ca.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0}) : '—') + (ca > 0 ? ' €' : '');
+                    document.getElementById('kpiPanier').textContent = (panier > 0 ? panier.toFixed(1) : '—') + (panier > 0 ? ' €' : '');
+                }
+            } catch(e) {
+                // Si le webhook stats n'est pas dispo, on laisse les tirets
+            }
+        }
+
+        function updateHomeKpiFromStats(data) {
+            // data = tableau de commandes parsées
+            const today = new Date().toLocaleDateString('fr-FR');
+            const todayData = data.filter(c => {
+                const d = new Date(c.date);
+                return d.toLocaleDateString('fr-FR') === today;
+            });
+            const cmds = todayData.length;
+            const produits = todayData.reduce((s, c) => s + (c.produits?.length || 0), 0);
+            const ca = todayData.reduce((s, c) => s + (parseFloat(c.total) || 0), 0);
+            const panier = cmds > 0 ? ca / cmds : 0;
+            document.getElementById('kpiCommandes').textContent = cmds || '—';
+            document.getElementById('kpiProduits').textContent = produits || '—';
+            document.getElementById('kpiCA').textContent = ca > 0 ? ca.toFixed(0) + ' €' : '—';
+            document.getElementById('kpiPanier').textContent = panier > 0 ? panier.toFixed(1) + ' €' : '—';
+        }
+
+        async function loadHomeTaches() {
+            const container = document.getElementById('homeTachesList');
+            if (!container) return;
+            try {
+                const res = await fetch('https://n8n.srv1086994.hstgr.cloud/webhook/ecran-taches?t=' + Date.now());
+                const json = await res.json();
+                if (!Array.isArray(json) || !json.length) {
+                    container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-muted);font-size:13px;">✅ Aucune tâche en attente</div>';
+                    return;
+                }
+                // Afficher max 4 tâches, priorité aux problèmes
+                const sorted = [...json].sort((a, b) => {
+                    const pA = String(a.type||'').toLowerCase().includes('probleme') ? 0 : 1;
+                    const pB = String(b.type||'').toLowerCase().includes('probleme') ? 0 : 1;
+                    return pA - pB;
+                }).slice(0, 4);
+
+                container.innerHTML = sorted.map(t => {
+                    const type = String(t.type||'').toLowerCase();
+                    const isProb = type.includes('probleme') || type.includes('problème');
+                    const isSav = type.includes('sav');
+                    const color = isProb ? '#e74c3c' : isSav ? '#FF9800' : '#1976D2';
+                    const bg = isProb ? '#fff0f0' : isSav ? '#fff8f0' : '#f0f7ff';
+                    const icon = isProb ? '🔴' : isSav ? '🟠' : '📋';
+                    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:${bg};border-radius:10px;margin-bottom:6px;border-left:3px solid ${color};">
+                        <span style="font-size:14px;flex-shrink:0;">${icon}</span>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:12px;font-weight:600;color:${color};">${t.type||'Tâche'}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.message||t.contenu||''}</div>
+                        </div>
+                        ${t.numCommande ? `<span style="font-size:10px;font-weight:700;color:${color};background:${color}18;padding:2px 7px;border-radius:6px;flex-shrink:0;">#${t.numCommande}</span>` : ''}
+                    </div>`;
+                }).join('');
+
+                if (json.length > 4) {
+                    container.innerHTML += `<div style="text-align:center;padding:6px;font-size:11px;color:var(--text-muted);">+${json.length - 4} autre${json.length - 4 > 1 ? 's' : ''} tâche${json.length - 4 > 1 ? 's' : ''}</div>`;
+                }
+            } catch(e) {
+                container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-muted);font-size:12px;">Impossible de charger les tâches</div>';
+            }
         }
 
         function switchSection(section, panel, btn, color) {
@@ -2689,10 +2976,9 @@
 
         // Menu date
         function updateMenuDate() {
-            const el = document.getElementById('menuDate');
+            const el = document.getElementById('menuDatePharma');
             if (el) {
-                const now = new Date();
-                el.textContent = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                el.textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
             }
         }
 
@@ -2713,6 +2999,24 @@
             setupRuptures();
             setupPhotosTg();
             setupPerimes();
+            // Init home : onglet Internet par défaut
+            switchMainTab('internet');
+            // Charger les données picking pour les KPIs après un délai
+            setTimeout(async () => {
+                try {
+                    if (!commandesData.length) {
+                        const res = await fetch(COMMANDES_WEBHOOK + '?t=' + Date.now());
+                        const rows = await res.json();
+                        if (rows?.length) commandesData = parseWebhookCommandes(rows);
+                    }
+                    if (!mlpData.length) {
+                        const res = await fetch(MLP_WEBHOOK + '?t=' + Date.now());
+                        const rows = await res.json();
+                        if (rows?.length) mlpData = parseWebhookCommandes(rows);
+                    }
+                    loadHomeKpis();
+                } catch(e) {}
+            }, 800);
         }
 
         function updateDate() {
