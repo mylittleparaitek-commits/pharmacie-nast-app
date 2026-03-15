@@ -5867,7 +5867,7 @@
 
                 ${d.heures ? `
                 <div style="background:white;border-radius:14px;border:1.5px solid var(--border);padding:14px;margin-bottom:12px;">
-                    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FF9800;margin-bottom:10px;">🕐 Heures de pointe MLP (7 jours)</div>
+                    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FF9800;margin-bottom:10px;">🕐 Heures de pointe MLP (7 jours) — nb commandes</div>
                     <div style="display:flex;align-items:flex-end;gap:2px;height:80px;">
                         ${Object.entries(d.heures).map(([h, hd]) => {
                             const maxNb = Math.max(...Object.values(d.heures).map(x => x.nb), 1);
