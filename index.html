@@ -2815,47 +2815,6 @@
             } catch(e) { console.log('KPI home error', e); }
         }
 
-        // ── URL Apps Script MLP stats (Google Sheets pre-computed) ──
-        const APPS_SCRIPT_MLP = 'https://script.google.com/macros/s/AKfycbw3bnmInEz9JLpPvGrEhURor4ivm_D9QSD33_v6CZU23wDujNz0uVRvrkmEUwyO9Nci/exec';
-
-        async function loadStatsForHome() {
-            try {
-                const res  = await fetch(APPS_SCRIPT_MLP + '?t=' + Date.now());
-                const data = await res.json();
-                if (!data || !data.jour) return;
-
-                // Stocker pour la section stats
-                window._mlpStatsJson = data;
-
-                const mlp = data.jour;
-
-                // Afficher les KPIs MLP avec labels clairs
-                document.getElementById('kpiCommandes').textContent = mlp.commandes || '0';
-                document.getElementById('kpiProduits').textContent  = mlp.produits  || '0';
-                document.getElementById('kpiCA').textContent = mlp.ca
-                    ? mlp.ca.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' €'
-                    : '—';
-                document.getElementById('kpiPanier').textContent = mlp.panier_moyen
-                    ? mlp.panier_moyen.toFixed(1) + ' €'
-                    : '—';
-
-                // Mettre à jour les sous-labels pour être explicite (MLP seulement)
-                // NAST sera ajouté quand son Apps Script sera créé
-                const fixes = [
-                    ['kpiCommandes', 'Commandes MLP'],
-                    ['kpiProduits',  'Produits MLP'],
-                    ['kpiCA',        'CA MLP TTC'],
-                    ['kpiPanier',    'Panier moyen · stats →']
-                ];
-                fixes.forEach(([id, label]) => {
-                    const el = document.getElementById(id);
-                    if (el && el.nextElementSibling) el.nextElementSibling.textContent = label;
-                });
-
-            } catch(e) {
-                console.log('Stats home error:', e);
-            }
-        }
 
         function updateHomeKpiFromStats(data) {
             // data = tableau de commandes parsées
