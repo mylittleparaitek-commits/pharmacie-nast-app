@@ -5605,7 +5605,65 @@
                 </div>
             </div>`;
 
-            // ── Fonction helper produit ──
+
+            // ── TOP VENTES VS STOCK (NAST + MLP) ──
+            const renderTopVentes = (produits, color, borderColor, titre) => {
+                if (!produits || !produits.length) return '';
+                const maxQte = Math.max(...produits.map(p => p.qte), 1);
+                return `<div style="background:white;border-radius:14px;border:1.5px solid ${borderColor};padding:14px;margin-bottom:12px;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${color};margin-bottom:2px;">${titre}</div>
+                    <div style="font-size:10px;color:#aaa;margin-bottom:10px;">Top 30 · trié par qté vendue ce mois · stock temps réel</div>
+                    <div style="display:grid;grid-template-columns:20px 1fr 28px 32px 32px 44px 40px 36px;gap:3px;padding:4px 0;border-bottom:2px solid ${borderColor};margin-bottom:2px;">
+                        <span style="font-size:9px;color:#aaa;">#</span>
+                        <span style="font-size:9px;color:#aaa;">Produit</span>
+                        <span style="font-size:9px;color:#aaa;text-align:center;">Qté</span>
+                        <span style="font-size:9px;color:#aaa;text-align:center;">Nast</span>
+                        <span style="font-size:9px;color:#aaa;text-align:center;">Montf</span>
+                        <span style="font-size:9px;color:#aaa;text-align:right;">CA €</span>
+                        <span style="font-size:9px;color:#aaa;text-align:right;">Marge</span>
+                        <span style="font-size:9px;color:#aaa;text-align:right;">TM%</span>
+                    </div>
+                    ${produits.map((p, i) => {
+                        const sN = p.stock_nast  || 0;
+                        const sM = p.stock_montf || 0;
+                        const cN = sN > 10 ? '#2e7d32' : sN > 3 ? '#e65100' : sN > 0 ? '#b71c1c' : '#999';
+                        const bN = sN > 10 ? '#e8f5e9' : sN > 3 ? '#fff3e0' : sN > 0 ? '#ffebee' : '#f5f5f5';
+                        const cM = sM > 10 ? '#2e7d32' : sM > 3 ? '#e65100' : sM > 0 ? '#b71c1c' : '#999';
+                        const bM = sM > 10 ? '#e8f5e9' : sM > 3 ? '#fff3e0' : sM > 0 ? '#ffebee' : '#f5f5f5';
+                        const barW = Math.round(p.qte / maxQte * 100);
+                        const tm = p.taux_marque ? p.taux_marque.toFixed(1) : '—';
+                        const ca = p.ca ? Math.round(p.ca) : 0;
+                        const mg = p.marge ? Math.round(p.marge) : 0;
+                        const rowBg = (sN+sM) === 0 ? 'background:#fff8f8;' : i%2===0 ? ''  : 'background:#fafafa;';
+                        return `<div style="display:grid;grid-template-columns:20px 1fr 28px 32px 32px 44px 40px 36px;gap:3px;align-items:center;padding:5px 0;border-bottom:1px solid #f0f0f0;${rowBg}">
+                            <span style="font-size:10px;font-weight:800;color:${color};">${i+1}</span>
+                            <div style="min-width:0;">
+                                <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.nom}</div>
+                                <div style="height:3px;background:#f0f0f0;border-radius:99px;margin-top:2px;">
+                                    <div style="height:3px;width:${barW}%;background:${color};border-radius:99px;opacity:0.4;"></div>
+                                </div>
+                            </div>
+                            <div style="text-align:center;font-size:11px;font-weight:800;color:${color};">×${p.qte}</div>
+                            <div style="text-align:center;"><span style="font-size:10px;font-weight:700;color:${cN};background:${bN};padding:1px 4px;border-radius:4px;display:inline-block;min-width:22px;">${sN > 0 ? sN : '—'}</span></div>
+                            <div style="text-align:center;"><span style="font-size:10px;font-weight:700;color:${cM};background:${bM};padding:1px 4px;border-radius:4px;display:inline-block;min-width:22px;">${sM > 0 ? sM : '—'}</span></div>
+                            <div style="text-align:right;font-size:10px;font-weight:600;color:#333;">${ca} €</div>
+                            <div style="text-align:right;font-size:10px;font-weight:600;color:#00897B;">${mg > 0 ? mg+' €' : '—'}</div>
+                            <div style="text-align:right;font-size:10px;font-weight:600;color:#5E35B1;">${tm !== '—' ? tm+'%' : '—'}</div>
+                        </div>`;
+                    }).join('')}
+                    <div style="margin-top:8px;display:flex;gap:10px;font-size:9px;color:#bbb;flex-wrap:wrap;">
+                        <span>Nast/Montf = stock restant</span>
+                        <span style="color:#2e7d32;">■ >10</span>
+                        <span style="color:#e65100;">■ 4-10</span>
+                        <span style="color:#b71c1c;">■ ≤3</span>
+                        <span>TM = taux marque</span>
+                    </div>
+                </div>`;
+            };
+
+            html += renderTopVentes(d.top_produits_nast, '#1976D2', '#bbdefb', '🏆 Top 30 NAST + DocMorris — ventes vs stock');
+            html += renderTopVentes(d.top_produits_mlp,  '#9C27B0', '#e1bee7', '🏆 Top 30 MLP — ventes vs stock');
+
             const prodRow = (prod, color) => prod.map((pp, i) => {
                 const sc = pp.stock_nast > 0 ? '#2e7d32' : pp.stock_montf > 0 ? '#7b1fa2' : '#c62828';
                 const sb = pp.stock_nast > 0 ? '#e8f5e9' : pp.stock_montf > 0 ? '#f3e5f5' : '#ffebee';
@@ -5619,20 +5677,6 @@
                     <span style="font-size:10px;font-weight:700;color:${sc};background:${sb};padding:2px 6px;border-radius:6px;flex-shrink:0;">${sl}</span>
                 </div>`;
             }).join('');
-
-            // ── TOP PRODUITS NAST ──
-            const nastTop = d.top_produits_nast || [];
-            if (nastTop.length) html += `<div style="background:white;border-radius:14px;border:1.5px solid #bbdefb;padding:14px;margin-bottom:12px;">
-                <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1976D2;margin-bottom:10px;">🏆 Top produits NAST + DocMorris</div>
-                ${prodRow(nastTop, '#1976D2')}
-            </div>`;
-
-            // ── TOP PRODUITS MLP ──
-            const mlpTop = d.top_produits_mlp || [];
-            if (mlpTop.length) html += `<div style="background:white;border-radius:14px;border:1.5px solid #e1bee7;padding:14px;margin-bottom:12px;">
-                <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9C27B0;margin-bottom:10px;">🏆 Top produits MLP</div>
-                ${prodRow(mlpTop, '#9C27B0')}
-            </div>`;
 
             // ── TOP CLIENTS ──
             const nastCl = d.top_clients_nast || [];
