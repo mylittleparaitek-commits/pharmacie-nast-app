@@ -2785,6 +2785,8 @@
             if (isInternet) {
                 loadHomeKpis();
                 loadHomeTaches();
+                // Pré-charger les stats en arrière-plan → instantané quand on clique Stats
+                setTimeout(() => _refreshStatsBackground(), 2000);
             } else {
                 // Date pharma
                 const dp = document.getElementById('menuDatePharma');
@@ -5472,23 +5474,68 @@
             }
         }
 
+        let _statsCacheTime = 0;
+        const STATS_CACHE_TTL = 60 * 1000; // 1 minute
+
         async function loadStats() {
+            const now = Date.now();
+
+            // Si données en cache < 1 min → afficher immédiatement sans spinner
+            if (window._agregStats && (now - _statsCacheTime) < STATS_CACHE_TTL) {
+                renderStatsDashboard();
+                // Rafraîchir en arrière-plan silencieusement
+                _refreshStatsBackground();
+                return;
+            }
+
+            // Première fois ou cache expiré → afficher spinner
             document.getElementById('statsLoading').style.display = 'block';
             document.getElementById('statsContent').style.display = 'none';
+            document.getElementById('statsLoading').innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#43A047" stroke-width="2" style="animation:spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+                <p style="color:#888;margin-top:8px;">Chargement des stats…</p>
+                <p style="color:#bbb;font-size:11px;margin-top:4px;">Mis à jour toutes les minutes</p>`;
+
             try {
-                const res  = await fetch(APPS_SCRIPT_AGREGATEUR + '?t=' + Date.now());
+                const res  = await fetch(APPS_SCRIPT_AGREGATEUR + '?nocache=' + now);
                 const data = await res.json();
-                // Stocker le JSON agrégateur
-                window._agregStats = data;
-                // Compatibilité avec l'ancien code
+                window._agregStats   = data;
                 window._nastStats    = data;
                 window._mlpStats     = data;
                 window._mlpStatsJson = data;
+                _statsCacheTime = now;
                 renderStatsDashboard();
             } catch(e) {
-                document.getElementById('statsLoading').innerHTML =
-                    '<p style="color:#c62828;padding:20px;">❌ Erreur chargement stats : ' + e.message + '</p>';
+                // Si on a des données en cache, les afficher malgré l'erreur
+                if (window._agregStats) {
+                    renderStatsDashboard();
+                    // Petit badge d'avertissement
+                    const sc = document.getElementById('statsContent');
+                    const warn = document.createElement('div');
+                    warn.style.cssText = 'text-align:center;font-size:10px;color:#e65100;padding:4px;background:#fff3e0;border-radius:6px;margin-bottom:8px;';
+                    warn.textContent = '⚠️ Données en cache — impossible de rafraîchir';
+                    sc.prepend(warn);
+                } else {
+                    document.getElementById('statsLoading').innerHTML =
+                        '<p style="color:#c62828;padding:20px;">❌ Erreur : ' + e.message + '</p>';
+                }
             }
+        }
+
+        async function _refreshStatsBackground() {
+            try {
+                const res  = await fetch(APPS_SCRIPT_AGREGATEUR + '?nocache=' + Date.now());
+                const data = await res.json();
+                window._agregStats   = data;
+                window._nastStats    = data;
+                window._mlpStats     = data;
+                window._mlpStatsJson = data;
+                _statsCacheTime = Date.now();
+                // Re-rendre silencieusement si on est encore sur la page stats
+                if (document.getElementById('sectionStats')?.classList.contains('active')) {
+                    renderStatsDashboard();
+                }
+            } catch(e) { /* silence */ }
         }
 
         function renderStatsDashboard() {
