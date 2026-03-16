@@ -7677,16 +7677,21 @@
             }).join('');
             container.classList.add('show');
 
-            // Store actions for click handling
+            // Store actions and types for click handling
             window._searchActions = results.map(r => r.action);
+            window._searchTypes = results.map(r => r.type);
         }
 
         function searchResultClick(idx) {
             const action = window._searchActions?.[idx];
+            const type = window._searchTypes?.[idx];
             if (action) {
-                document.getElementById('globalSearchResults').classList.remove('show');
-                document.getElementById('globalSearchInput').value = '';
-                document.getElementById('globalSearchClear').classList.remove('visible');
+                // Pour les produits, on ne ferme pas (showCommandesForProduct va ré-afficher)
+                if (type !== 'produit') {
+                    document.getElementById('globalSearchResults').classList.remove('show');
+                    document.getElementById('globalSearchInput').value = '';
+                    document.getElementById('globalSearchClear').classList.remove('visible');
+                }
                 action();
             }
         }
