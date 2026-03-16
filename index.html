@@ -3709,6 +3709,7 @@
             document.getElementById('detailDate').textContent = '🕐 ' + dateStr;
             renderProduitsDetail();
             updatePickingProgress();
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = 0; }, 30);
         }
 
         function closeCommandeDetail() {
@@ -3992,6 +3993,7 @@
             document.getElementById('mlpDetailDate').textContent = '🕐 ' + dateStr;
             renderMlpProduits();
             updateMlpProgress();
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = 0; }, 30);
         }
 
         function closeMlpDetail() {
@@ -4412,6 +4414,7 @@
             document.getElementById('savReplyArea').value = '';
             document.getElementById('savBtnResolu').style.display = currentTicket.statut === 'résolu' ? 'none' : 'block';
             renderSavFil();
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = 0; }, 30);
         }
 
         function closeSavDetail() {
@@ -4663,6 +4666,7 @@
             document.getElementById('savNastReplyArea').value = '';
             document.getElementById('savNastBtnResolu').style.display = currentNastTicket.statut === 'résolu' ? 'none' : 'block';
             renderSavNastFil();
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = 0; }, 30);
         }
 
         function closeSavNastDetail() {
@@ -6868,6 +6872,7 @@
 
             renderPdProduits();
             updatePdProgress();
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = 0; }, 30);
         }
 
         function closePickingDetail() {
@@ -7666,132 +7671,106 @@
         }
 
         // ══════════════════════════════════════════════════
-        // ④ SCANNER CODE-BARRES CROSS-PLATFORM
+        // ④ SCANNER CODE-BARRES CROSS-PLATFORM (html5-qrcode)
         // ══════════════════════════════════════════════════
-        let scannerVideoStream = null;
-        let scannerAnimFrame = null;
-        let scannerCanvas = null;
-        let scannerCtx = null;
+        let html5QrScanner = null;
+        let _html5QrLib = null;
 
         function startScan() {
-            // Essayer d'abord le scan vidéo live (fonctionne sur tous les navigateurs)
             startVideoScanner();
         }
 
         async function startVideoScanner() {
             const overlay = document.getElementById('videoScannerOverlay');
-            const video = document.getElementById('scannerVideo');
             const label = document.getElementById('videoScannerLabel');
             overlay.classList.add('active');
-            label.textContent = 'Accès à la caméra…';
-
-            try {
-                scannerVideoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-                });
-                video.srcObject = scannerVideoStream;
-                await video.play();
-                label.textContent = 'Scannez un code-barre…';
-
-                // Préparer le canvas pour la détection
-                scannerCanvas = document.createElement('canvas');
-                scannerCtx = scannerCanvas.getContext('2d', { willReadFrequently: true });
-
-                // Tenter BarcodeDetector natif d'abord (Chrome, Edge, Samsung)
-                if ('BarcodeDetector' in window) {
-                    const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','code_128','upc_a','upc_e'] });
-                    scanVideoWithDetector(video, detector, label);
-                } else {
-                    // Fallback : zxing-js via CDN
-                    loadZxingAndScan(video, label);
-                }
-            } catch(e) {
-                console.error('Camera error:', e);
-                overlay.classList.remove('active');
-                // Fallback vers saisie manuelle si pas d'accès caméra
-                showManualInput();
-            }
-        }
-
-        function scanVideoWithDetector(video, detector, label) {
-            let scanning = true;
-            async function tick() {
-                if (!scanning || !scannerVideoStream) return;
-                try {
-                    const codes = await detector.detect(video);
-                    if (codes.length > 0) {
-                        scanning = false;
-                        const ean = codes[0].rawValue;
-                        label.textContent = '✅ ' + ean;
-                        stopVideoScanner();
-                        onBarcodeDetected(ean);
-                        return;
-                    }
-                } catch(e) {}
-                scannerAnimFrame = requestAnimationFrame(tick);
-            }
-            scannerAnimFrame = requestAnimationFrame(tick);
-        }
-
-        async function loadZxingAndScan(video, label) {
             label.textContent = 'Chargement du scanner…';
+
             try {
-                // Charger ZXing depuis CDN
-                if (!window.ZXing) {
+                // Charger html5-qrcode si pas déjà fait
+                if (!_html5QrLib) {
                     await new Promise((resolve, reject) => {
                         const s = document.createElement('script');
-                        s.src = 'https://unpkg.com/@aspect-build/aspect-zxing@0.1.0/dist/index.umd.js';
+                        s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
                         s.onload = resolve;
-                        s.onerror = () => {
-                            // Fallback: utiliser le canvas + analyse manuelle basique
-                            reject(new Error('ZXing load failed'));
-                        };
+                        s.onerror = reject;
                         document.head.appendChild(s);
                     });
+                    _html5QrLib = true;
+                }
+
+                // Cacher la video HTML native (html5-qrcode gère son propre rendu)
+                document.getElementById('scannerVideo').style.display = 'none';
+
+                // Créer un conteneur pour html5-qrcode dans l'overlay
+                let scanRegion = document.getElementById('html5qrRegion');
+                if (!scanRegion) {
+                    scanRegion = document.createElement('div');
+                    scanRegion.id = 'html5qrRegion';
+                    scanRegion.style.cssText = 'width:min(90vw,400px);border-radius:12px;overflow:hidden;';
+                    // Insérer avant le label
+                    label.parentElement.insertBefore(scanRegion, label);
+                }
+                scanRegion.style.display = 'block';
+                scanRegion.innerHTML = '';
+
+                label.textContent = 'Pointez un code-barre…';
+
+                html5QrScanner = new Html5Qrcode('html5qrRegion');
+                await html5QrScanner.start(
+                    { facingMode: 'environment' },
+                    {
+                        fps: 10,
+                        qrbox: { width: 280, height: 120 },
+                        aspectRatio: 16/9,
+                        formatsToSupport: [
+                            Html5QrcodeSupportedFormats.EAN_13,
+                            Html5QrcodeSupportedFormats.EAN_8,
+                            Html5QrcodeSupportedFormats.UPC_A,
+                            Html5QrcodeSupportedFormats.UPC_E,
+                            Html5QrcodeSupportedFormats.CODE_128,
+                            Html5QrcodeSupportedFormats.CODE_39,
+                            Html5QrcodeSupportedFormats.QR_CODE
+                        ]
+                    },
+                    (decodedText) => {
+                        // Code-barre détecté !
+                        label.textContent = '✅ ' + decodedText;
+                        stopVideoScanner();
+                        onBarcodeDetected(decodedText);
+                    },
+                    (errorMessage) => {
+                        // Scan en cours, pas encore trouvé — on ignore silencieusement
+                    }
+                );
+            } catch(e) {
+                console.error('Scanner error:', e);
+                label.textContent = 'Caméra non disponible';
+                // Fallback : saisie manuelle après 1s
+                setTimeout(() => {
+                    stopVideoScanner();
+                    showManualInput();
+                }, 1000);
+            }
+        }
+
+        async function stopVideoScanner() {
+            const overlay = document.getElementById('videoScannerOverlay');
+            try {
+                if (html5QrScanner) {
+                    const state = html5QrScanner.getState();
+                    if (state === Html5QrcodeScannerState.SCANNING || state === Html5QrcodeScannerState.PAUSED) {
+                        await html5QrScanner.stop();
+                    }
+                    html5QrScanner.clear();
+                    html5QrScanner = null;
                 }
             } catch(e) {
-                // Si ZXing ne charge pas, on bascule sur la capture frame par frame simple
-                label.textContent = 'Scannez un code-barre… (saisie manuelle dispo)';
-                scanWithCanvasFallback(video, label);
-                return;
+                console.log('Scanner stop:', e);
             }
-
-            // Si ZXing a chargé
-            if (window.ZXing) {
-                try {
-                    const codeReader = new ZXing.BrowserMultiFormatReader();
-                    codeReader.decodeFromVideoDevice(undefined, video, (result, err) => {
-                        if (result) {
-                            label.textContent = '✅ ' + result.text;
-                            codeReader.reset();
-                            stopVideoScanner();
-                            onBarcodeDetected(result.text);
-                        }
-                    });
-                } catch(e) {
-                    scanWithCanvasFallback(video, label);
-                }
-            } else {
-                scanWithCanvasFallback(video, label);
-            }
-        }
-
-        function scanWithCanvasFallback(video, label) {
-            // Dernier fallback : capturer une frame et utiliser BarcodeDetector si disponible
-            // Sinon juste permettre la saisie manuelle
-            label.textContent = 'Pointez le code-barre puis tapez "Saisir manuellement"';
-        }
-
-        function stopVideoScanner() {
-            const overlay = document.getElementById('videoScannerOverlay');
+            const scanRegion = document.getElementById('html5qrRegion');
+            if (scanRegion) { scanRegion.innerHTML = ''; scanRegion.style.display = 'none'; }
             overlay.classList.remove('active');
-            if (scannerAnimFrame) { cancelAnimationFrame(scannerAnimFrame); scannerAnimFrame = null; }
-            if (scannerVideoStream) {
-                scannerVideoStream.getTracks().forEach(t => t.stop());
-                scannerVideoStream = null;
-            }
-            const video = document.getElementById('scannerVideo');
-            if (video) video.srcObject = null;
         }
 
         function switchToManualScan() {
