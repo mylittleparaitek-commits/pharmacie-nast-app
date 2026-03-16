@@ -1455,6 +1455,26 @@
         }
         .search-clear.visible { display: block; }
 
+        .search-scan-btn {
+            position: absolute;
+            right: 34px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--nast-pink);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.15s;
+        }
+        .search-scan-btn:active { transform: translateY(-50%) scale(0.9); }
+
         /* ─── SCANNER VIDEO OVERLAY ─── */
         .scanner-video-overlay {
             position: fixed;
@@ -1522,7 +1542,8 @@
             <!-- Recherche globale -->
             <div class="search-bar" id="globalSearchBar">
                 <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" class="search-input" id="globalSearchInput" placeholder="Rechercher commande, produit, client…" autocomplete="off">
+                <input type="text" class="search-input" id="globalSearchInput" placeholder="Rechercher commande, produit, client…" autocomplete="off" style="padding-right:72px;">
+                <button class="search-scan-btn" id="globalSearchScan" onclick="startSearchScan()" title="Scanner un code-barre"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg></button>
                 <button class="search-clear" id="globalSearchClear" onclick="clearGlobalSearch()">×</button>
                 <div class="search-results" id="globalSearchResults"></div>
             </div>
@@ -7776,6 +7797,79 @@
         function switchToManualScan() {
             stopVideoScanner();
             showManualInput();
+        }
+
+        // ── Scan depuis la barre de recherche ──
+        let _searchScanMode = false;
+
+        async function startSearchScan() {
+            _searchScanMode = true;
+            const overlay = document.getElementById('videoScannerOverlay');
+            const label = document.getElementById('videoScannerLabel');
+            overlay.classList.add('active');
+            label.textContent = 'Chargement du scanner…';
+
+            try {
+                if (!_html5QrLib) {
+                    await new Promise((resolve, reject) => {
+                        const s = document.createElement('script');
+                        s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+                        s.onload = resolve;
+                        s.onerror = reject;
+                        document.head.appendChild(s);
+                    });
+                    _html5QrLib = true;
+                }
+
+                document.getElementById('scannerVideo').style.display = 'none';
+                let scanRegion = document.getElementById('html5qrRegion');
+                if (!scanRegion) {
+                    scanRegion = document.createElement('div');
+                    scanRegion.id = 'html5qrRegion';
+                    scanRegion.style.cssText = 'width:min(90vw,400px);border-radius:12px;overflow:hidden;';
+                    label.parentElement.insertBefore(scanRegion, label);
+                }
+                scanRegion.style.display = 'block';
+                scanRegion.innerHTML = '';
+                label.textContent = 'Scannez un produit…';
+
+                html5QrScanner = new Html5Qrcode('html5qrRegion');
+                await html5QrScanner.start(
+                    { facingMode: 'environment' },
+                    {
+                        fps: 10,
+                        qrbox: { width: 280, height: 120 },
+                        aspectRatio: 16/9,
+                        formatsToSupport: [
+                            Html5QrcodeSupportedFormats.EAN_13,
+                            Html5QrcodeSupportedFormats.EAN_8,
+                            Html5QrcodeSupportedFormats.UPC_A,
+                            Html5QrcodeSupportedFormats.UPC_E,
+                            Html5QrcodeSupportedFormats.CODE_128,
+                            Html5QrcodeSupportedFormats.CODE_39
+                        ]
+                    },
+                    (decodedText) => {
+                        label.textContent = '✅ ' + decodedText;
+                        stopVideoScanner();
+                        // Injecter dans la barre de recherche
+                        const input = document.getElementById('globalSearchInput');
+                        input.value = decodedText;
+                        input.dispatchEvent(new Event('input'));
+                        input.focus();
+                        _searchScanMode = false;
+                    },
+                    () => {}
+                );
+            } catch(e) {
+                console.error('Search scan error:', e);
+                label.textContent = 'Caméra non disponible';
+                setTimeout(() => {
+                    stopVideoScanner();
+                    _searchScanMode = false;
+                    document.getElementById('globalSearchInput').focus();
+                }, 1000);
+            }
         }
 
     </script>
