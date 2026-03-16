@@ -7699,10 +7699,14 @@
         function showCommandesForProduct(ean) {
             if (!ean) return;
             const results = [];
+            const eanStr = String(ean).trim().replace(/^0+/, '');
 
             // Trouver toutes les commandes Nast contenant ce produit
             commandesData.forEach((c, idx) => {
-                const match = c.produits.find(p => String(p.ean) === String(ean));
+                const match = c.produits.find(p => {
+                    const pe = String(p.ean||'').trim().replace(/^0+/, '');
+                    return pe === eanStr || pe === String(ean).trim();
+                });
                 if (match) {
                     results.push({
                         type: 'nast', typeLabel: 'NAST', color: '#1976D2', bg: '#e3f2fd',
@@ -7715,7 +7719,10 @@
 
             // Trouver toutes les commandes MLP contenant ce produit
             mlpData.forEach((c, idx) => {
-                const match = c.produits.find(p => String(p.ean) === String(ean));
+                const match = c.produits.find(p => {
+                    const pe = String(p.ean||'').trim().replace(/^0+/, '');
+                    return pe === eanStr || pe === String(ean).trim();
+                });
                 if (match) {
                     results.push({
                         type: 'mlp', typeLabel: 'MLP', color: '#9C27B0', bg: '#f3e5f5',
@@ -7734,7 +7741,7 @@
             // Afficher les résultats
             const container = document.getElementById('globalSearchResults');
             if (!results.length) {
-                container.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">Aucune commande ne contient ce produit (EAN ' + escapeHtml(ean) + ')</div>';
+                container.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">Aucune commande <strong>en cours</strong> ne contient ce produit<br><span style="font-size:11px;">EAN ' + escapeHtml(String(ean)) + ' · ' + commandesData.length + ' cmd Nast + ' + mlpData.length + ' cmd MLP chargées</span></div>';
             } else {
                 const header = '<div style="padding:10px 14px;font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border-light);">' + results.length + ' commande' + (results.length > 1 ? 's' : '') + ' avec ce produit</div>';
                 container.innerHTML = header + results.map((r, i) => {
