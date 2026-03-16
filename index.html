@@ -3564,6 +3564,9 @@
         function closeCommandeDetail() {
             stopScan();
             currentCommande = null;
+            cmdPhotos = [];
+            const cz = document.getElementById('cmdPhotoZone');
+            if (cz) cz.style.display = 'none';
             document.getElementById('commandesListView').classList.remove('hidden');
             document.getElementById('commandeDetailView').classList.remove('active');
         }
@@ -3844,6 +3847,9 @@
 
         function closeMlpDetail() {
             currentMlp = null;
+            mlpPhotos = [];
+            const z = document.getElementById('mlpPhotoZone');
+            if (z) z.style.display = 'none';
             document.getElementById('mlpListView').classList.remove('hidden');
             document.getElementById('mlpDetailView').classList.remove('active');
         }
@@ -7010,16 +7016,6 @@
             btn.disabled = false; btn.textContent = '📸 Envoyer les photos';
         }
 
-        // Reset photos quand on ferme le détail commande MLP
-        const _origCloseMlpDetail = typeof closeMlpDetail === 'function' ? closeMlpDetail : null;
-        function closeMlpDetail() {
-            currentMlp = null;
-            mlpPhotos = [];
-            const z = document.getElementById('mlpPhotoZone');
-            if (z) z.style.display = 'none';
-            document.getElementById('mlpListView').classList.remove('hidden');
-            document.getElementById('mlpDetailView').classList.remove('active');
-        }
 
         // ── Photo rapide sur vue détail commande MLP ──
         let mlpPhotos = [];
@@ -7102,15 +7098,6 @@
                 status.style.color = '#E65100';
             }
             btn.disabled = false; btn.textContent = '📸 Envoyer les photos';
-        }
-        function closeCommandeDetail() {
-            stopScan();
-            currentCommande = null;
-            cmdPhotos = [];
-            const cz = document.getElementById('cmdPhotoZone');
-            if (cz) cz.style.display = 'none';
-            document.getElementById('commandesListView').classList.remove('hidden');
-            document.getElementById('commandeDetailView').classList.remove('active');
         }
 
         // ── Tâches directes depuis webhook ──
@@ -7291,22 +7278,3 @@
             loadMontfermeil();
         }
 
-        // Parser CSV simple
-        function parseCSV(text) {
-            const rows = [];
-            const lines = text.split('\n');
-            lines.forEach(line => {
-                if (!line.trim()) return;
-                const cols = [];
-                let cur = '', inQuote = false;
-                for (let i = 0; i < line.length; i++) {
-                    const c = line[i];
-                    if (c === '"') { inQuote = !inQuote; }
-                    else if (c === ',' && !inQuote) { cols.push(cur.trim()); cur = ''; }
-                    else { cur += c; }
-                }
-                cols.push(cur.trim());
-                rows.push(cols);
-            });
-            return rows;
-        }
