@@ -2750,7 +2750,8 @@
             
             const el = document.getElementById(sectionMap[section]);
             if (el) el.classList.add('active');
-            document.getElementById('headerTitle').textContent = titles[section] || '';
+            const headerTitleEl = document.getElementById('headerTitle');
+            if (headerTitleEl) headerTitleEl.textContent = titles[section] || '';
             currentSection = section;
             
             // Auto-load data
