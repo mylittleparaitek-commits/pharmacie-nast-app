@@ -2853,6 +2853,7 @@
         const state = { photos: [], recentReceptions: [], labos: [], site: 'NAST' };
         const delpechState = { photos: [], facturation: 'paye' };
         let montfChecked = {};
+        let _savedScrollPos = 0;
 
         const DEFAULT_LABOS = [
             'ABBOTT', 'ACCU-CHECK', 'ARROW', 'BAUSCH & LOMB', 'BAYER', 'BIOGARAN',
@@ -3695,6 +3696,7 @@
         }
 
         function openCommandeDetail(idx) {
+            _savedScrollPos = document.getElementById('mainContent')?.scrollTop || 0;
             currentCommande = commandesData[idx];
             pickingState = {};
             currentCommande.produits.forEach(p => { pickingState[p.ean] = 0; });
@@ -3717,6 +3719,7 @@
             if (cz) cz.style.display = 'none';
             document.getElementById('commandesListView').classList.remove('hidden');
             document.getElementById('commandeDetailView').classList.remove('active');
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = _savedScrollPos; }, 50);
         }
 
         function renderProduitsDetail() {
@@ -3976,6 +3979,7 @@
         }
 
         function openMlpDetail(idx) {
+            _savedScrollPos = document.getElementById('mainContent')?.scrollTop || 0;
             currentMlp = mlpData[idx];
             mlpPickingState = {};
             currentMlp.produits.forEach(p => { mlpPickingState[p.ean] = 0; });
@@ -3997,6 +4001,7 @@
             if (z) z.style.display = 'none';
             document.getElementById('mlpListView').classList.remove('hidden');
             document.getElementById('mlpDetailView').classList.remove('active');
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = _savedScrollPos; }, 50);
         }
 
         // ─── A COMMANDER ───
@@ -4385,6 +4390,7 @@
         }
 
         function openSavDetail(idx) {
+            _savedScrollPos = document.getElementById('mainContent')?.scrollTop || 0;
             currentTicket = savData[idx];
             document.getElementById('savListView').classList.add('hidden');
             document.getElementById('savDetailView').classList.add('active');
@@ -4412,6 +4418,7 @@
             currentTicket = null;
             document.getElementById('savListView').classList.remove('hidden');
             document.getElementById('savDetailView').classList.remove('active');
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = _savedScrollPos; }, 50);
         }
 
         function renderSavFil() {
@@ -4644,6 +4651,7 @@
         }
 
         function openSavNastDetail(idx) {
+            _savedScrollPos = document.getElementById('mainContent')?.scrollTop || 0;
             currentNastTicket = savNastData[idx];
             document.getElementById('savNastListView').classList.add('hidden');
             document.getElementById('savNastDetailView').classList.add('active');
@@ -4661,6 +4669,7 @@
             currentNastTicket = null;
             document.getElementById('savNastListView').classList.remove('hidden');
             document.getElementById('savNastDetailView').classList.remove('active');
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = _savedScrollPos; }, 50);
         }
 
         function renderSavNastFil() {
@@ -6834,6 +6843,7 @@
         }
 
         function openPickingDetailInline(idx) {
+            _savedScrollPos = document.getElementById('mainContent')?.scrollTop || 0;
             const data = pickingUnifiedData;
             if (!data[idx]) return;
             pdCurrentCmd = data[idx];
@@ -6866,6 +6876,7 @@
             if (detail) detail.style.display = 'none';
             if (listView) listView.style.display = '';
             pdCurrentCmd = null;
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = _savedScrollPos; }, 50);
         }
 
         function renderPdProduits() {
