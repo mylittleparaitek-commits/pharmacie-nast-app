@@ -7124,10 +7124,7 @@
         // ══════════════════════════════════════════════════
         // 🟣 PICKING MONTFERMEIL
         // ══════════════════════════════════════════════════
-        const MONTF_SHEET_ID  = '1rP6I9GC9DfeB-c_7sZglpherw2gdSt2YKvDzmTmDDCw';
-        const MONTF_SHEET_GID = '476401044';
-        const MONTF_CSV_URL   = 'https://docs.google.com/spreadsheets/d/' + MONTF_SHEET_ID + '/export?format=csv&gid=' + MONTF_SHEET_GID;
-        let montfChecked = {};
+        const MONTF_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXlvAmyixl9AHfofVt6Lip-r3MLrbaVUh9odTblPnG0-EYrdupt82i7ZvhWMRqldndcVawJh9tJCJu/pub?gid=476401044&single=true&output=csv';
 
         async function loadMontfermeil() {
             const loading = document.getElementById('montfLoading');
@@ -7138,32 +7135,37 @@
             list.innerHTML = '';
             summary.style.display = 'none';
             try {
-                // Passer par l'agrégateur Apps Script comme proxy (évite CORS)
-                const url  = APPS_SCRIPT_AGREGATEUR + '?action=montfermeil&t=' + Date.now();
-                const res  = await fetch(url);
-                const data = await res.json();
+                const res  = await fetch(MONTF_CSV_URL + '&t=' + Date.now());
+                const text = await res.text();
+                const rows = parseMontfCsv(text).slice(1).filter(r => r[0] || r[1]);
 
-                if (data.error) throw new Error(data.error);
+                const byCommande = {};
+                const allItems   = [];
 
-                const allItems = data.items || [];
+                rows.forEach(r => {
+                    const ean      = (r[0]||'').trim();
+                    const nom      = (r[1]||'').trim();
+                    const qte      = parseInt(r[2])||1;
+                    const commande = (r[3]||'').trim();
+                    const stockM   = (r[4]||'').trim();
+                    if (!nom) return;
+                    const manquant = stockM.toLowerCase()==='non trouvé' || stockM==='' || stockM.toLowerCase()==='non trouve';
+                    const item = {ean, nom, qte, commande, stockM, manquant};
+                    allItems.push(item);
+                    if (!byCommande[commande]) byCommande[commande] = [];
+                    byCommande[commande].push(item);
+                });
 
-                document.getElementById('montfNbProduits').textContent = data.total    || 0;
-                document.getElementById('montfNbDispo').textContent    = data.dispo    || 0;
-                document.getElementById('montfNbManquant').textContent = data.manquant || 0;
+                document.getElementById('montfNbProduits').textContent = allItems.length;
+                document.getElementById('montfNbDispo').textContent    = allItems.filter(i=>!i.manquant).length;
+                document.getElementById('montfNbManquant').textContent = allItems.filter(i=>i.manquant).length;
                 summary.style.display = 'block';
                 document.getElementById('montfLastUpdate').textContent =
                     'Actualisé à ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 
-                // Grouper par commande
-                const byCommande = {};
-                allItems.forEach(item => {
-                    if (!byCommande[item.commande]) byCommande[item.commande] = [];
-                    byCommande[item.commande].push(item);
-                });
-
                 renderMontfermeil(byCommande, allItems);
             } catch(e) {
-                list.innerHTML = '<div style="text-align:center;padding:30px;color:#c62828;">❌ ' + e.message + '<br><small style="color:#aaa;margin-top:6px;display:block;">Vérifier la configuration du script agrégateur</small></div>';
+                list.innerHTML = '<div style="text-align:center;padding:30px;color:#c62828;">❌ ' + e.message + '</div>';
             }
             loading.style.display = 'none';
         }
