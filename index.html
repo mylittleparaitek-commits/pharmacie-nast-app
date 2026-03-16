@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#ffffff">
     <title>Pharmacie Nast — Gestion</title>
     <link rel="manifest" href="manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             /* Couleurs Pharmacie Nast — inspirées de mapharmacienast.com */
@@ -146,49 +146,6 @@
             background: var(--bg-secondary);
         }
 
-        /* ─── TAB BAR (supprimée) ─── */
-
-        .tab-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            padding: 5px 2px;
-            border: none;
-            background: none;
-            color: var(--text-muted);
-            font-family: var(--font-body);
-            font-size: 9px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: color 0.2s;
-            position: relative;
-            letter-spacing: -0.2px;
-        }
-
-        .tab-item.active {
-            color: var(--nast-pink);
-        }
-
-        .tab-item.active .tab-icon-wrap {
-            background: var(--nast-pink-light);
-        }
-
-        .tab-icon-wrap {
-            width: 36px;
-            height: 24px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-
-        .tab-icon {
-            width: 18px;
-            height: 18px;
-        }
 
         /* ─── CARDS ─── */
         .card {
@@ -2704,6 +2661,7 @@
         // ─── STATE ───
         const state = { photos: [], recentReceptions: [], labos: [], site: 'NAST' };
         const delpechState = { photos: [], facturation: 'paye' };
+        let montfChecked = {};
 
         const DEFAULT_LABOS = [
             'ABBOTT', 'ACCU-CHECK', 'ARROW', 'BAUSCH & LOMB', 'BAYER', 'BIOGARAN',
@@ -2725,6 +2683,10 @@
             document.getElementById('panelInternet').style.display = 'none';
             document.getElementById('panelPharma').style.display = 'none';
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+
+            // Remonter le scroll en haut
+            const contentEl = document.querySelector('.content');
+            if (contentEl) contentEl.scrollTop = 0;
             
             const sectionMap = {
                 'pharma': 'sectionPharma',
@@ -3306,8 +3268,8 @@
                             </svg>
                         </div>
                         <div class="recent-item-info">
-                            <div class="recent-item-title">${labo || '—'}</div>
-                            <div class="recent-item-meta">${receptionnaire || '—'} · ${nbPhotos || '?'} page(s) · ${dateStr}</div>
+                            <div class="recent-item-title">${escapeHtml(labo) || '—'}</div>
+                            <div class="recent-item-meta">${escapeHtml(receptionnaire) || '—'} · ${escapeHtml(nbPhotos) || '?'} page(s) · ${dateStr}</div>
                         </div>
                     </div>`;
                 }).join('');
@@ -3408,18 +3370,18 @@
             const list = document.getElementById('commandesList');
             list.innerHTML = commandesData.map((c, idx) => {
                 const d = new Date(c.date);
-                const dateStr = isNaN(d) ? c.date : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-                const statut = c.statut?.trim() || '';
-                const statutClass = statut.toLowerCase().includes('docmorris') ? 'statut-docmorris' : statut.toLowerCase().includes('payplug') ? 'statut-payplug' : 'statut-autre';
+                const dateStr = isNaN(d) ? escapeHtml(c.date) : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+                const statut = escapeHtml(c.statut?.trim() || '');
+                const statutClass = (c.statut||'').toLowerCase().includes('docmorris') ? 'statut-docmorris' : (c.statut||'').toLowerCase().includes('payplug') ? 'statut-payplug' : 'statut-autre';
                 return `<div class="commande-card" onclick="openCommandeDetail(${idx})">
                     <div class="commande-card-top">
-                        <span class="commande-ref">#${c.num}</span>
+                        <span class="commande-ref">#${escapeHtml(c.num)}</span>
                         <span class="commande-statut ${statutClass}">${statut}</span>
                     </div>
-                    <div class="commande-client">${c.client || '—'}</div>
+                    <div class="commande-client">${escapeHtml(c.client) || '—'}</div>
                     <div class="commande-meta">
                         <span>📦 ${c.produits.length} produit(s)</span>
-                        <span>📍 ${c.ville || '—'}</span>
+                        <span>📍 ${escapeHtml(c.ville) || '—'}</span>
                         <span>🕐 ${dateStr}</span>
                     </div>
                 </div>`;
@@ -3802,18 +3764,18 @@
             const list = document.getElementById('mlpList');
             list.innerHTML = mlpData.map((c, idx) => {
                 const d = new Date(c.date);
-                const dateStr = isNaN(d) ? c.date : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-                const statut = c.statut?.trim() || '';
-                const statutClass = statut.toLowerCase().includes('docmorris') ? 'statut-docmorris' : statut.toLowerCase().includes('payplug') ? 'statut-payplug' : 'statut-autre';
+                const dateStr = isNaN(d) ? escapeHtml(c.date) : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+                const statut = escapeHtml(c.statut?.trim() || '');
+                const statutClass = (c.statut||'').toLowerCase().includes('docmorris') ? 'statut-docmorris' : (c.statut||'').toLowerCase().includes('payplug') ? 'statut-payplug' : 'statut-autre';
                 return `<div class="commande-card" onclick="openMlpDetail(${idx})">
                     <div class="commande-card-top">
-                        <span class="commande-ref">#${c.num}</span>
+                        <span class="commande-ref">#${escapeHtml(c.num)}</span>
                         <span class="commande-statut ${statutClass}">${statut}</span>
                     </div>
-                    <div class="commande-client">${c.client || '—'}</div>
+                    <div class="commande-client">${escapeHtml(c.client) || '—'}</div>
                     <div class="commande-meta">
                         <span>📦 ${c.produits.length} produit(s)</span>
-                        <span>📍 ${c.ville || '—'}</span>
+                        <span>📍 ${escapeHtml(c.ville) || '—'}</span>
                         <span>🕐 ${dateStr}</span>
                     </div>
                 </div>`;
@@ -4216,15 +4178,15 @@
                 preview = preview.substring(0, 120);
                 return `<div class="sav-ticket" onclick="openSavDetail(${idx})">
                     <div class="sav-ticket-top">
-                        <div class="sav-ticket-sujet">${urgDot}${t.sujet}</div>
-                        <span class="sav-badge ${badgeClass}">${t.statut}</span>
+                        <div class="sav-ticket-sujet">${urgDot}${escapeHtml(t.sujet)}</div>
+                        <span class="sav-badge ${badgeClass}">${escapeHtml(t.statut)}</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 2px;">
-                        <div class="sav-ticket-from" style="margin:0;">✉ ${fromName}</div>
+                        <div class="sav-ticket-from" style="margin:0;">✉ ${escapeHtml(fromName)}</div>
                         <div class="sav-ticket-date" style="margin:0;white-space:nowrap;">🕐 ${dateStr}</div>
                     </div>
-                    ${t.categorie ? `<div style="margin:4px 0 2px;"><span style="font-size:11px;background:#f0f2f5;padding:2px 8px;border-radius:8px;color:#555;">${catIcon} ${t.categorie.replace('_',' ')}</span></div>` : ''}
-                    <div class="sav-ticket-preview" style="margin-top:6px;color:#444;font-size:13px;line-height:1.4;">${preview}${preview.length >= 120 ? '…' : ''}</div>
+                    ${t.categorie ? `<div style="margin:4px 0 2px;"><span style="font-size:11px;background:#f0f2f5;padding:2px 8px;border-radius:8px;color:#555;">${catIcon} ${escapeHtml(t.categorie.replace('_',' '))}</span></div>` : ''}
+                    <div class="sav-ticket-preview" style="margin-top:6px;color:#444;font-size:13px;line-height:1.4;">${escapeHtml(preview)}${preview.length >= 120 ? '…' : ''}</div>
                 </div>`;
             }).join('');
         }
@@ -4371,6 +4333,7 @@
 
         async function marquerResolu() {
             if (!currentTicket) return;
+            if (!confirm('Marquer ce ticket comme résolu ?')) return;
             const webhookUrl = getVal('sav_webhook_url');
             if (webhookUrl) {
                 try {
@@ -4476,12 +4439,12 @@
                 const urgDot = urgColor ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${urgColor};margin-right:4px;"></span>` : '';
                 return `<div class="sav-ticket" onclick="openSavNastDetail(${idx})">
                     <div class="sav-ticket-top">
-                        <div class="sav-ticket-sujet">${t.sujet}</div>
-                        <span class="sav-badge ${badgeClass}">${t.statut}</span>
+                        <div class="sav-ticket-sujet">${escapeHtml(t.sujet)}</div>
+                        <span class="sav-badge ${badgeClass}">${escapeHtml(t.statut)}</span>
                     </div>
-                    <div class="sav-ticket-from">${urgDot}✉ ${t.expediteur}</div>
-                    ${t.categorie ? `<div style="margin:4px 0;"><span style="font-size:11px;background:#f0f2f5;padding:2px 8px;border-radius:8px;color:#555;">${catIcon} ${t.categorie.replace('_',' ')}</span></div>` : ''}
-                    <div class="sav-ticket-preview">${preview}${preview.length >= 80 ? '…' : ''}</div>
+                    <div class="sav-ticket-from">${urgDot}✉ ${escapeHtml(t.expediteur)}</div>
+                    ${t.categorie ? `<div style="margin:4px 0;"><span style="font-size:11px;background:#f0f2f5;padding:2px 8px;border-radius:8px;color:#555;">${catIcon} ${escapeHtml(t.categorie.replace('_',' '))}</span></div>` : ''}
+                    <div class="sav-ticket-preview">${escapeHtml(preview)}${preview.length >= 80 ? '…' : ''}</div>
                     <div class="sav-ticket-date">🕐 ${dateStr}</div>
                 </div>`;
             }).join('');
@@ -4578,6 +4541,7 @@
 
         async function marquerResoluNast() {
             if (!currentNastTicket) return;
+            if (!confirm('Marquer ce ticket comme résolu ?')) return;
             const webhookUrl = getVal('sav_nast_webhook_url');
             if (webhookUrl) {
                 try {
@@ -4592,17 +4556,6 @@
             showToast('✅ Ticket marqué comme résolu', 'success');
         }
 
-
-        function switchSubtab(section, panel, btn) {
-            // Legacy — redirigé vers switchSection
-            return;
-            
-            // Charger les données si TODO
-            if (panel === 'todo') {
-                if (section === 'nast') loadTodoNast();
-                else loadTodoWeb();
-            }
-        }
 
 
         // ─── TODO NAST + WEB + PHARMA ───
@@ -5231,6 +5184,12 @@
         function getVal(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
         function setVal(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
+        // ─── HTML SANITIZER ───
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
         // ─── TOAST ───
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
@@ -5514,7 +5473,6 @@
         const APPS_SCRIPT_NAST = APPS_SCRIPT_AGREGATEUR;
         let _statsCacheTime = 0;
         const STATS_CACHE_TTL = 60 * 1000;
-        let montfChecked = {};
 
         init();
 
@@ -6623,7 +6581,7 @@
             legend.style.flexWrap = 'wrap';
             legend.style.gap = '6px';
             legend.innerHTML = data.map((c, i) =>
-                `<span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:10px;color:white;background:${cmdColorMap[c.num]};cursor:pointer;" onclick="openPickingDetailInline(${i})">#${c.num} ${(c.client||'').split(' ')[0]}</span>`
+                `<span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:10px;color:white;background:${cmdColorMap[c.num]};cursor:pointer;" onclick="openPickingDetailInline(${i})">#${escapeHtml(c.num)} ${escapeHtml((c.client||'').split(' ')[0])}</span>`
             ).join('');
 
             // Grouper par EAN
@@ -6658,14 +6616,14 @@
                 const isPicked = pickingUnifiedChecked[key];
                 const stock = getStockInfo(item);
                 const cmdsHtml = item.commandes.map(c =>
-                    `<span class="pick-cmd-tag" style="background:${c.color};cursor:pointer;" onclick="event.stopPropagation();openPickingDetailInline(${c.idx})">#${c.num} ×${c.qty}</span>`
+                    `<span class="pick-cmd-tag" style="background:${c.color};cursor:pointer;" onclick="event.stopPropagation();openPickingDetailInline(${c.idx})">#${escapeHtml(c.num)} ×${c.qty}</span>`
                 ).join('');
                 return `<div class="pick-item ${isPicked?'picked':''}" style="${(stock.bg?'background:'+stock.bg+';':'')+(stock.border||'')}">
-                    <div class="pick-main" onclick="togglePickingUnified('${key}')">
+                    <div class="pick-main" onclick="togglePickingUnified('${key.replace(/'/g,'\\&#39;')}')">
                         <div class="pick-check">${isPicked?'✓':''}</div>
                         <div class="pick-body">
-                            <div class="pick-nom">${item.nom||'Produit inconnu'}</div>
-                            <div class="pick-ean">${item.ean||''}</div>
+                            <div class="pick-nom">${escapeHtml(item.nom)||'Produit inconnu'}</div>
+                            <div class="pick-ean">${escapeHtml(item.ean)||''}</div>
                             <div style="margin-top:2px;"><span style="font-size:10px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:1px 6px;border-radius:5px;">${stock.label}</span></div>
                         </div>
                         <div class="pick-qty-total">${item.totalQty}</div>
@@ -7102,12 +7060,12 @@
                     const bg = type.includes('probleme')||type.includes('problème') ? 'rgba(231,76,60,0.06)' : type.includes('sav') ? 'rgba(255,152,0,0.06)' : '#f7f9fb';
                     return `<div style="background:${bg};border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border);">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                            <span style="font-weight:600;font-size:13px;">${icon} ${t.type||'Tâche'}</span>
-                            <span style="font-size:11px;color:#888;">${t.date||''}</span>
+                            <span style="font-weight:600;font-size:13px;">${icon} ${escapeHtml(t.type)||'Tâche'}</span>
+                            <span style="font-size:11px;color:#888;">${escapeHtml(t.date)||''}</span>
                         </div>
-                        <div style="font-size:13px;color:var(--text-primary);">${t.message||t.contenu||''}</div>
-                        ${t.numCommande?`<div style="margin-top:4px;font-size:11px;color:#1976D2;font-weight:600;">#${t.numCommande}</div>`:''}
-                        ${t.reponse?`<div style="margin-top:6px;padding:8px;background:#e8f5e9;border-radius:8px;font-size:12px;color:#2e7d32;">✅ ${t.reponse}</div>`:''}
+                        <div style="font-size:13px;color:var(--text-primary);">${escapeHtml(t.message||t.contenu||'')}</div>
+                        ${t.numCommande?`<div style="margin-top:4px;font-size:11px;color:#1976D2;font-weight:600;">#${escapeHtml(t.numCommande)}</div>`:''}
+                        ${t.reponse?`<div style="margin-top:6px;padding:8px;background:#e8f5e9;border-radius:8px;font-size:12px;color:#2e7d32;">✅ ${escapeHtml(t.reponse)}</div>`:''}
                     </div>`;
                 }).join('');
             } catch(e) {
@@ -7167,7 +7125,7 @@
                 html += `<div style="background:white;border-radius:16px;border:1.5px solid #e1bee7;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 8px rgba(123,31,162,0.06);">
                     <div style="background:linear-gradient(135deg,#7B1FA2,#9C27B0);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
                         <div>
-                            <div style="font-size:13px;font-weight:800;color:white;">📦 ${commande}</div>
+                            <div style="font-size:13px;font-weight:800;color:white;">📦 ${escapeHtml(commande)}</div>
                             <div style="font-size:10px;color:rgba(255,255,255,0.75);margin-top:2px;">${items.length} produit${items.length>1?'s':''}</div>
                         </div>
                         <div style="display:flex;gap:6px;">
@@ -7189,10 +7147,10 @@
                                     ${checked?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}
                                 </div>
                                 <div style="flex:1;min-width:0;">
-                                    <div style="font-size:13px;font-weight:700;color:${manquant?'#c62828':'#1a2332'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${checked?'text-decoration:line-through;':''}">${item.nom}</div>
-                                    <div style="font-size:10px;color:#aaa;margin-top:1px;">${item.ean||'—'}</div>
+                                    <div style="font-size:13px;font-weight:700;color:${manquant?'#c62828':'#1a2332'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${checked?'text-decoration:line-through;':''}">${escapeHtml(item.nom)}</div>
+                                    <div style="font-size:10px;color:#aaa;margin-top:1px;">${escapeHtml(item.ean)||'—'}</div>
                                 </div>
-                                <div style="background:#7B1FA2;color:white;font-size:13px;font-weight:800;padding:4px 10px;border-radius:8px;flex-shrink:0;">×${item.qte}</div>
+                                <div style="background:#7B1FA2;color:white;font-size:13px;font-weight:800;padding:4px 10px;border-radius:8px;flex-shrink:0;">×${escapeHtml(item.qte)}</div>
                                 <div style="background:${sb};color:${sc};font-size:10px;font-weight:700;padding:4px 8px;border-radius:8px;flex-shrink:0;text-align:center;min-width:70px;">${st}</div>
                             </div>`;
                         }).join('')}
@@ -7218,23 +7176,6 @@
             }
             const nameEl = row.querySelector('div:nth-child(3) div:first-child');
             if (nameEl) nameEl.style.textDecoration = checked ? 'line-through' : 'none';
-        }
-
-        function parseMontfCsv(text) {
-            const rows = [];
-            text.split('\n').forEach(line => {
-                if (!line.trim()) return;
-                const cols = []; let cur = '', inQ = false;
-                for (let i = 0; i < line.length; i++) {
-                    const c = line[i];
-                    if (c === '"') inQ = !inQ;
-                    else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-                    else cur += c;
-                }
-                cols.push(cur.trim());
-                rows.push(cols);
-            });
-            return rows;
         }
 
     </script>
