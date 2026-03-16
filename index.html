@@ -7650,7 +7650,7 @@
                             type: 'produit', typeLabel: 'PRODUIT', color: '#43A047', bg: '#e8f5e9',
                             title: escapeHtml(p.nom || key),
                             meta: 'EAN ' + escapeHtml(p.ean) + ' · Nast: ' + sN + ' / Montf: ' + sM,
-                            action: null
+                            action: (() => { const ean = p.ean; return () => showCommandesForProduct(ean); })()
                         });
                     }
                 });
@@ -7689,6 +7689,59 @@
                 document.getElementById('globalSearchClear').classList.remove('visible');
                 action();
             }
+        }
+
+        function showCommandesForProduct(ean) {
+            if (!ean) return;
+            const results = [];
+
+            // Trouver toutes les commandes Nast contenant ce produit
+            commandesData.forEach((c, idx) => {
+                const match = c.produits.find(p => String(p.ean) === String(ean));
+                if (match) {
+                    results.push({
+                        type: 'nast', typeLabel: 'NAST', color: '#1976D2', bg: '#e3f2fd',
+                        title: '#' + escapeHtml(c.num) + ' — ' + escapeHtml(c.client) + ' <span style="font-size:12px;color:#666;font-weight:400;">× ' + match.qty + '</span>',
+                        meta: c.produits.length + ' produits · ' + escapeHtml(c.statut || ''),
+                        action: () => { openSection('nastcom'); setTimeout(() => openCommandeDetail(idx), 200); }
+                    });
+                }
+            });
+
+            // Trouver toutes les commandes MLP contenant ce produit
+            mlpData.forEach((c, idx) => {
+                const match = c.produits.find(p => String(p.ean) === String(ean));
+                if (match) {
+                    results.push({
+                        type: 'mlp', typeLabel: 'MLP', color: '#9C27B0', bg: '#f3e5f5',
+                        title: '#' + escapeHtml(c.num) + ' — ' + escapeHtml(c.client) + ' <span style="font-size:12px;color:#666;font-weight:400;">× ' + match.qty + '</span>',
+                        meta: c.produits.length + ' produits · ' + escapeHtml(c.statut || ''),
+                        action: () => { openSection('mlp'); setTimeout(() => openMlpDetail(idx), 200); }
+                    });
+                }
+            });
+
+            // Mettre l'EAN dans la barre de recherche
+            const input = document.getElementById('globalSearchInput');
+            input.value = ean;
+            document.getElementById('globalSearchClear').classList.add('visible');
+
+            // Afficher les résultats
+            const container = document.getElementById('globalSearchResults');
+            if (!results.length) {
+                container.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">Aucune commande ne contient ce produit (EAN ' + escapeHtml(ean) + ')</div>';
+            } else {
+                const header = '<div style="padding:10px 14px;font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border-light);">' + results.length + ' commande' + (results.length > 1 ? 's' : '') + ' avec ce produit</div>';
+                container.innerHTML = header + results.map((r, i) => {
+                    return '<div class="search-result-item" onclick="searchResultClick(' + i + ')">' +
+                        '<span class="search-result-type" style="background:' + r.bg + ';color:' + r.color + ';">' + r.typeLabel + '</span>' +
+                        '<div class="search-result-title">' + r.title + '</div>' +
+                        '<div class="search-result-meta">' + r.meta + '</div>' +
+                    '</div>';
+                }).join('');
+            }
+            container.classList.add('show');
+            window._searchActions = results.map(r => r.action);
         }
 
         // ══════════════════════════════════════════════════
