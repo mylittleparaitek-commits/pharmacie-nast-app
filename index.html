@@ -2641,7 +2641,7 @@
     </div>
 
     <!-- Section placeholder pour le routage -->
-    <div class="section-view" id="sectionEcran" style="display:none;"></div>
+    <div class="section-view" id="sectionEcran"></div>
 
     <!-- ═══ SECTION PICKING MONTFERMEIL ═══ -->
     <div class="section-view" id="sectionMontfermeil">
@@ -5505,22 +5505,17 @@
             validateDelpechForm();
         }
 
-        init();
-
-        // ═══════════════════════════════════════════
-        // 📊 STATISTIQUES
-        // ═══════════════════════════════════════════
-
         // ══════════════════════════════════════════════════
-        // 📊 STATISTIQUES — 1 seul fetch vers l'agrégateur NAST+MLP
+        // 📊 STATISTIQUES — constantes (avant init)
         // ══════════════════════════════════════════════════
-
         const APPS_SCRIPT_AGREGATEUR = 'https://script.google.com/macros/s/AKfycbx0IVm_HupVvXwjT8yoBhrj2TwhsZzvQgAdZ2poumlqj2X5GuZjLTgyqNdO4VOy__f3/exec';
         const APPS_SCRIPT_MLP  = APPS_SCRIPT_AGREGATEUR;
         const APPS_SCRIPT_NAST = APPS_SCRIPT_AGREGATEUR;
+        let _statsCacheTime = 0;
+        const STATS_CACHE_TTL = 60 * 1000;
+        let montfChecked = {};
 
-        let currentStatsPeriod = 'jour';
-        let allStatsCommandes  = [];
+        init();
 
         function switchStatsPeriod(period, btn) {
             currentStatsPeriod = period;
@@ -5534,8 +5529,6 @@
             }
         }
 
-        let _statsCacheTime = 0;
-        const STATS_CACHE_TTL = 60 * 1000; // 1 minute
 
         async function loadStats() {
             const now = Date.now();
