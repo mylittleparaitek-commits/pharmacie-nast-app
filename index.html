@@ -2649,47 +2649,35 @@
             <button class="btn-back" onclick="goHome()">←</button>
             <div class="section-title">🟣 Picking Montfermeil</div>
         </div>
-
         <div style="padding:16px;">
-
-            <!-- Header avec refresh -->
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                <div>
-                    <div style="font-size:12px;color:var(--text-muted);" id="montfLastUpdate">—</div>
-                </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <div style="font-size:11px;color:var(--text-muted);" id="montfLastUpdate">—</div>
                 <button onclick="loadMontfermeil()" style="background:#7B1FA2;color:white;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                     Actualiser
                 </button>
             </div>
-
-            <!-- Loading -->
             <div id="montfLoading" style="text-align:center;padding:40px;display:none;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2" style="animation:spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
                 <p style="color:#7B1FA2;margin-top:8px;font-weight:600;">Chargement…</p>
             </div>
-
-            <!-- Résumé compteurs -->
-            <div id="montfSummary" style="display:none;margin-bottom:16px;">
+            <div id="montfSummary" style="display:none;margin-bottom:14px;">
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-                    <div style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border-radius:12px;padding:12px;text-align:center;border-left:3px solid #7B1FA2;">
-                        <div style="font-size:24px;font-weight:800;color:#7B1FA2;" id="montfNbProduits">0</div>
+                    <div style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border-radius:12px;padding:12px;text-align:center;">
+                        <div style="font-size:22px;font-weight:800;color:#7B1FA2;" id="montfNbProduits">0</div>
                         <div style="font-size:10px;color:#7B1FA2;font-weight:600;">Produits</div>
                     </div>
-                    <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:12px;padding:12px;text-align:center;border-left:3px solid #2e7d32;">
-                        <div style="font-size:24px;font-weight:800;color:#2e7d32;" id="montfNbDispo">0</div>
+                    <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:12px;padding:12px;text-align:center;">
+                        <div style="font-size:22px;font-weight:800;color:#2e7d32;" id="montfNbDispo">0</div>
                         <div style="font-size:10px;color:#2e7d32;font-weight:600;">Disponibles</div>
                     </div>
-                    <div style="background:linear-gradient(135deg,#ffebee,#ffcdd2);border-radius:12px;padding:12px;text-align:center;border-left:3px solid #c62828;">
-                        <div style="font-size:24px;font-weight:800;color:#c62828;" id="montfNbManquant">0</div>
+                    <div style="background:linear-gradient(135deg,#ffebee,#ffcdd2);border-radius:12px;padding:12px;text-align:center;">
+                        <div style="font-size:22px;font-weight:800;color:#c62828;" id="montfNbManquant">0</div>
                         <div style="font-size:10px;color:#c62828;font-weight:600;">Non trouvés</div>
                     </div>
                 </div>
             </div>
-
-            <!-- Liste des produits -->
             <div id="montfList"></div>
-
         </div>
     </div><!-- /sectionMontfermeil -->
 
@@ -2779,6 +2767,7 @@
             }
             if (section === 'photos') initPhotoSection();
             if (section === 'stats') loadStats();
+            if (section === 'ecran') openEcranMode();
             if (section === 'montfermeil') loadMontfermeil();
             if (section === 'pharma') {
                 // Check quel panel est actif
@@ -7017,6 +7006,7 @@
         }
 
 
+
         // ── Photo rapide sur vue détail commande MLP ──
         let mlpPhotos = [];
 
@@ -7100,6 +7090,7 @@
             btn.disabled = false; btn.textContent = '📸 Envoyer les photos';
         }
 
+
         // ── Tâches directes depuis webhook ──
         async function loadTachesDirectes() {
             const container = document.getElementById('tachesDirectesList');
@@ -7135,146 +7126,133 @@
         // ══════════════════════════════════════════════════
         const MONTF_SHEET_ID  = '1rP6I9GC9DfeB-c_7sZglpherw2gdSt2YKvDzmTmDDCw';
         const MONTF_SHEET_GID = '476401044';
-
-        // Lecture via export CSV public du sheet
-        const MONTF_CSV_URL = `https://docs.google.com/spreadsheets/d/${MONTF_SHEET_ID}/export?format=csv&gid=${MONTF_SHEET_GID}`;
-
-        let montfChecked = {}; // EAN → true si coché
+        const MONTF_CSV_URL   = 'https://docs.google.com/spreadsheets/d/' + MONTF_SHEET_ID + '/export?format=csv&gid=' + MONTF_SHEET_GID;
+        let montfChecked = {};
 
         async function loadMontfermeil() {
-            document.getElementById('montfLoading').style.display = 'block';
-            document.getElementById('montfList').innerHTML = '';
-            document.getElementById('montfSummary').style.display = 'none';
-
+            const loading = document.getElementById('montfLoading');
+            const list    = document.getElementById('montfList');
+            const summary = document.getElementById('montfSummary');
+            if (!loading) return;
+            loading.style.display = 'block';
+            list.innerHTML = '';
+            summary.style.display = 'none';
             try {
                 const res  = await fetch(MONTF_CSV_URL + '&t=' + Date.now());
                 const text = await res.text();
-                const rows = parseCSV(text);
-
-                // Skip header row
-                const data = rows.slice(1).filter(r => r[0] || r[1]); // EAN ou nom non vide
-
-                // Grouper par commande (col D = "Pour commande N")
+                const rows = parseMontfCsv(text).slice(1).filter(r => r[0] || r[1]);
                 const byCommande = {};
                 const allItems = [];
-
-                data.forEach(r => {
-                    const ean      = (r[0] || '').trim();
-                    const nom      = (r[1] || '').trim();
-                    const qte      = parseInt(r[2]) || 1;
-                    const commande = (r[3] || '').trim();
-                    const stockM   = (r[4] || '').trim();
-
+                rows.forEach(r => {
+                    const ean      = (r[0]||'').trim();
+                    const nom      = (r[1]||'').trim();
+                    const qte      = parseInt(r[2])||1;
+                    const commande = (r[3]||'').trim();
+                    const stockM   = (r[4]||'').trim();
                     if (!nom) return;
-
-                    const manquant = stockM.toLowerCase() === 'non trouvé' || stockM === '';
-                    allItems.push({ ean, nom, qte, commande, stockM, manquant });
-
+                    const manquant = stockM.toLowerCase()==='non trouvé' || stockM==='';
+                    const item = {ean, nom, qte, commande, stockM, manquant};
+                    allItems.push(item);
                     if (!byCommande[commande]) byCommande[commande] = [];
-                    byCommande[commande].push({ ean, nom, qte, stockM, manquant });
+                    byCommande[commande].push(item);
                 });
-
-                // Compteurs
-                const nbDispo    = allItems.filter(i => !i.manquant).length;
-                const nbManquant = allItems.filter(i => i.manquant).length;
-
                 document.getElementById('montfNbProduits').textContent = allItems.length;
-                document.getElementById('montfNbDispo').textContent    = nbDispo;
-                document.getElementById('montfNbManquant').textContent = nbManquant;
-                document.getElementById('montfSummary').style.display  = 'block';
-
-                // Timestamp
+                document.getElementById('montfNbDispo').textContent    = allItems.filter(i=>!i.manquant).length;
+                document.getElementById('montfNbManquant').textContent = allItems.filter(i=>i.manquant).length;
+                summary.style.display = 'block';
                 document.getElementById('montfLastUpdate').textContent =
-                    'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-
-                // Rendu
+                    'Actualisé à ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
                 renderMontfermeil(byCommande, allItems);
-
             } catch(e) {
-                document.getElementById('montfList').innerHTML =
-                    `<div style="text-align:center;padding:30px;color:#c62828;">
-                        ❌ Erreur de chargement<br>
-                        <small style="color:#aaa;">Vérifier que le sheet est bien partagé en lecture publique</small>
-                    </div>`;
+                list.innerHTML = '<div style="text-align:center;padding:30px;color:#c62828;">❌ ' + e.message + '<br><small style="color:#aaa;margin-top:6px;display:block;">Vérifier que le sheet est partagé en lecture publique</small></div>';
             }
-
-            document.getElementById('montfLoading').style.display = 'none';
+            loading.style.display = 'none';
         }
 
         function renderMontfermeil(byCommande, allItems) {
             const list = document.getElementById('montfList');
-
             if (!allItems.length) {
-                list.innerHTML = `<div style="text-align:center;padding:40px;">
-                    <div style="font-size:40px;margin-bottom:12px;">✅</div>
-                    <div style="font-size:16px;font-weight:700;color:#2e7d32;">Rien à récupérer !</div>
-                    <div style="font-size:13px;color:#aaa;margin-top:4px;">La liste est vide</div>
-                </div>`;
+                list.innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:40px;">✅</div><div style="font-size:16px;font-weight:700;color:#2e7d32;margin-top:12px;">Rien à récupérer !</div></div>';
                 return;
             }
-
             let html = '';
-
-            // Trier commandes : disponibles d'abord, "Non trouvé" à la fin
-            const commandes = Object.keys(byCommande).sort();
-
-            commandes.forEach(commande => {
+            Object.keys(byCommande).sort().forEach(commande => {
                 const items = byCommande[commande];
-                const nbOk  = items.filter(i => !i.manquant).length;
-                const nbKo  = items.filter(i => i.manquant).length;
-
+                const nbOk  = items.filter(i=>!i.manquant).length;
+                const nbKo  = items.filter(i=>i.manquant).length;
                 html += `<div style="background:white;border-radius:16px;border:1.5px solid #e1bee7;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 8px rgba(123,31,162,0.06);">
-                    <!-- Header commande -->
                     <div style="background:linear-gradient(135deg,#7B1FA2,#9C27B0);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
                         <div>
-                            <div style="font-size:13px;font-weight:800;color:white;letter-spacing:0.5px;">📦 ${commande}</div>
+                            <div style="font-size:13px;font-weight:800;color:white;">📦 ${commande}</div>
                             <div style="font-size:10px;color:rgba(255,255,255,0.75);margin-top:2px;">${items.length} produit${items.length>1?'s':''}</div>
                         </div>
                         <div style="display:flex;gap:6px;">
-                            ${nbOk > 0 ? `<span style="background:rgba(255,255,255,0.2);color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">✅ ${nbOk} ok</span>` : ''}
-                            ${nbKo > 0 ? `<span style="background:rgba(255,80,80,0.3);color:#ffcdd2;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">❌ ${nbKo} manq.</span>` : ''}
+                            ${nbOk>0?`<span style="background:rgba(255,255,255,0.2);color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">✅ ${nbOk}</span>`:''}
+                            ${nbKo>0?`<span style="background:rgba(255,80,80,0.3);color:#ffcdd2;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">❌ ${nbKo}</span>`:''}
                         </div>
                     </div>
-
-                    <!-- Produits -->
                     <div style="padding:8px;">
-                        ${items.map((item, idx) => {
-                            const id       = `montf_${commande}_${idx}`.replace(/\s+/g,'_');
-                            const checked  = montfChecked[id] || false;
+                        ${items.map((item,idx)=>{
+                            const id = ('m_'+commande+'_'+idx).replace(/[^a-zA-Z0-9_]/g,'_');
+                            const checked  = montfChecked[id]||false;
                             const manquant = item.manquant;
-
-                            const rowBg   = manquant ? '#fff8f8' : checked ? '#f1f8e9' : 'white';
-                            const rowOpac = checked ? 'opacity:0.5;' : '';
-                            const stockBg = manquant ? '#ffebee' : parseInt(item.stockM) > 5 ? '#e8f5e9' : '#fff3e0';
-                            const stockCo = manquant ? '#c62828' : parseInt(item.stockM) > 5 ? '#2e7d32' : '#e65100';
-                            const stockTx = manquant ? 'Non trouvé' : item.stockM + ' en stock';
-
-                            return `<div onclick="toggleMontfItem('${id}', this)" style="display:flex;align-items:center;gap:10px;padding:11px 10px;border-radius:12px;margin-bottom:6px;background:${rowBg};${rowOpac}border:1.5px solid ${manquant ? '#ffcdd2' : checked ? '#c5e1a5' : '#f0f0f0'};cursor:pointer;transition:all 0.2s;" id="montfRow_${id}">
-                                <!-- Checkbox visuel -->
-                                <div style="width:28px;height:28px;border-radius:8px;border:2px solid ${checked ? '#4CAF50' : manquant ? '#ef9a9a' : '#ddd'};background:${checked ? '#4CAF50' : 'white'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;">
-                                    ${checked ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                            const sM = parseInt(item.stockM)||0;
+                            const sc = manquant?'#c62828':sM>5?'#2e7d32':'#e65100';
+                            const sb = manquant?'#ffebee':sM>5?'#e8f5e9':'#fff3e0';
+                            const st = manquant?'Non trouvé':item.stockM+' en stock';
+                            return `<div onclick="toggleMontfItem('${id}')" id="mRow_${id}" style="display:flex;align-items:center;gap:10px;padding:11px 10px;border-radius:12px;margin-bottom:6px;background:${manquant?'#fff8f8':checked?'#f1f8e9':'white'};opacity:${checked?0.55:1};border:1.5px solid ${manquant?'#ffcdd2':checked?'#c5e1a5':'#f0f0f0'};cursor:pointer;transition:all 0.15s;">
+                                <div style="width:28px;height:28px;border-radius:8px;border:2px solid ${checked?'#4CAF50':manquant?'#ef9a9a':'#ddd'};background:${checked?'#4CAF50':'white'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;">
+                                    ${checked?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}
                                 </div>
-                                <!-- Info produit -->
                                 <div style="flex:1;min-width:0;">
                                     <div style="font-size:13px;font-weight:700;color:${manquant?'#c62828':'#1a2332'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${checked?'text-decoration:line-through;':''}">${item.nom}</div>
-                                    <div style="font-size:10px;color:#aaa;margin-top:1px;">${item.ean || '—'}</div>
+                                    <div style="font-size:10px;color:#aaa;margin-top:1px;">${item.ean||'—'}</div>
                                 </div>
-                                <!-- Qté -->
                                 <div style="background:#7B1FA2;color:white;font-size:13px;font-weight:800;padding:4px 10px;border-radius:8px;flex-shrink:0;">×${item.qte}</div>
-                                <!-- Stock -->
-                                <div style="background:${stockBg};color:${stockCo};font-size:10px;font-weight:700;padding:4px 8px;border-radius:8px;flex-shrink:0;text-align:center;min-width:60px;">${stockTx}</div>
+                                <div style="background:${sb};color:${sc};font-size:10px;font-weight:700;padding:4px 8px;border-radius:8px;flex-shrink:0;text-align:center;min-width:70px;">${st}</div>
                             </div>`;
                         }).join('')}
                     </div>
                 </div>`;
             });
-
             list.innerHTML = html;
         }
 
-        function toggleMontfItem(id, el) {
+        function toggleMontfItem(id) {
             montfChecked[id] = !montfChecked[id];
-            // Re-render juste cette ligne
-            loadMontfermeil();
+            const row = document.getElementById('mRow_' + id);
+            if (!row) return;
+            const checked = montfChecked[id];
+            row.style.opacity = checked ? '0.55' : '1';
+            row.style.background = checked ? '#f1f8e9' : (row.style.background.includes('#fff8f8') ? '#fff8f8' : 'white');
+            row.style.borderColor = checked ? '#c5e1a5' : (row.style.borderColor.includes('ffcdd2') ? '#ffcdd2' : '#f0f0f0');
+            const box = row.querySelector('div:first-child');
+            if (box) {
+                box.style.borderColor = checked ? '#4CAF50' : (box.style.borderColor === '#4CAF50' ? '#ddd' : box.style.borderColor);
+                box.style.background  = checked ? '#4CAF50' : 'white';
+                box.innerHTML = checked ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '';
+            }
+            const nameEl = row.querySelector('div:nth-child(3) div:first-child');
+            if (nameEl) nameEl.style.textDecoration = checked ? 'line-through' : 'none';
         }
 
+        function parseMontfCsv(text) {
+            const rows = [];
+            text.split('\n').forEach(line => {
+                if (!line.trim()) return;
+                const cols = []; let cur = '', inQ = false;
+                for (let i = 0; i < line.length; i++) {
+                    const c = line[i];
+                    if (c === '"') inQ = !inQ;
+                    else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+                    else cur += c;
+                }
+                cols.push(cur.trim());
+                rows.push(cols);
+            });
+            return rows;
+        }
+
+    </script>
+</body>
+</html>
