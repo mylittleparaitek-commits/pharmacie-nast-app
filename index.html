@@ -1571,8 +1571,8 @@
                     </div>
                 </div>
 
-                <!-- Bloc NAST + MLP côte à côte -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                <!-- Bloc NAST + MLP + LCDP côte à côte -->
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
 
                     <!-- BLOC NAST -->
                     <div onclick="openSection('nastcom')" style="position:relative;background:white;border-radius:16px;border:1.5px solid #bbdefb;padding:16px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(25,118,210,0.08);transition:all 0.18s;active:transform:scale(0.97);" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
@@ -1580,8 +1580,8 @@
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                             <div style="width:36px;height:36px;border-radius:10px;background:#e3f2fd;display:flex;align-items:center;justify-content:center;font-size:20px;">🛒</div>
                             <div>
-                                <div style="font-size:13px;font-weight:700;color:#1976D2;">NAST.COM</div>
-                                <div style="font-size:10px;color:var(--text-muted);">Commandes · Picking</div>
+                                <div style="font-size:13px;font-weight:700;color:#1976D2;">NAST</div>
+                                <div style="font-size:10px;color:var(--text-muted);">Commandes</div>
                             </div>
                         </div>
                         <div style="display:flex;gap:8px;">
@@ -1602,8 +1602,8 @@
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                             <div style="width:36px;height:36px;border-radius:10px;background:#f3e5f5;display:flex;align-items:center;justify-content:center;font-size:20px;">💜</div>
                             <div>
-                                <div style="font-size:13px;font-weight:700;color:#9C27B0;">MY LITTLE PARA</div>
-                                <div style="font-size:10px;color:var(--text-muted);">Commandes · SAV</div>
+                                <div style="font-size:13px;font-weight:700;color:#9C27B0;">MLP</div>
+                                <div style="font-size:10px;color:var(--text-muted);">Commandes</div>
                             </div>
                         </div>
                         <div style="display:flex;gap:8px;">
@@ -1614,6 +1614,28 @@
                             <div style="flex:1;text-align:center;">
                                 <div style="font-size:22px;font-weight:800;color:#43A047;" id="kpiMlpMontf">—</div>
                                 <div style="font-size:10px;color:var(--text-muted);">↗ Montf</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BLOC LCDP -->
+                    <div onclick="openSection('lcdp')" style="position:relative;background:white;border-radius:16px;border:1.5px solid #ffe0b2;padding:16px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,0.08);transition:all 0.18s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+                        <div class="home-badge" id="badgeLcdp">0</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:#fff3e0;display:flex;align-items:center;justify-content:center;font-size:20px;">🏪</div>
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#FF6F00;">LCDP</div>
+                                <div style="font-size:10px;color:var(--text-muted);">Comptoir</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <div style="flex:1;text-align:center;">
+                                <div style="font-size:22px;font-weight:800;color:#FF6F00;" id="kpiLcdpCmds">—</div>
+                                <div style="font-size:10px;color:var(--text-muted);">À traiter</div>
+                            </div>
+                            <div style="flex:1;text-align:center;">
+                                <div style="font-size:22px;font-weight:800;color:#43A047;" id="kpiLcdpCA">—</div>
+                                <div style="font-size:10px;color:var(--text-muted);">CA jour</div>
                             </div>
                         </div>
                     </div>
@@ -2312,7 +2334,7 @@
                         <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;" id="pickingSourceTabs">
                             <button class="sav-filter active" onclick="switchPickingSource('nast',this)">🛒 NAST</button>
                             <button class="sav-filter" onclick="switchPickingSource('mlp',this)">💜 MLP</button>
-                            <button class="sav-filter" onclick="switchPickingSource('lcdp',this)" style="opacity:0.5;">🏪 LCDP</button>
+                            <button class="sav-filter" onclick="switchPickingSource('lcdp',this)">🏪 LCDP</button>
                         </div>
 
                         <!-- Compteur + actualiser -->
@@ -2677,6 +2699,53 @@
                 </div>
             </div>
 
+            <!-- ═══ SECTION LCDP ═══ -->
+            <div class="section-view" id="sectionLcdp">
+                <div class="section-back">
+                    <button class="btn-back" onclick="goHome()">←</button>
+                    <div class="section-title">🏪 Le Comptoir des Pharmacies</div>
+                </div>
+                <div class="section-subtabs" id="lcdpSubtabs">
+                    <button class="section-subtab" style="border-bottom-color:#FF6F00;color:#FF6F00;font-weight:700;" onclick="switchSection('lcdp','traiterLcdp',this,'orange')">📦 À traiter</button>
+                </div>
+
+                <div class="section-panel active" id="lcdp_traiterLcdp">
+                <div class="commandes-list-view" id="lcdpListView">
+                    <div class="card-header" style="margin-bottom:12px;">
+                        <div class="card-title" style="margin-bottom:0;"><span class="card-title-dot" style="background:#FF6F00;"></span>LCDP — À traiter</div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="commandes-count" id="lcdpCount"></span>
+                            <button onclick="loadLCDP()" style="background:none;border:none;cursor:pointer;color:#FF6F00;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                Rafraîchir
+                            </button>
+                        </div>
+                    </div>
+                    <div id="lcdpStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6F00" stroke-width="2" style="animation:spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+                        <div style="margin-top:6px;font-size:12px;">Chargement LCDP…</div>
+                    </div>
+                    <div class="commandes-list" id="lcdpList">
+                        <div class="commande-empty"><div class="commande-empty-icon">🏪</div><p>Cliquez sur Rafraîchir</p></div>
+                    </div>
+                </div>
+
+                <!-- Vue détail commande LCDP -->
+                <div class="commande-detail-view" id="lcdpDetailView">
+                    <div class="detail-header">
+                        <button class="btn-back" onclick="closeLcdpDetail()">←</button>
+                        <div>
+                            <div class="detail-ref" id="lcdpDetailRef"></div>
+                            <div id="lcdpDetailStatut" style="margin-top:4px;"></div>
+                        </div>
+                    </div>
+                    <div class="detail-client" id="lcdpDetailClient"></div>
+                    <div class="detail-date" id="lcdpDetailDate"></div>
+                    <div class="produits-list" id="lcdpProduitsList"></div>
+                </div>
+                </div>
+            </div>
+
             <!-- ═══ SECTION RÉGLAGES ═══ -->
             <div class="section-view" id="sectionSettings">
                 <div class="section-back">
@@ -2905,6 +2974,7 @@
                 'pharma': 'sectionPharma',
                 'nastcom': 'sectionNastcom',
                 'mlp': 'sectionMlp',
+                'lcdp': 'sectionLcdp',
                 'settings': 'sectionSettings',
                 'photos': 'sectionPhotos',
                 'stats': 'sectionStats',
@@ -2916,6 +2986,7 @@
                 'pharma': '🏥 Pharmacie Nast',
                 'nastcom': '🛒 Nast.com',
                 'mlp': '💜 My Little Para',
+                'lcdp': '🏪 LCDP',
                 'settings': '⚙️ Réglages',
                 'photos': '📸 Photos',
                 'stats': '📊 Stats',
@@ -2940,6 +3011,11 @@
                 document.getElementById('mlpListView')?.classList.remove('hidden');
                 document.getElementById('mlpDetailView')?.classList.remove('active');
                 loadMLP();
+            }
+            if (section === 'lcdp') {
+                document.getElementById('lcdpListView')?.classList.remove('hidden');
+                document.getElementById('lcdpDetailView')?.classList.remove('active');
+                loadLCDP();
             }
             if (section === 'photos') initPhotoSection();
             if (section === 'stats') loadStats();
@@ -3040,6 +3116,16 @@
                     document.getElementById('kpiMlpCmds').textContent  = mlpCount;
                     document.getElementById('kpiMlpMontf').textContent = montf;
                 }
+
+                // KPI LCDP
+                const lcdpCount = lcdpData.length;
+                const today = new Date().toLocaleDateString('fr-FR');
+                const lcdpTodayCA = (lcdpAllData || []).filter(c => {
+                    const d = new Date(c.date);
+                    return !isNaN(d) && d.toLocaleDateString('fr-FR') === today && !LCDP_STATUTS_EXCLUS.includes(c.statut);
+                }).reduce((s, c) => s + (parseFloat(c.total) || 0), 0);
+                document.getElementById('kpiLcdpCmds').textContent = lcdpCount || '0';
+                document.getElementById('kpiLcdpCA').textContent = lcdpTodayCA > 0 ? Math.round(lcdpTodayCA) + '€' : '—';
 
                 // KPIs CA/panier depuis Apps Script (pré-calculé)
                 await loadStatsForHome();
@@ -3181,6 +3267,16 @@
                         const rows = await res.json();
                         if (rows?.length) mlpData = parseWebhookCommandes(rows);
                     }
+                    // Charger LCDP
+                    try {
+                        const resLcdp = await fetch(LCDP_WEBHOOK + '?t=' + Date.now());
+                        const rowsLcdp = await resLcdp.json();
+                        if (rowsLcdp?.length) {
+                            const allParsed = parseLcdpCommandes(rowsLcdp);
+                            lcdpAllData = allParsed;
+                            lcdpData = allParsed.filter(c => LCDP_STATUTS_A_TRAITER.includes(c.statut));
+                        }
+                    } catch(e) {}
                     loadHomeKpis();
                     updateHomeBadges();
                 } catch(e) {}
@@ -3953,6 +4049,15 @@
         let currentMlp = null;
         let mlpPickingState = {};
 
+        // ─── COMMANDES LCDP ───
+        const LCDP_WEBHOOK = 'https://n8n.srv1086994.hstgr.cloud/webhook/ecran-lcdp';
+        const LCDP_STATUTS_A_TRAITER = ['WAITING_FOR_SELLER_ACCEPTANCE','WAITING_FOR_BUYER_ACCEPTANCE','WAITING_FOR_SENDING','WAITING_FOR_VALIDATION'];
+        const LCDP_STATUTS_EXCLUS = ['CANCELED','INVALIDATED'];
+
+        let lcdpData = [];
+        let lcdpAllData = []; // toutes les commandes (pour stats)
+        let currentLcdp = null;
+
         async function loadMLP() {
             const status = document.getElementById('mlpStatus');
             const list   = document.getElementById('mlpList');
@@ -4024,6 +4129,135 @@
             if (z) z.style.display = 'none';
             document.getElementById('mlpListView').classList.remove('hidden');
             document.getElementById('mlpDetailView').classList.remove('active');
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = _savedScrollPos; }, 50);
+        }
+
+        // ─── LCDP FUNCTIONS ───
+        function parseLcdpCommandes(rows) {
+            const map = {};
+            let lastRef = null;
+            for (let i = 0; i < rows.length; i++) {
+                const r = rows[i];
+                const ref = String(r['Référence'] || '').trim();
+                if (ref) {
+                    lastRef = ref;
+                    const statut = String(r['Statut'] || '').trim();
+                    if (LCDP_STATUTS_EXCLUS.some(s => statut === s)) { lastRef = null; continue; }
+                    map[ref] = {
+                        num: String(r['ID Comm'] || ref), ref: ref, date: String(r['Date'] || ''),
+                        client: String(r['Client'] || ''), ville: String(r['Ville'] || ''),
+                        cp: String(r['Code postal'] || ''), phone: String(r['Téléphone'] || ''),
+                        statut: statut, total: String(r['Total TTC'] || ''),
+                        fraisPort: String(r['Frais port'] || ''),
+                        produits: []
+                    };
+                }
+                const ean = String(r['reference produit'] || '').trim();
+                if (lastRef && map[lastRef] && ean) {
+                    map[lastRef].produits.push({
+                        ean: ean,
+                        nom: String(r['Nom produit'] || '').trim(),
+                        qty: parseInt(r['Quantité']) || 1,
+                        productId: String(r['id_produit'] || ''),
+                        stockNast: 0, stockMontf: 0
+                    });
+                }
+            }
+            return Object.values(map).sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        async function loadLCDP() {
+            const status = document.getElementById('lcdpStatus');
+            const list   = document.getElementById('lcdpList');
+            if (status) status.style.display = 'block';
+            if (list) list.innerHTML = '';
+            try {
+                const res  = await fetch(LCDP_WEBHOOK + '?t=' + Date.now());
+                const rows = await res.json();
+                if (!rows || !rows.length) {
+                    if (list) list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande LCDP</p></div>';
+                    if (status) status.style.display = 'none'; return;
+                }
+                const allParsed = parseLcdpCommandes(rows);
+                lcdpAllData = allParsed; // toutes (pour stats)
+                lcdpData = allParsed.filter(c => LCDP_STATUTS_A_TRAITER.includes(c.statut)); // filtrées pour "à traiter"
+                const countEl = document.getElementById('lcdpCount');
+                if (countEl) countEl.textContent = lcdpData.length + ' commande' + (lcdpData.length > 1 ? 's' : '');
+                if (!lcdpData.length) {
+                    if (list) list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Toutes traitées !</p></div>';
+                } else {
+                    renderLcdpList();
+                }
+            } catch(e) {
+                if (list) list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Impossible de charger</p></div>';
+            }
+            if (status) status.style.display = 'none';
+        }
+
+        function renderLcdpList() {
+            const list = document.getElementById('lcdpList');
+            if (!list) return;
+            list.innerHTML = lcdpData.map((c, idx) => {
+                const d = new Date(c.date);
+                const dateStr = isNaN(d) ? escapeHtml(c.date) : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+                const statut = escapeHtml(c.statut?.trim() || '');
+                const isBuyerWaiting = c.statut === 'WAITING_FOR_BUYER_ACCEPTANCE';
+                const statutStyle = isBuyerWaiting ? 'background:#fff3e0;color:#e65100;border:1px solid #ffcc02;font-weight:700;' : 'background:#e8f5e9;color:#2e7d32;';
+                const cardBorder = isBuyerWaiting ? 'border-left:4px solid #FF9800;' : '';
+                const statutLabel = statut.replace('WAITING_FOR_SELLER_ACCEPTANCE','⏳ Acceptation vendeur')
+                    .replace('WAITING_FOR_BUYER_ACCEPTANCE','✅ Envoyée · attente acheteur')
+                    .replace('WAITING_FOR_SENDING','📦 À expédier')
+                    .replace('WAITING_FOR_VALIDATION','🔍 Validation');
+                return `<div class="commande-card" onclick="openLcdpDetail(${idx})" style="${cardBorder}">
+                    <div class="commande-card-top">
+                        <span class="commande-ref">#${escapeHtml(c.ref)}</span>
+                        <span style="font-size:10px;padding:3px 8px;border-radius:8px;${statutStyle}">${statutLabel}</span>
+                    </div>
+                    <div class="commande-client">${escapeHtml(c.client) || '—'}</div>
+                    <div class="commande-meta">
+                        <span>📦 ${c.produits.length} produit(s)</span>
+                        <span>📍 ${escapeHtml(c.ville) || '—'} ${escapeHtml(c.cp)}</span>
+                        <span>🕐 ${dateStr}</span>
+                        <span>💰 ${escapeHtml(c.total)} €</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function openLcdpDetail(idx) {
+            _savedScrollPos = document.getElementById('mainContent')?.scrollTop || 0;
+            currentLcdp = lcdpData[idx];
+            document.getElementById('lcdpListView').classList.add('hidden');
+            document.getElementById('lcdpDetailView').classList.add('active');
+            const d = new Date(currentLcdp.date);
+            const dateStr = isNaN(d) ? currentLcdp.date : d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'}) + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('lcdpDetailRef').textContent = '#' + currentLcdp.ref;
+            document.getElementById('lcdpDetailClient').textContent = '👤 ' + (currentLcdp.client || '—') + (currentLcdp.ville ? ' · ' + currentLcdp.ville + ' ' + currentLcdp.cp : '');
+            document.getElementById('lcdpDetailDate').textContent = '🕐 ' + dateStr + ' · 💰 ' + currentLcdp.total + ' €';
+            const isBuyerWaiting = currentLcdp.statut === 'WAITING_FOR_BUYER_ACCEPTANCE';
+            const statutLabel = currentLcdp.statut.replace('WAITING_FOR_SELLER_ACCEPTANCE','⏳ Acceptation vendeur')
+                .replace('WAITING_FOR_BUYER_ACCEPTANCE','✅ Envoyée · attente acheteur')
+                .replace('WAITING_FOR_SENDING','📦 À expédier')
+                .replace('WAITING_FOR_VALIDATION','🔍 Validation');
+            document.getElementById('lcdpDetailStatut').innerHTML = isBuyerWaiting
+                ? `<span style="background:#fff3e0;color:#e65100;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid #ffcc02;">${statutLabel}</span>`
+                : `<span style="background:#e8f5e9;color:#2e7d32;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:600;">${statutLabel}</span>`;
+            const prodList = document.getElementById('lcdpProduitsList');
+            prodList.innerHTML = currentLcdp.produits.map(p => `
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.nom)}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">EAN: ${escapeHtml(p.ean)}</div>
+                    </div>
+                    <div style="font-size:14px;font-weight:800;color:#FF6F00;">×${p.qty}</div>
+                </div>`).join('');
+            setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = 0; }, 30);
+        }
+
+        function closeLcdpDetail() {
+            currentLcdp = null;
+            document.getElementById('lcdpListView').classList.remove('hidden');
+            document.getElementById('lcdpDetailView').classList.remove('active');
             setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = _savedScrollPos; }, 50);
         }
 
@@ -5820,10 +6054,29 @@
 
             // ── RÉPARTITION PAR PLATEFORME — données de la période courante ──
             const plats = p.plateformes || d.plateformes || {};
+            // Calculer stats LCDP depuis lcdpAllData
+            const lcdpStatsForPeriod = (() => {
+                if (!lcdpAllData || !lcdpAllData.length) return { commandes: 0, ca: 0 };
+                const now = new Date();
+                const todayStr = now.toLocaleDateString('fr-FR');
+                const filtered = lcdpAllData.filter(c => {
+                    if (LCDP_STATUTS_EXCLUS.includes(c.statut)) return false;
+                    const cd = new Date(c.date);
+                    if (isNaN(cd)) return false;
+                    if (key === 'jour') return cd.toLocaleDateString('fr-FR') === todayStr;
+                    if (key === 'hier') { const hier = new Date(now); hier.setDate(hier.getDate()-1); return cd.toLocaleDateString('fr-FR') === hier.toLocaleDateString('fr-FR'); }
+                    if (key === 'semaine') { const d7 = new Date(now); d7.setDate(d7.getDate()-7); return cd >= d7; }
+                    if (key === 'mois') return cd.getMonth() === now.getMonth() && cd.getFullYear() === now.getFullYear();
+                    if (key === 'j7') { const d7 = new Date(now); d7.setDate(d7.getDate()-7); return cd >= d7; }
+                    return true;
+                });
+                return { commandes: filtered.length, ca: filtered.reduce((s, c) => s + (parseFloat(c.total)||0), 0) };
+            })();
             const platData = [
                 { nom:'NAST.COM',  cmds:plats.nast?.commandes||0,      ca:plats.nast?.ca||0,      color:'#1976D2' },
                 { nom:'DocMorris', cmds:plats.docmorris?.commandes||0, ca:plats.docmorris?.ca||0, color:'#0D47A1' },
-                { nom:'MLP',       cmds:plats.mlp?.commandes||0,       ca:plats.mlp?.ca||0,       color:'#9C27B0' }
+                { nom:'MLP',       cmds:plats.mlp?.commandes||0,       ca:plats.mlp?.ca||0,       color:'#9C27B0' },
+                { nom:'LCDP',      cmds:lcdpStatsForPeriod.commandes,  ca:lcdpStatsForPeriod.ca,  color:'#FF6F00' }
             ].filter(pp => pp.cmds > 0);
 
             if (platData.length) {
@@ -6741,14 +6994,6 @@
             currentPickingSource = source;
             btn.parentElement.querySelectorAll('.sav-filter').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            if (source === 'lcdp') {
-                document.getElementById('pickingGroupedList').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">🏪</div><p>LCDP — Bientôt disponible</p></div>';
-                document.getElementById('pickingGlobalCount').textContent = '';
-                document.getElementById('pickingGlobalProgress').textContent = '0 / 0';
-                document.getElementById('pickingGlobalBar').style.width = '0%';
-                document.getElementById('pickingLegend').style.display = 'none';
-                return;
-            }
             loadPickingForCurrentSource();
         }
 
@@ -6777,6 +7022,17 @@
                         if (rows?.length) mlpData = parseWebhookCommandes(rows);
                     }
                     data = mlpData;
+                } else if (currentPickingSource === 'lcdp') {
+                    if (!lcdpData.length) {
+                        const resL = await fetch(LCDP_WEBHOOK + '?t=' + Date.now());
+                        const rowsL = await resL.json();
+                        if (rowsL?.length) {
+                            const allP = parseLcdpCommandes(rowsL);
+                            lcdpAllData = allP;
+                            lcdpData = allP.filter(c => LCDP_STATUTS_A_TRAITER.includes(c.statut));
+                        }
+                    }
+                    data = lcdpData;
                 }
                 pickingUnifiedData = data;
                 renderPickingUnified(data);
@@ -7470,6 +7726,7 @@
             try {
                 if (currentSection === 'nastcom') { await loadCommandes(); return; }
                 if (currentSection === 'mlp') { await loadMLP(); return; }
+                if (currentSection === 'lcdp') { await loadLCDP(); return; }
                 if (currentSection === 'montfermeil') { await loadMontfermeil(); return; }
                 if (currentSection === 'stats') { await loadStats(); return; }
                 if (currentSection === 'pharma') {
@@ -7495,37 +7752,45 @@
         function updateHomeBadges() {
             const nastBadge = document.getElementById('badgeNast');
             const mlpBadge  = document.getElementById('badgeMlp');
-            if (!nastBadge || !mlpBadge) return;
+            const lcdpBadge = document.getElementById('badgeLcdp');
 
             const nastCount = commandesData.length;
             const mlpCount  = mlpData.length;
+            const lcdpCount = lcdpData.length;
 
-            if (nastCount > 0) {
-                nastBadge.textContent = nastCount;
-                nastBadge.classList.add('visible');
-            } else {
-                nastBadge.classList.remove('visible');
+            if (nastBadge) {
+                if (nastCount > 0) { nastBadge.textContent = nastCount; nastBadge.classList.add('visible'); }
+                else { nastBadge.classList.remove('visible'); }
             }
 
-            if (mlpCount > 0) {
-                mlpBadge.textContent = mlpCount;
-                mlpBadge.classList.add('visible');
-            } else {
-                mlpBadge.classList.remove('visible');
+            if (mlpBadge) {
+                if (mlpCount > 0) { mlpBadge.textContent = mlpCount; mlpBadge.classList.add('visible'); }
+                else { mlpBadge.classList.remove('visible'); }
+            }
+
+            if (lcdpBadge) {
+                if (lcdpCount > 0) { lcdpBadge.textContent = lcdpCount; lcdpBadge.classList.add('visible'); }
+                else { lcdpBadge.classList.remove('visible'); }
             }
         }
 
         async function refreshHomeBadges() {
             // Silent background refresh — no UI loading state
             try {
-                const [r1, r2] = await Promise.all([
+                const [r1, r2, r3] = await Promise.all([
                     fetch(COMMANDES_WEBHOOK + '?t=' + Date.now()).then(r=>r.json()).catch(()=>[]),
-                    fetch(MLP_WEBHOOK + '?t=' + Date.now()).then(r=>r.json()).catch(()=>[])
+                    fetch(MLP_WEBHOOK + '?t=' + Date.now()).then(r=>r.json()).catch(()=>[]),
+                    fetch(LCDP_WEBHOOK + '?t=' + Date.now()).then(r=>r.json()).catch(()=>[])
                 ]);
                 if (r1?.length) commandesData = parseWebhookCommandes(r1);
                 else if (Array.isArray(r1) && r1.length === 0) commandesData = [];
                 if (r2?.length) mlpData = parseWebhookCommandes(r2);
                 else if (Array.isArray(r2) && r2.length === 0) mlpData = [];
+                if (r3?.length) {
+                    const allParsed = parseLcdpCommandes(r3);
+                    lcdpAllData = allParsed;
+                    lcdpData = allParsed.filter(c => LCDP_STATUTS_A_TRAITER.includes(c.statut));
+                } else if (Array.isArray(r3) && r3.length === 0) { lcdpData = []; lcdpAllData = []; }
                 updateHomeBadges();
                 loadHomeKpis();
             } catch(e) {}
