@@ -4051,7 +4051,7 @@
 
         // ─── COMMANDES LCDP ───
         const LCDP_WEBHOOK = 'https://n8n.srv1086994.hstgr.cloud/webhook/ecran-lcdp';
-        const LCDP_STATUTS_A_TRAITER = ['WAITING_FOR_SELLER_ACCEPTANCE','WAITING_FOR_BUYER_ACCEPTANCE','WAITING_FOR_SENDING','WAITING_FOR_VALIDATION'];
+        const LCDP_STATUTS_A_TRAITER = ['WAITING_FOR_SELLER_ACCEPTANCE','WAITING_FOR_BUYER_ACCEPTANCE','SELLER_ACCEPTANCE_DELAY','SENDING_DELAY'];
         const LCDP_STATUTS_EXCLUS = ['CANCELED','INVALIDATED'];
 
         let lcdpData = [];
@@ -4201,13 +4201,21 @@
                 const d = new Date(c.date);
                 const dateStr = isNaN(d) ? escapeHtml(c.date) : d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
                 const statut = escapeHtml(c.statut?.trim() || '');
+                const isRetard = c.statut === 'SELLER_ACCEPTANCE_DELAY';
                 const isBuyerWaiting = c.statut === 'WAITING_FOR_BUYER_ACCEPTANCE';
-                const statutStyle = isBuyerWaiting ? 'background:#fff3e0;color:#e65100;border:1px solid #ffcc02;font-weight:700;' : 'background:#e8f5e9;color:#2e7d32;';
-                const cardBorder = isBuyerWaiting ? 'border-left:4px solid #FF9800;' : '';
-                const statutLabel = statut.replace('WAITING_FOR_SELLER_ACCEPTANCE','⏳ Acceptation vendeur')
-                    .replace('WAITING_FOR_BUYER_ACCEPTANCE','✅ Envoyée · attente acheteur')
-                    .replace('WAITING_FOR_SENDING','📦 À expédier')
-                    .replace('WAITING_FOR_VALIDATION','🔍 Validation');
+                const isSending = c.statut === 'SENDING_DELAY';
+                const statutStyle = isRetard ? 'background:#ffebee;color:#c62828;border:1px solid #ef9a9a;font-weight:700;'
+                    : isBuyerWaiting ? 'background:#e3f2fd;color:#1565C0;border:1px solid #90caf9;font-weight:700;'
+                    : isSending ? 'background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;font-weight:700;'
+                    : 'background:#fff3e0;color:#e65100;';
+                const cardBorder = isRetard ? 'border-left:4px solid #c62828;'
+                    : isBuyerWaiting ? 'border-left:4px solid #1565C0;'
+                    : isSending ? 'border-left:4px solid #2e7d32;'
+                    : 'border-left:4px solid #FF6F00;';
+                const statutLabel = statut.replace('SELLER_ACCEPTANCE_DELAY','🔴 A TRAITER : EN RETARD')
+                    .replace('WAITING_FOR_SELLER_ACCEPTANCE','🟠 A TRAITER')
+                    .replace('WAITING_FOR_BUYER_ACCEPTANCE','🔵 MODIF : En attente de validation')
+                    .replace('SENDING_DELAY','🟢 MODIF ACCEPTEE : A ENVOYER');
                 return `<div class="commande-card" onclick="openLcdpDetail(${idx})" style="${cardBorder}">
                     <div class="commande-card-top">
                         <span class="commande-ref">#${escapeHtml(c.ref)}</span>
@@ -4234,14 +4242,18 @@
             document.getElementById('lcdpDetailRef').textContent = '#' + currentLcdp.ref;
             document.getElementById('lcdpDetailClient').textContent = '👤 ' + (currentLcdp.client || '—') + (currentLcdp.ville ? ' · ' + currentLcdp.ville + ' ' + currentLcdp.cp : '');
             document.getElementById('lcdpDetailDate').textContent = '🕐 ' + dateStr + ' · 💰 ' + currentLcdp.total + ' €';
+            const isRetard = currentLcdp.statut === 'SELLER_ACCEPTANCE_DELAY';
             const isBuyerWaiting = currentLcdp.statut === 'WAITING_FOR_BUYER_ACCEPTANCE';
-            const statutLabel = currentLcdp.statut.replace('WAITING_FOR_SELLER_ACCEPTANCE','⏳ Acceptation vendeur')
-                .replace('WAITING_FOR_BUYER_ACCEPTANCE','✅ Envoyée · attente acheteur')
-                .replace('WAITING_FOR_SENDING','📦 À expédier')
-                .replace('WAITING_FOR_VALIDATION','🔍 Validation');
-            document.getElementById('lcdpDetailStatut').innerHTML = isBuyerWaiting
-                ? `<span style="background:#fff3e0;color:#e65100;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid #ffcc02;">${statutLabel}</span>`
-                : `<span style="background:#e8f5e9;color:#2e7d32;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:600;">${statutLabel}</span>`;
+            const isSending = currentLcdp.statut === 'SENDING_DELAY';
+            const statutLabel = currentLcdp.statut.replace('SELLER_ACCEPTANCE_DELAY','🔴 A TRAITER : EN RETARD')
+                .replace('WAITING_FOR_SELLER_ACCEPTANCE','🟠 A TRAITER')
+                .replace('WAITING_FOR_BUYER_ACCEPTANCE','🔵 MODIF : En attente de validation')
+                .replace('SENDING_DELAY','🟢 MODIF ACCEPTEE : A ENVOYER');
+            const detailStyle = isRetard ? 'background:#ffebee;color:#c62828;border:1px solid #ef9a9a;'
+                : isBuyerWaiting ? 'background:#e3f2fd;color:#1565C0;border:1px solid #90caf9;'
+                : isSending ? 'background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;'
+                : 'background:#fff3e0;color:#e65100;border:1px solid #ffcc02;';
+            document.getElementById('lcdpDetailStatut').innerHTML = `<span style="${detailStyle}padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;">${statutLabel}</span>`;
             const prodList = document.getElementById('lcdpProduitsList');
             prodList.innerHTML = currentLcdp.produits.map(p => `
                 <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);">
