@@ -2264,6 +2264,11 @@
                             </button>
                         </div>
                     </div>
+                    <!-- Toggle source : Payplug (site) vs DocMorris (marketplace) -->
+                    <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;" id="nastSourceTabs">
+                        <button class="sav-filter active" data-source="payplug" onclick="filterNastSource('payplug',this)" style="font-weight:700;">💳 Payplug <span id="cntNastPayplug" style="opacity:0.7;"></span></button>
+                        <button class="sav-filter" data-source="docmorris" onclick="filterNastSource('docmorris',this)" style="font-weight:700;">🌐 DocMorris <span id="cntNastDocmorris" style="opacity:0.7;"></span></button>
+                    </div>
                     <!-- Filtres profil logistique NAST -->
                     <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="nastProfilTabs">
                         <button class="sav-filter active" data-profil="all" onclick="filterNastProfil('all',this)">Tout <span id="cntNastAll" style="opacity:0.7;"></span></button>
@@ -3698,6 +3703,8 @@
 
         // Filtre actif NAST : 'all' | 'nast' | 'carla' | 'transfert' | 'rupture'
         let nastProfilFilter = 'all';
+        // Source de commande : 'payplug' (site) ou 'docmorris' (marketplace)
+        let nastSourceFilter = 'payplug';
 
         function filterNastProfil(profil, btn) {
             nastProfilFilter = profil;
@@ -3706,10 +3713,35 @@
             renderCommandesList();
         }
 
+        function filterNastSource(source, btn) {
+            nastSourceFilter = source;
+            document.querySelectorAll('#nastSourceTabs .sav-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderCommandesList();
+        }
+
+        // Détermine si une commande est DocMorris (vs Payplug)
+        function isDocmorris(c) {
+            return (c.statut || '').toLowerCase().includes('docmorris');
+        }
+
         function renderCommandesList() {
             const list = document.getElementById('commandesList');
-            // Pré-calcul classification + compteurs profil
-            const enriched = commandesData.map((c, idx) => ({ c, idx, classif: classifyCommande(c) }));
+
+            // 1. Filtrage SOURCE (Payplug vs DocMorris) en amont
+            const sourceFiltered = commandesData
+                .map((c, idx) => ({ c, idx }))
+                .filter(({ c }) => nastSourceFilter === 'docmorris' ? isDocmorris(c) : !isDocmorris(c));
+
+            // Compteurs source (toujours sur le total brut, pour les badges)
+            let cntPayplug = 0, cntDocmorris = 0;
+            commandesData.forEach(c => isDocmorris(c) ? cntDocmorris++ : cntPayplug++);
+            const setS = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = '(' + n + ')'; };
+            setS('cntNastPayplug', cntPayplug);
+            setS('cntNastDocmorris', cntDocmorris);
+
+            // 2. Classification + compteurs profil (sur le sous-ensemble filtré par source)
+            const enriched = sourceFiltered.map(({ c, idx }) => ({ c, idx, classif: classifyCommande(c) }));
             const counts = { all: enriched.length, nast: 0, carla: 0, transfert: 0, rupture: 0 };
             enriched.forEach(e => { counts[e.classif.type]++; });
             const setCnt = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = '(' + n + ')'; };
@@ -3719,7 +3751,7 @@
             setCnt('cntNastTransf', counts.transfert);
             setCnt('cntNastRupt', counts.rupture);
 
-            // Filtrage selon onglet actif
+            // 3. Filtrage selon onglet profil actif
             const visible = (nastProfilFilter === 'all') ? enriched : enriched.filter(e => e.classif.type === nastProfilFilter);
             if (!visible.length) {
                 list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande dans ce filtre</p></div>';
