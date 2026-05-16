@@ -3107,8 +3107,8 @@
                 const mlpCount  = mlpData.length;
                 let ruptures = 0, montf = 0;
                 [...commandesData, ...mlpData].forEach(c => c.produits.forEach(p => {
-                    if ((p.stockNast||0) === 0 && (p.stockMontf||0) === 0) ruptures++;
-                    if ((p.stockNast||0) === 0 && (p.stockMontf||0) > 0) montf++;
+                    if ((p.stockNast||0) <= 0 && (p.stockMontf||0) <= 0) ruptures++;
+                    if ((p.stockNast||0) <= 0 && (p.stockMontf||0) > 0) montf++;
                 }));
                 if (nastCount > 0 || mlpCount > 0) {
                     document.getElementById('kpiNastCmds').textContent = nastCount;
@@ -4284,11 +4284,11 @@
                 return;
             }
 
-            // Collecter tous les produits sans stock NAST (stockNast === 0)
+            // Collecter tous les produits sans stock NAST (stockNast <= 0, inclut négatifs)
             aCommanderData = [];
             mlpData.forEach(c => {
                 c.produits.forEach(p => {
-                    if ((p.stockNast || 0) === 0) {
+                    if ((p.stockNast || 0) <= 0) {
                         aCommanderData.push({
                             ...p,
                             cmdNum: c.num,
@@ -4403,8 +4403,8 @@
             const label = `${sN} NAST / ${sM} MONTF`;
             // Stock dispo à NAST → blanc/vert léger
             if (sN > 0) return { bg: '', border: '', label, labelColor: '#2e7d32', labelBg: 'rgba(46,125,50,0.08)', type: 'nast' };
-            // Rupture NAST mais dispo Montfermeil → fond violet
-            if (sN === 0 && sM > 0) return { bg: 'rgba(156,39,176,0.07)', border: 'border-left:3px solid #9c27b0;', label, labelColor: '#7b1fa2', labelBg: 'rgba(156,39,176,0.1)', type: 'montf' };
+            // Rupture NAST (ou négatif) mais dispo Montfermeil → fond violet
+            if (sN <= 0 && sM > 0) return { bg: 'rgba(156,39,176,0.07)', border: 'border-left:3px solid #9c27b0;', label, labelColor: '#7b1fa2', labelBg: 'rgba(156,39,176,0.1)', type: 'montf' };
             // Rupture totale → fond rouge
             return { bg: 'rgba(231,76,60,0.07)', border: 'border-left:3px solid #e74c3c;', label, labelColor: '#c62828', labelBg: 'rgba(231,76,60,0.1)', type: 'rupture' };
         }
