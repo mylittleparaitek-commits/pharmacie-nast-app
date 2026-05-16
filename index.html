@@ -4336,14 +4336,18 @@
                 : 'background:#fff3e0;color:#e65100;border:1px solid #ffcc02;';
             document.getElementById('lcdpDetailStatut').innerHTML = `<span style="${detailStyle}padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;">${statutLabel}</span>`;
             const prodList = document.getElementById('lcdpProduitsList');
-            prodList.innerHTML = currentLcdp.produits.map(p => `
-                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);">
+            prodList.innerHTML = currentLcdp.produits.map(p => {
+                const stock = getStockInfo(p);
+                return `
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);${stock.bg ? 'background:' + stock.bg + ';' : ''}${stock.border || ''}">
                     <div style="flex:1;min-width:0;">
                         <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.nom)}</div>
                         <div style="font-size:11px;color:var(--text-muted);">EAN: ${escapeHtml(p.ean)}</div>
+                        <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span></div>
                     </div>
                     <div style="font-size:14px;font-weight:800;color:#FF6F00;">×${p.qty}</div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
             setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = 0; }, 30);
         }
 
@@ -4365,19 +4369,28 @@
                 return;
             }
 
-            // Collecter tous les produits sans stock NAST (stockNast <= 0, inclut négatifs)
+            // Nouvelle logique : on n'ajoute à "à rapatrier" QUE les produits de commandes
+            // dont le profil = 🟣 TRANSFERT (Carla ramène à NAST).
+            // Les commandes 🟠 CARLA SOLO sont expédiées directement par Carla depuis Montf → rien à rapatrier.
+            // Les commandes 🔴 RUPTURE → onglet fournisseur (pas MONTF).
             aCommanderData = [];
             mlpData.forEach(c => {
-                c.produits.forEach(p => {
-                    if ((p.stockNast || 0) <= 0) {
-                        aCommanderData.push({
-                            ...p,
-                            cmdNum: c.num,
-                            client: c.client,
-                            source: (p.stockMontf || 0) > 0 ? 'montf' : 'rupture'
-                        });
-                    }
-                });
+                const classif = classifyCommande(c);
+                if (classif.type === 'transfert') {
+                    classif.produits.forEach(p => {
+                        // pickMontf = quantité que Carla doit ramener à NAST pour ce produit
+                        if (p.classif.pickMontf > 0) {
+                            aCommanderData.push({
+                                ...p,
+                                qty: p.classif.pickMontf, // ⚠️ qty effective à rapatrier (pas qty client)
+                                qtyClient: p.qty,         // on garde l'info pour affichage si besoin
+                                cmdNum: c.num,
+                                client: c.client,
+                                source: 'montf'
+                            });
+                        }
+                    });
+                }
             });
 
             document.getElementById('aCommanderCount').textContent = aCommanderData.length + ' produit' + (aCommanderData.length > 1 ? 's' : '');
