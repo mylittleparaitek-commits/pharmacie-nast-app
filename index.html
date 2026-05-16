@@ -4159,7 +4159,8 @@
                         nom: String(r['Nom produit'] || '').trim(),
                         qty: parseInt(r['Quantité']) || 1,
                         productId: String(r['id_produit'] || ''),
-                        stockNast: 0, stockMontf: 0
+                        stockNast: parseInt(r['Stock NAST']) || 0,
+                        stockMontf: parseInt(r['Stock Montfermeil']) || 0
                     });
                 }
             }
