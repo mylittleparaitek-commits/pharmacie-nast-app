@@ -4370,14 +4370,17 @@
             const prodList = document.getElementById('lcdpProduitsList');
             prodList.innerHTML = currentLcdp.produits.map(p => {
                 const stock = getStockInfo(p);
-                return `
-                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);${stock.bg ? 'background:' + stock.bg + ';' : ''}${stock.border || ''}">
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.nom)}</div>
-                        <div style="font-size:11px;color:var(--text-muted);">EAN: ${escapeHtml(p.ean)}</div>
-                        <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span></div>
+                return `<div class="produit-item" style="${stock.bg ? 'background:' + stock.bg + ';' : ''}${stock.border || ''}">
+                    <div class="produit-info">
+                        <div class="produit-nom">${escapeHtml(p.nom) || 'Produit'}</div>
+                        <div class="produit-ean">${escapeHtml(p.ean)}</div>
+                        <div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+                            <span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span>
+                        </div>
                     </div>
-                    <div style="font-size:14px;font-weight:800;color:#FF6F00;">×${p.qty}</div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                        <span class="produit-qty">×${p.qty}</span>
+                    </div>
                 </div>`;
             }).join('');
             setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = 0; }, 30);
