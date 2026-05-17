@@ -2277,6 +2277,14 @@
                         <button class="sav-filter" data-profil="transfert" onclick="filterNastProfil('transfert',this)">🟣 TRANSF <span id="cntNastTransf" style="opacity:0.7;"></span></button>
                         <button class="sav-filter" data-profil="rupture" onclick="filterNastProfil('rupture',this)">🔴 RUPT <span id="cntNastRupt" style="opacity:0.7;"></span></button>
                     </div>
+                    <!-- Tri NAST -->
+                    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center;" id="nastSortTabs">
+                        <span style="font-size:11px;color:var(--text-muted);font-weight:600;">Trier :</span>
+                        <button class="sav-filter" data-sort="recent" onclick="sortNast('recent',this)">🕐 Récent</button>
+                        <button class="sav-filter active" data-sort="ancien" onclick="sortNast('ancien',this)">⏳ Ancien</button>
+                        <button class="sav-filter" data-sort="nast" onclick="sortNast('nast',this)">🟢 NAST first</button>
+                        <button class="sav-filter" data-sort="montant" onclick="sortNast('montant',this)">💰 Montant</button>
+                    </div>
                     <div id="commandesStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
                         Chargement…
@@ -2540,6 +2548,14 @@
                         <button class="sav-filter" data-profil="carla" onclick="filterMlpProfil('carla',this)">🟠 CARLA <span id="cntMlpCarla" style="opacity:0.7;"></span></button>
                         <button class="sav-filter" data-profil="transfert" onclick="filterMlpProfil('transfert',this)">🟣 TRANSF <span id="cntMlpTransf" style="opacity:0.7;"></span></button>
                         <button class="sav-filter" data-profil="rupture" onclick="filterMlpProfil('rupture',this)">🔴 RUPT <span id="cntMlpRupt" style="opacity:0.7;"></span></button>
+                    </div>
+                    <!-- Tri MLP -->
+                    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center;" id="mlpSortTabs">
+                        <span style="font-size:11px;color:var(--text-muted);font-weight:600;">Trier :</span>
+                        <button class="sav-filter" data-sort="recent" onclick="sortMlp('recent',this)">🕐 Récent</button>
+                        <button class="sav-filter active" data-sort="ancien" onclick="sortMlp('ancien',this)">⏳ Ancien</button>
+                        <button class="sav-filter" data-sort="nast" onclick="sortMlp('nast',this)">🟢 NAST first</button>
+                        <button class="sav-filter" data-sort="montant" onclick="sortMlp('montant',this)">💰 Montant</button>
                     </div>
                     <div id="mlpStatus" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
@@ -3705,10 +3721,19 @@
         let nastProfilFilter = 'all';
         // Source de commande : 'payplug' (site) ou 'docmorris' (marketplace)
         let nastSourceFilter = 'payplug';
+        // Tri actif NAST : 'recent' | 'ancien' | 'nast' | 'montant'
+        let nastSortMode = 'ancien';
 
         function filterNastProfil(profil, btn) {
             nastProfilFilter = profil;
             document.querySelectorAll('#nastProfilTabs .sav-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderCommandesList();
+        }
+
+        function sortNast(mode, btn) {
+            nastSortMode = mode;
+            document.querySelectorAll('#nastSortTabs .sav-filter').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             renderCommandesList();
         }
@@ -3752,7 +3777,9 @@
             setCnt('cntNastRupt', counts.rupture);
 
             // 3. Filtrage selon onglet profil actif
-            const visible = (nastProfilFilter === 'all') ? enriched : enriched.filter(e => e.classif.type === nastProfilFilter);
+            const filtered = (nastProfilFilter === 'all') ? enriched : enriched.filter(e => e.classif.type === nastProfilFilter);
+            // 4. Tri selon le mode sélectionné
+            const visible = applySortToEnriched(filtered, nastSortMode);
             if (!visible.length) {
                 list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande dans ce filtre</p></div>';
                 return;
@@ -4165,12 +4192,44 @@
 
         // Filtre actif MLP : 'all' | 'nast' | 'carla' | 'transfert' | 'rupture'
         let mlpProfilFilter = 'all';
+        // Tri actif MLP : 'recent' | 'ancien' | 'nast' | 'montant'
+        let mlpSortMode = 'ancien';
 
         function filterMlpProfil(profil, btn) {
             mlpProfilFilter = profil;
             document.querySelectorAll('#mlpProfilTabs .sav-filter').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             renderMlpList();
+        }
+
+        function sortMlp(mode, btn) {
+            mlpSortMode = mode;
+            document.querySelectorAll('#mlpSortTabs .sav-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderMlpList();
+        }
+
+        // Fonction utilitaire de tri partagée NAST/MLP
+        function applySortToEnriched(enriched, mode) {
+            const orderProfil = { nast: 0, transfert: 1, carla: 2, rupture: 3 };
+            const sorted = enriched.slice();
+            if (mode === 'recent') {
+                sorted.sort((a, b) => new Date(b.c.date) - new Date(a.c.date));
+            } else if (mode === 'ancien') {
+                sorted.sort((a, b) => new Date(a.c.date) - new Date(b.c.date));
+            } else if (mode === 'nast') {
+                // 🟢 NAST en premier, puis TRANSFERT, puis CARLA, puis RUPTURE (à secondaire = ancien)
+                sorted.sort((a, b) => {
+                    const diff = (orderProfil[a.classif.type] ?? 99) - (orderProfil[b.classif.type] ?? 99);
+                    if (diff !== 0) return diff;
+                    return new Date(a.c.date) - new Date(b.c.date);
+                });
+            } else if (mode === 'montant') {
+                // Plus gros montant en haut
+                const num = v => parseFloat(String(v || '').replace(',', '.').replace(/[^0-9.\-]/g, '')) || 0;
+                sorted.sort((a, b) => num(b.c.total) - num(a.c.total));
+            }
+            return sorted;
         }
 
         function renderMlpList() {
@@ -4187,7 +4246,9 @@
             setCnt('cntMlpRupt', counts.rupture);
 
             // Filtrage selon onglet actif
-            const visible = (mlpProfilFilter === 'all') ? enriched : enriched.filter(e => e.classif.type === mlpProfilFilter);
+            const filtered = (mlpProfilFilter === 'all') ? enriched : enriched.filter(e => e.classif.type === mlpProfilFilter);
+            // Tri selon le mode sélectionné
+            const visible = applySortToEnriched(filtered, mlpSortMode);
             if (!visible.length) {
                 list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucune commande dans ce filtre</p></div>';
                 return;
@@ -4370,17 +4431,14 @@
             const prodList = document.getElementById('lcdpProduitsList');
             prodList.innerHTML = currentLcdp.produits.map(p => {
                 const stock = getStockInfo(p);
-                return `<div class="produit-item" style="${stock.bg ? 'background:' + stock.bg + ';' : ''}${stock.border || ''}">
-                    <div class="produit-info">
-                        <div class="produit-nom">${escapeHtml(p.nom) || 'Produit'}</div>
-                        <div class="produit-ean">${escapeHtml(p.ean)}</div>
-                        <div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
-                            <span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span>
-                        </div>
+                return `
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);${stock.bg ? 'background:' + stock.bg + ';' : ''}${stock.border || ''}">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.nom)}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">EAN: ${escapeHtml(p.ean)}</div>
+                        <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:${stock.labelColor};background:${stock.labelBg};padding:2px 8px;border-radius:6px;">${stock.label}</span></div>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-                        <span class="produit-qty">×${p.qty}</span>
-                    </div>
+                    <div style="font-size:14px;font-weight:800;color:#FF6F00;">×${p.qty}</div>
                 </div>`;
             }).join('');
             setTimeout(() => { const c = document.getElementById('mainContent'); if (c) c.scrollTop = 0; }, 30);
@@ -4585,12 +4643,20 @@
         function classifyCommande(commande) {
             if (!commande?.produits?.length) return { type: 'nast', produits: [] };
             const produitsClassif = commande.produits.map(p => ({ ...p, classif: classifyProduit(p) }));
-            // Profil commande = pire profil parmi ses produits
-            let worst = 'nast';
-            produitsClassif.forEach(p => {
-                if (PROFILE_ORDER[p.classif.type] > PROFILE_ORDER[worst]) worst = p.classif.type;
-            });
-            return { type: worst, produits: produitsClassif };
+            // Composition exacte de la commande
+            const types = produitsClassif.map(p => p.classif.type);
+            const hasNast      = types.includes('nast');
+            const hasCarla     = types.includes('carla');
+            const hasTransfert = types.includes('transfert');
+            const hasRupture   = types.includes('rupture');
+            // Règles dans l'ordre de priorité
+            let commandeType;
+            if (hasRupture)                commandeType = 'rupture';   // 🔴 au moins un produit en rupture totale
+            else if (hasTransfert)         commandeType = 'transfert'; // 🟣 au moins un produit déjà mixte
+            else if (hasNast && hasCarla)  commandeType = 'transfert'; // 🟣 mix NAST+CARLA = forcément combiné (FIX)
+            else if (hasCarla)             commandeType = 'carla';     // 🟠 100% Carla (aucun NAST nécessaire)
+            else                           commandeType = 'nast';      // 🟢 100% NAST
+            return { type: commandeType, produits: produitsClassif };
         }
 
         function renderMlpProduits() {
