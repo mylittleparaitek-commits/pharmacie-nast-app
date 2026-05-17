@@ -757,6 +757,48 @@
         .origine-nast { background: #fce4ec; color: var(--nast-pink-dark); }
         .origine-mf { background: #e3f2fd; color: #1565c0; }
 
+        /* === LCDP : style des produits dans la vue détail === */
+        /* Cible les divs enfants directs du container LCDP — pas besoin de modifier le JS */
+        #lcdpProduitsList > div {
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            border-bottom: 1.5px solid var(--border) !important; /* override le border-bottom inline */
+            padding: 12px 14px !important; /* override le padding:10px 0 inline */
+            transition: all 0.2s;
+        }
+        #lcdpProduitsList > div:hover {
+            border-color: #c9d0d8;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        /* Le nom produit : pas de coupure ellipsis, on autorise le retour à la ligne */
+        #lcdpProduitsList > div > div:first-child > div:first-child {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            font-weight: 500 !important;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+        /* L'EAN : style monospace comme NAST/MLP */
+        #lcdpProduitsList > div > div:first-child > div:nth-child(2) {
+            font-family: var(--font-mono);
+            font-size: 10px !important;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+        /* La quantité ×N : style cohérent avec .produit-qty */
+        #lcdpProduitsList > div > div:last-child {
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            color: var(--nast-blue) !important;
+            background: var(--bg-secondary);
+            padding: 4px 10px;
+            border-radius: var(--radius-xs);
+            flex-shrink: 0;
+        }
+
         .btn-scan {
             display: flex; align-items: center; justify-content: center; gap: 8px;
             width: 100%; padding: 16px; background: var(--nast-pink); color: white;
