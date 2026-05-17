@@ -3747,7 +3747,9 @@
                     status.style.display = 'none'; return;
                 }
                 commandesData = parseWebhookCommandes(rows);
-                document.getElementById('commandesCount').textContent = commandesData.length + ' commande' + (commandesData.length > 1 ? 's' : '');
+                const totalNast = commandesData.reduce((s, c) => s + (parseFloat(String(c.total || '').replace(',', '.').replace(/[^0-9.\-]/g, '')) || 0), 0);
+                const totalNastStr = totalNast > 0 ? ' · ' + totalNast.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' €' : '';
+                document.getElementById('commandesCount').textContent = commandesData.length + ' commande' + (commandesData.length > 1 ? 's' : '') + totalNastStr;
                 if (!commandesData.length) {
                     list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Toutes les commandes sont traitées !</p></div>';
                 } else {
@@ -4220,7 +4222,9 @@
                     status.style.display = 'none'; return;
                 }
                 mlpData = parseWebhookCommandes(rows);
-                document.getElementById('mlpCount').textContent = mlpData.length + ' commande' + (mlpData.length > 1 ? 's' : '');
+                const totalMlp = mlpData.reduce((s, c) => s + (parseFloat(String(c.total || '').replace(',', '.').replace(/[^0-9.\-]/g, '')) || 0), 0);
+                const totalMlpStr = totalMlp > 0 ? ' · ' + totalMlp.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' €' : '';
+                document.getElementById('mlpCount').textContent = mlpData.length + ' commande' + (mlpData.length > 1 ? 's' : '') + totalMlpStr;
                 if (!mlpData.length) {
                     list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Toutes traitées !</p></div>';
                 } else {
@@ -4398,7 +4402,9 @@
                 lcdpAllData = allParsed; // toutes (pour stats)
                 lcdpData = allParsed.filter(c => LCDP_STATUTS_A_TRAITER.includes(c.statut)); // filtrées pour "à traiter"
                 const countEl = document.getElementById('lcdpCount');
-                if (countEl) countEl.textContent = lcdpData.length + ' commande' + (lcdpData.length > 1 ? 's' : '');
+                const totalLcdp = lcdpData.reduce((s, c) => s + (parseFloat(String(c.total || '').replace(',', '.').replace(/[^0-9.\-]/g, '')) || 0), 0);
+                const totalLcdpStr = totalLcdp > 0 ? ' · ' + totalLcdp.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' €' : '';
+                if (countEl) countEl.textContent = lcdpData.length + ' commande' + (lcdpData.length > 1 ? 's' : '') + totalLcdpStr;
                 if (!lcdpData.length) {
                     if (list) list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Toutes traitées !</p></div>';
                 } else {
