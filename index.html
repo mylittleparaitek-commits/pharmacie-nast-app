@@ -4498,9 +4498,9 @@
         let aCommanderFilter = 'montf';
 
         function loadACommander() {
-            // Utilise mlpData déjà chargé
-            if (!mlpData.length) {
-                document.getElementById('aCommanderList').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Chargez d\'abord les commandes MLP</p></div>';
+            // Utilise commandesData (NAST) et mlpData déjà chargés
+            if (!commandesData.length && !mlpData.length) {
+                document.getElementById('aCommanderList').innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">⚠️</div><p>Chargez d\'abord les commandes</p></div>';
                 return;
             }
 
@@ -4508,25 +4508,30 @@
             // dont le profil = 🟣 TRANSFERT (Carla ramène à NAST).
             // Les commandes 🟠 CARLA SOLO sont expédiées directement par Carla depuis Montf → rien à rapatrier.
             // Les commandes 🔴 RUPTURE → onglet fournisseur (pas MONTF).
+            // On regarde MAINTENANT NAST + MLP (Carla rapatrie pour les deux flux).
             aCommanderData = [];
-            mlpData.forEach(c => {
-                const classif = classifyCommande(c);
-                if (classif.type === 'transfert') {
-                    classif.produits.forEach(p => {
-                        // pickMontf = quantité que Carla doit ramener à NAST pour ce produit
-                        if (p.classif.pickMontf > 0) {
-                            aCommanderData.push({
-                                ...p,
-                                qty: p.classif.pickMontf, // ⚠️ qty effective à rapatrier (pas qty client)
-                                qtyClient: p.qty,         // on garde l'info pour affichage si besoin
-                                cmdNum: c.num,
-                                client: c.client,
-                                source: 'montf'
-                            });
-                        }
-                    });
-                }
-            });
+            const collectFrom = (data, srcLabel) => {
+                data.forEach(c => {
+                    const classif = classifyCommande(c);
+                    if (classif.type === 'transfert') {
+                        classif.produits.forEach(p => {
+                            if (p.classif.pickMontf > 0) {
+                                aCommanderData.push({
+                                    ...p,
+                                    qty: p.classif.pickMontf, // ⚠️ qty effective à rapatrier (pas qty client)
+                                    qtyClient: p.qty,
+                                    cmdNum: c.num,
+                                    client: c.client,
+                                    source: 'montf',
+                                    srcOrigine: srcLabel // 'nast' ou 'mlp'
+                                });
+                            }
+                        });
+                    }
+                });
+            };
+            collectFrom(commandesData, 'nast');
+            collectFrom(mlpData, 'mlp');
 
             document.getElementById('aCommanderCount').textContent = aCommanderData.length + ' produit' + (aCommanderData.length > 1 ? 's' : '');
             renderACommander();
@@ -4543,35 +4548,40 @@
             const list = document.getElementById('aCommanderList');
 
             if (aCommanderFilter === 'montf') {
-                // Produits avec 0 stock NAST mais dispo Montfermeil
+                // Produits à rapatrier depuis Montfermeil (source nast + mlp)
                 const filtered = aCommanderData.filter(p => p.source === 'montf');
                 if (!filtered.length) {
                     list.innerHTML = '<div class="commande-empty"><div class="commande-empty-icon">✅</div><p>Aucun produit à récupérer à Montfermeil</p></div>';
                     return;
                 }
 
-                // Grouper par EAN
-                const grouped = {};
-                filtered.forEach(p => {
-                    const key = p.ean || p.nom;
-                    if (!grouped[key]) grouped[key] = { ...p, totalQty: 0, commandes: [] };
-                    grouped[key].totalQty += p.qty;
-                    grouped[key].commandes.push({ num: p.cmdNum, client: p.client, qty: p.qty });
-                });
+                // Séparer par origine : NAST et MLP
+                const groupBySource = (srcOrigine) => {
+                    const grouped = {};
+                    filtered.filter(p => p.srcOrigine === srcOrigine).forEach(p => {
+                        const key = p.ean || p.nom;
+                        if (!grouped[key]) grouped[key] = { ...p, totalQty: 0, commandes: [] };
+                        grouped[key].totalQty += p.qty;
+                        grouped[key].commandes.push({ num: p.cmdNum, client: p.client, qty: p.qty });
+                    });
+                    return Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+                };
 
-                const items = Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
-                const countLabel = items.length + ' produit' + (items.length > 1 ? 's' : '') + ' · ' + items.reduce((s, i) => s + i.totalQty, 0) + ' unités';
-                document.getElementById('aCommanderCount').textContent = countLabel;
+                const itemsNast = groupBySource('nast');
+                const itemsMlp  = groupBySource('mlp');
+                const totalItems = itemsNast.length + itemsMlp.length;
+                const totalUnits = itemsNast.reduce((s, i) => s + i.totalQty, 0) + itemsMlp.reduce((s, i) => s + i.totalQty, 0);
+                document.getElementById('aCommanderCount').textContent = totalItems + ' produit' + (totalItems > 1 ? 's' : '') + ' · ' + totalUnits + ' unités';
 
-                list.innerHTML = items.map(item => {
+                // Rendu d'un item (réutilisable pour les 2 sections)
+                const renderItem = (item, accentColor) => {
                     const cmdsHtml = item.commandes.map(c =>
-                        `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:rgba(156,39,176,0.1);color:#7b1fa2;">#${c.num} × ${c.qty}</span>`
+                        `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:${accentColor.bg};color:${accentColor.color};">#${escapeHtml(c.num)} × ${c.qty}</span>`
                     ).join(' ');
-
                     return `<div class="produit-item" style="background:rgba(156,39,176,0.05);border-left:3px solid #9c27b0;margin-bottom:8px;">
                         <div class="produit-info" style="flex:1;">
-                            <div class="produit-nom">${item.nom || 'Produit inconnu'}</div>
-                            <div class="produit-ean">${item.ean}</div>
+                            <div class="produit-nom">${escapeHtml(item.nom || 'Produit inconnu')}</div>
+                            <div class="produit-ean">${escapeHtml(item.ean)}</div>
                             <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${cmdsHtml}</div>
                             <div style="margin-top:3px;"><span style="font-size:11px;font-weight:600;color:#7b1fa2;background:rgba(156,39,176,0.1);padding:2px 8px;border-radius:6px;">${item.stockMontf || 0} en stock Montfermeil</span></div>
                         </div>
@@ -4579,7 +4589,32 @@
                             <span class="produit-qty" style="font-size:18px;font-weight:700;">×${item.totalQty}</span>
                         </div>
                     </div>`;
-                }).join('');
+                };
+
+                const sectionHeader = (label, count, color) => {
+                    return `<div style="display:flex;align-items:center;gap:8px;margin:14px 0 8px 0;padding-bottom:6px;border-bottom:2px solid ${color};">
+                        <span style="font-size:13px;font-weight:700;color:${color};">${label}</span>
+                        <span style="font-size:11px;color:var(--text-muted);">${count} produit${count > 1 ? 's' : ''}</span>
+                    </div>`;
+                };
+
+                // Bouton imprimer PDF en haut
+                const printBtn = `<div style="margin-bottom:12px;display:flex;justify-content:flex-end;">
+                    <button onclick="printACommanderPDF()" style="background:var(--nast-blue);color:white;border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                        🖨️ Imprimer PDF (Carla)
+                    </button>
+                </div>`;
+
+                let html = printBtn;
+                if (itemsNast.length > 0) {
+                    html += sectionHeader('🛒 NAST — À rapatrier', itemsNast.length, '#E91E63');
+                    html += itemsNast.map(item => renderItem(item, { bg: 'rgba(233,30,99,0.1)', color: '#E91E63' })).join('');
+                }
+                if (itemsMlp.length > 0) {
+                    html += sectionHeader('💚 MLP — À rapatrier', itemsMlp.length, '#43a047');
+                    html += itemsMlp.map(item => renderItem(item, { bg: 'rgba(67,160,71,0.1)', color: '#2e7d32' })).join('');
+                }
+                list.innerHTML = html;
 
             } else {
                 // FERRY, STOCK SANTE, CERP, D2P, RUPTURE → liste vide, à remplir manuellement
@@ -4624,6 +4659,125 @@
                     list.innerHTML = `<div class="commande-empty"><div class="commande-empty-icon">${icons[aCommanderFilter] || '📦'}</div><p>Onglet ${names[aCommanderFilter] || ''}<br><span style="font-size:12px;color:#aaa;">À gérer manuellement</span></p></div>`;
                 }
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // IMPRESSION PDF — Liste à rapatrier pour Carla
+        // Format : A4 paysage, 1 ligne par produit (groupé par EAN),
+        // sous-lignes = commandes concernées
+        // ═══════════════════════════════════════════════════════════════════
+        function printACommanderPDF() {
+            // Re-grouper les données par source (NAST / MLP) pour l'impression
+            const groupBySource = (srcOrigine) => {
+                const grouped = {};
+                aCommanderData.filter(p => p.source === 'montf' && p.srcOrigine === srcOrigine).forEach(p => {
+                    const key = p.ean || p.nom;
+                    if (!grouped[key]) grouped[key] = { ...p, totalQty: 0, commandes: [] };
+                    grouped[key].totalQty += p.qty;
+                    grouped[key].commandes.push({ num: p.cmdNum, client: p.client, qty: p.qty });
+                });
+                return Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+            };
+
+            const itemsNast = groupBySource('nast');
+            const itemsMlp  = groupBySource('mlp');
+
+            if (itemsNast.length === 0 && itemsMlp.length === 0) {
+                alert('Aucun produit à imprimer.');
+                return;
+            }
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+            // Construire le HTML de chaque section
+            const renderSection = (title, accent, items) => {
+                if (!items.length) return '';
+                const totalUnits = items.reduce((s, i) => s + i.totalQty, 0);
+                const rows = items.map((it, idx) => {
+                    const cmds = it.commandes.map(c => `#${c.num} (${c.client || '—'}) ×${c.qty}`).join('  ·  ');
+                    return `
+                    <tr style="border-bottom:1px solid #ddd;">
+                        <td style="padding:6px 8px;font-weight:700;color:#555;text-align:center;width:36px;">${idx + 1}</td>
+                        <td style="padding:6px 8px;">
+                            <div style="font-weight:600;font-size:12px;">${escapeHtml(it.nom || 'Produit inconnu')}</div>
+                            <div style="font-family:monospace;font-size:10px;color:#777;margin-top:2px;">EAN: ${escapeHtml(it.ean)}</div>
+                            <div style="font-size:10px;color:#555;margin-top:3px;">${cmds}</div>
+                        </td>
+                        <td style="padding:6px 8px;text-align:center;width:80px;">
+                            <div style="font-size:11px;color:#777;">Stock Montf</div>
+                            <div style="font-weight:700;font-size:14px;color:#7b1fa2;">${it.stockMontf || 0}</div>
+                        </td>
+                        <td style="padding:6px 8px;text-align:center;width:80px;background:#fff8e1;">
+                            <div style="font-size:11px;color:#777;">À prendre</div>
+                            <div style="font-weight:800;font-size:20px;color:#FF6F00;">×${it.totalQty}</div>
+                        </td>
+                        <td style="padding:6px 8px;text-align:center;width:50px;">
+                            <div style="width:24px;height:24px;border:2px solid #999;border-radius:4px;margin:0 auto;"></div>
+                        </td>
+                    </tr>`;
+                }).join('');
+                return `
+                <h2 style="color:${accent};border-bottom:3px solid ${accent};padding-bottom:4px;margin:18px 0 8px 0;font-size:16px;">
+                    ${title} <span style="font-size:12px;color:#777;font-weight:normal;">— ${items.length} produit(s) · ${totalUnits} unité(s)</span>
+                </h2>
+                <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                    <thead>
+                        <tr style="background:#f5f5f5;">
+                            <th style="padding:6px 8px;text-align:center;font-size:10px;color:#555;border-bottom:2px solid #999;">#</th>
+                            <th style="padding:6px 8px;text-align:left;font-size:10px;color:#555;border-bottom:2px solid #999;">Produit · EAN · Commandes concernées</th>
+                            <th style="padding:6px 8px;text-align:center;font-size:10px;color:#555;border-bottom:2px solid #999;">Stock</th>
+                            <th style="padding:6px 8px;text-align:center;font-size:10px;color:#555;border-bottom:2px solid #999;">Qté</th>
+                            <th style="padding:6px 8px;text-align:center;font-size:10px;color:#555;border-bottom:2px solid #999;">✓</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+            };
+
+            const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Liste à rapatrier — ${dateStr}</title>
+<style>
+    @page { size: A4 landscape; margin: 12mm; }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; color: #222; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2c3e50; padding-bottom: 8px; margin-bottom: 12px; }
+    .header h1 { margin: 0; font-size: 22px; color: #2c3e50; }
+    .header .meta { font-size: 12px; color: #555; text-align: right; }
+    @media print { body { padding: 0; } .no-print { display: none !important; } }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>📦 Liste à rapatrier — Montfermeil → NAST</h1>
+        <div class="meta">
+            <div style="font-weight:600;">${dateStr}</div>
+            <div>Édité à ${timeStr}</div>
+        </div>
+    </div>
+    ${renderSection('🛒 Commandes NAST', '#E91E63', itemsNast)}
+    ${renderSection('💚 Commandes MLP', '#43a047', itemsMlp)}
+    <div style="margin-top:24px;padding-top:8px;border-top:1px dashed #999;font-size:10px;color:#777;text-align:center;">
+        Document généré automatiquement — Pharmacie NAST / My Little Para
+    </div>
+    <script>
+        window.onload = function() { window.print(); };
+    <\/script>
+</body>
+</html>`;
+
+            // Ouvrir dans un nouvel onglet et lancer l'impression
+            const win = window.open('', '_blank');
+            if (!win) {
+                alert("Le navigateur a bloqué l'ouverture du PDF. Autorise les popups pour ce site.");
+                return;
+            }
+            win.document.write(html);
+            win.document.close();
         }
 
         function getStockInfo(p) {
