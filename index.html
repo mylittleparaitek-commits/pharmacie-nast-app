@@ -4514,22 +4514,24 @@
             // dont le profil = 🟣 TRANSFERT (Carla ramène à NAST).
             // Les commandes 🟠 CARLA SOLO sont expédiées directement par Carla depuis Montf → rien à rapatrier.
             // Les commandes 🔴 RUPTURE → onglet fournisseur (pas MONTF).
-            // On regarde MAINTENANT NAST + MLP (Carla rapatrie pour les deux flux).
+            // On regarde MAINTENANT NAST (Payplug + DocMorris) + MLP, séparés en 3 sections.
             aCommanderData = [];
-            const collectFrom = (data, srcLabel) => {
+            const collectFrom = (data, defaultSrc) => {
                 data.forEach(c => {
                     const classif = classifyCommande(c);
                     if (classif.type === 'transfert') {
+                        // Pour NAST, on distingue Payplug vs DocMorris au cas par cas
+                        const srcLabel = (defaultSrc === 'nast' && isDocmorris(c)) ? 'docmorris' : defaultSrc;
                         classif.produits.forEach(p => {
                             if (p.classif.pickMontf > 0) {
                                 aCommanderData.push({
                                     ...p,
-                                    qty: p.classif.pickMontf, // ⚠️ qty effective à rapatrier (pas qty client)
+                                    qty: p.classif.pickMontf,
                                     qtyClient: p.qty,
                                     cmdNum: c.num,
                                     client: c.client,
                                     source: 'montf',
-                                    srcOrigine: srcLabel // 'nast' ou 'mlp'
+                                    srcOrigine: srcLabel // 'nast' (Payplug) | 'docmorris' | 'mlp'
                                 });
                             }
                         });
@@ -4573,10 +4575,13 @@
                     return Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
                 };
 
-                const itemsNast = groupBySource('nast');
-                const itemsMlp  = groupBySource('mlp');
-                const totalItems = itemsNast.length + itemsMlp.length;
-                const totalUnits = itemsNast.reduce((s, i) => s + i.totalQty, 0) + itemsMlp.reduce((s, i) => s + i.totalQty, 0);
+                const itemsNast      = groupBySource('nast');
+                const itemsDocmorris = groupBySource('docmorris');
+                const itemsMlp       = groupBySource('mlp');
+                const totalItems = itemsNast.length + itemsDocmorris.length + itemsMlp.length;
+                const totalUnits = itemsNast.reduce((s, i) => s + i.totalQty, 0)
+                                 + itemsDocmorris.reduce((s, i) => s + i.totalQty, 0)
+                                 + itemsMlp.reduce((s, i) => s + i.totalQty, 0);
                 document.getElementById('aCommanderCount').textContent = totalItems + ' produit' + (totalItems > 1 ? 's' : '') + ' · ' + totalUnits + ' unités';
 
                 // Rendu d'un item (réutilisable pour les 2 sections)
@@ -4613,8 +4618,12 @@
 
                 let html = printBtn;
                 if (itemsNast.length > 0) {
-                    html += sectionHeader('🛒 NAST — À rapatrier', itemsNast.length, '#E91E63');
+                    html += sectionHeader('🛒 NAST Payplug — À rapatrier', itemsNast.length, '#E91E63');
                     html += itemsNast.map(item => renderItem(item, { bg: 'rgba(233,30,99,0.1)', color: '#E91E63' })).join('');
+                }
+                if (itemsDocmorris.length > 0) {
+                    html += sectionHeader('🌐 NAST DocMorris — À rapatrier', itemsDocmorris.length, '#1565C0');
+                    html += itemsDocmorris.map(item => renderItem(item, { bg: 'rgba(21,101,192,0.1)', color: '#1565C0' })).join('');
                 }
                 if (itemsMlp.length > 0) {
                     html += sectionHeader('💚 MLP — À rapatrier', itemsMlp.length, '#43a047');
@@ -4685,10 +4694,11 @@
                 return Object.values(grouped).sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
             };
 
-            const itemsNast = groupBySource('nast');
-            const itemsMlp  = groupBySource('mlp');
+            const itemsNast      = groupBySource('nast');
+            const itemsDocmorris = groupBySource('docmorris');
+            const itemsMlp       = groupBySource('mlp');
 
-            if (itemsNast.length === 0 && itemsMlp.length === 0) {
+            if (itemsNast.length === 0 && itemsDocmorris.length === 0 && itemsMlp.length === 0) {
                 alert('Aucun produit à imprimer.');
                 return;
             }
@@ -4765,7 +4775,8 @@
             <div>Édité à ${timeStr}</div>
         </div>
     </div>
-    ${renderSection('🛒 Commandes NAST', '#E91E63', itemsNast)}
+    ${renderSection('🛒 Commandes NAST Payplug', '#E91E63', itemsNast)}
+    ${renderSection('🌐 Commandes NAST DocMorris', '#1565C0', itemsDocmorris)}
     ${renderSection('💚 Commandes MLP', '#43a047', itemsMlp)}
     <div style="margin-top:24px;padding-top:8px;border-top:1px dashed #999;font-size:10px;color:#777;text-align:center;">
         Document généré automatiquement — Pharmacie NAST / My Little Para
