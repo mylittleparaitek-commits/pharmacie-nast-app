@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Suivi de stock</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background:#f1f5f9; color:#1e293b; min-height:100vh;
+    }
+    .wrap { max-width:680px; margin:0 auto; padding:0 0 40px; }
+    header {
+        background:linear-gradient(135deg,#4338ca,#6366f1);
+        color:white; padding:22px 18px 18px; position:sticky; top:0; z-index:10;
+        box-shadow:0 2px 12px rgba(67,56,202,0.25);
+    }
+    .h-title { font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px; }
+    .h-maj { font-size:11px; opacity:0.85; margin-top:3px; }
+    .content { padding:16px 14px 0; }
+    .kpis { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
+    .kpi { border-radius:12px; padding:12px; }
+    .kpi-val { font-size:22px; font-weight:800; line-height:1; }
+    .kpi-lbl { font-size:10px; color:#5a6a7e; margin-top:3px; }
+    .search {
+        width:100%; padding:11px 14px; border:1.5px solid #e0e7ff; border-radius:12px;
+        font-size:14px; box-sizing:border-box; outline:none; margin-bottom:14px;
+    }
+    .search:focus { border-color:#6366f1; }
+    .card {
+        background:white; border:1px solid #eef0f4; border-radius:14px;
+        padding:12px 14px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .c-nom { font-weight:700; font-size:14px; color:#1e293b; line-height:1.25; }
+    .c-ean { font-size:11px; color:#94a3b8; margin-top:2px; }
+    .stock-box { text-align:center; border-radius:10px; padding:6px 10px; min-width:62px; }
+    .stock-val { font-size:22px; font-weight:800; line-height:1; }
+    .stock-lbl { font-size:9px; font-weight:600; }
+    .badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; }
+    .couv { font-size:11px; color:#64748b; margin-top:6px; }
+    .hist { display:flex; gap:4px; margin-top:8px; padding-top:8px; border-top:1px solid #f1f5f9; }
+    .hist-cell { text-align:center; flex:1; }
+    .hist-v { font-size:13px; font-weight:700; color:#334155; }
+    .hist-m { font-size:8px; color:#94a3b8; text-transform:uppercase; }
+    .status { text-align:center; padding:40px 20px; color:#94a3b8; font-size:14px; }
+    .refresh {
+        border:none; background:rgba(255,255,255,0.2); color:white; width:38px; height:38px;
+        border-radius:11px; font-size:18px; cursor:pointer;
+    }
+    .h-row { display:flex; justify-content:space-between; align-items:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <div class="h-row">
+            <div>
+                <div class="h-title">📦 Suivi de stock</div>
+                <div class="h-maj" id="maj">—</div>
+            </div>
+            <button class="refresh" onclick="load(true)">↻</button>
+        </div>
+    </header>
+    <div class="content">
+        <div class="kpis">
+            <div class="kpi" style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-left:4px solid #6366f1;">
+                <div class="kpi-val" style="color:#4338ca;" id="kNb">—</div>
+                <div class="kpi-lbl">Références</div>
+            </div>
+            <div class="kpi" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border-left:4px solid #10b981;">
+                <div class="kpi-val" style="color:#047857;" id="kStock">—</div>
+                <div class="kpi-lbl">Stock total</div>
+            </div>
+            <div class="kpi" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-left:4px solid #f59e0b;">
+                <div class="kpi-val" style="color:#b45309;" id="kVentes">—</div>
+                <div class="kpi-lbl">Ventes 1er mois</div>
+            </div>
+        </div>
+        <input type="text" class="search" id="search" oninput="render()" placeholder="Rechercher un produit ou EAN…" autocomplete="off">
+        <div class="status" id="status">Chargement…</div>
+        <div id="list"></div>
+    </div>
+</div>
+
+<script>
+    // ⚠️ Cette page ne contient QUE le suivi de stock. Aucune autre donnée.
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw3ovESuTpQ8W7rYOzdOvd5tmzPwKo7vSYhBnJ3RoILL-dxQogaBYRReaoDrSve4yGXjVvlffePOPi/pub?gid=690951810&single=true&output=csv';
+
+    let rows = [], monthCols = [];
+
+    function esc(s){const d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
+    function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();}
+    const MOIS3=['JAN','FEV','MAR','AVR','MAI','JUN','JUI','JUL','AOU','SEP','OCT','NOV','DEC'];
+    function isMonthCol(h){const p=norm(h).split(/\s+/);return p.length===2&&MOIS3.includes(p[0])&&MOIS3.includes(p[1]);}
+    function numFR(v){if(v==null)return 0;const n=parseFloat(String(v).replace(/\s/g,'').replace(',','.'));return isNaN(n)?0:n;}
+
+    function parseCSV(text){
+        return text.trim().split('\n').map(line=>{
+            const cols=[]; let cur='', inQ=false;
+            for(let i=0;i<line.length;i++){
+                const c=line[i];
+                if(c==='"'){inQ=!inQ;}
+                else if(c===','&&!inQ){cols.push(cur.trim());cur='';}
+                else{cur+=c;}
+            }
+            cols.push(cur.trim());
+            return cols;
+        });
+    }
+
+    async function load(force){
+        const status=document.getElementById('status');
+        const list=document.getElementById('list');
+        status.style.display='block'; status.textContent='Chargement…'; list.innerHTML='';
+        try{
+            const res=await fetch(CSV_URL+'&t='+Date.now());
+            const text=await res.text();
+            const raw=parseCSV(text);
+            if(raw.length<=1){status.textContent='Aucune donnée pour le moment.';return;}
+
+            const headers=raw[0];
+            const idx={ean:-1,nom:-1,stock:-1,couv:-1,tendance:-1};
+            const mIdx=[];
+            headers.forEach((h,i)=>{
+                const n=norm(h);
+                if(idx.ean===-1&&n==='EAN')idx.ean=i;
+                else if(idx.nom===-1&&n==='NOM')idx.nom=i;
+                else if(idx.stock===-1&&n==='STOCK')idx.stock=i;
+                else if(idx.couv===-1&&n.startsWith('COUV'))idx.couv=i;
+                else if(idx.tendance===-1&&n.startsWith('TENDANCE'))idx.tendance=i;
+                if(isMonthCol(h))mIdx.push({i,label:String(h).trim()});
+            });
+            monthCols=mIdx.map(m=>m.label);
+
+            rows=raw.slice(1)
+                .filter(r=>(idx.nom>-1&&r[idx.nom])||(idx.ean>-1&&r[idx.ean]))
+                .map(r=>({
+                    ean:idx.ean>-1?String(r[idx.ean]||'').trim():'',
+                    nom:idx.nom>-1?String(r[idx.nom]||'').trim():'',
+                    stock:idx.stock>-1?numFR(r[idx.stock]):0,
+                    couv:idx.couv>-1?String(r[idx.couv]||'').trim():'',
+                    tendance:idx.tendance>-1?String(r[idx.tendance]||'').trim():'',
+                    ventes:mIdx.map(m=>numFR(r[m.i]))
+                }));
+
+            document.getElementById('maj').textContent='Actualisé '+new Date().toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+            status.style.display='none';
+            render();
+        }catch(e){
+            status.style.display='block';
+            status.innerHTML='⚠️ Impossible de charger les données.<br><span style="font-size:12px;">Réessayez dans un instant.</span>';
+        }
+    }
+
+    function stockColor(stock,couv){
+        const c=parseFloat(String(couv).replace(',','.'));
+        if(stock<=0)return{bg:'#fef2f2',fg:'#dc2626',label:'Rupture'};
+        if(!isNaN(c)&&c<1)return{bg:'#fff7ed',fg:'#ea580c',label:'Stock bas'};
+        if(stock<=5)return{bg:'#fff7ed',fg:'#ea580c',label:'Stock bas'};
+        return{bg:'#f0fdf4',fg:'#16a34a',label:'OK'};
+    }
+    function tendanceBadge(t){
+        const n=norm(t);
+        if(n==='HAUSSE')return '<span class="badge" style="background:#dcfce7;color:#16a34a;">↗ Hausse</span>';
+        if(n==='BAISSE')return '<span class="badge" style="background:#fee2e2;color:#dc2626;">↘ Baisse</span>';
+        if(n==='STABLE')return '<span class="badge" style="background:#e0e7ff;color:#4338ca;">→ Stable</span>';
+        return '';
+    }
+
+    function render(){
+        const list=document.getElementById('list');
+        const q=norm(document.getElementById('search').value||'');
+        const data=rows.filter(p=>!q||norm(p.nom).includes(q)||p.ean.includes(q.replace(/\D/g,'')));
+
+        document.getElementById('kNb').textContent=rows.length;
+        document.getElementById('kStock').textContent=rows.reduce((s,p)=>s+(p.stock||0),0);
+        document.getElementById('kVentes').textContent=rows.reduce((s,p)=>s+((p.ventes&&p.ventes[0])||0),0);
+
+        if(!data.length){list.innerHTML='<div class="status">Aucun produit.</div>';return;}
+        data.sort((a,b)=>(a.stock||0)-(b.stock||0));
+
+        list.innerHTML=data.map(p=>{
+            const col=stockColor(p.stock,p.couv);
+            const hist=(p.ventes||[]).slice(0,4).map((v,i)=>
+                `<div class="hist-cell"><div class="hist-v">${v}</div><div class="hist-m">${(monthCols[i]||'').split(' ')[0]}</div></div>`
+            ).join('');
+            const couvTxt=p.couv&&p.couv!=='0'&&p.couv.toLowerCase()!=='inf'?`≈ ${p.couv} mois de stock`:'';
+            return `<div class="card">
+                <div class="card-top">
+                    <div style="flex:1;min-width:0;">
+                        <div class="c-nom">${esc(p.nom)}</div>
+                        <div class="c-ean">${esc(p.ean)} ${tendanceBadge(p.tendance)}</div>
+                    </div>
+                    <div class="stock-box" style="background:${col.bg};">
+                        <div class="stock-val" style="color:${col.fg};">${p.stock}</div>
+                        <div class="stock-lbl" style="color:${col.fg};">${col.label}</div>
+                    </div>
+                </div>
+                ${couvTxt?`<div class="couv">${couvTxt}</div>`:''}
+                ${hist?`<div class="hist">${hist}</div>`:''}
+            </div>`;
+        }).join('');
+    }
+
+    load();
+</script>
+</body>
+</html>

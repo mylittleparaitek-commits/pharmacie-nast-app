@@ -1565,10 +1565,11 @@
                     <button onclick="openSection('settings')" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;">⚙️</button>
                 </div>
             </div>
-            <!-- 2 onglets principaux dans le header -->
+            <!-- 3 onglets principaux dans le header -->
             <div style="display:flex;gap:0;margin-top:10px;background:rgba(255,255,255,0.15);border-radius:10px;padding:3px;">
-                <button id="mainTabInternet" onclick="switchMainTab('internet')" style="flex:1;padding:8px 0;border:none;border-radius:8px;background:white;color:var(--nast-pink);font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;">🌐 Internet</button>
-                <button id="mainTabPharma" onclick="switchMainTab('pharma')" style="flex:1;padding:8px 0;border:none;border-radius:8px;background:transparent;color:rgba(255,255,255,0.8);font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;">🏥 Pharmacie</button>
+                <button id="mainTabInternet" onclick="switchMainTab('internet')" style="flex:1;padding:8px 0;border:none;border-radius:8px;background:white;color:var(--nast-pink);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">🌐 Internet</button>
+                <button id="mainTabPharma" onclick="switchMainTab('pharma')" style="flex:1;padding:8px 0;border:none;border-radius:8px;background:transparent;color:rgba(255,255,255,0.8);font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">🏥 Pharma</button>
+                <button id="mainTabNathan" onclick="switchMainTab('nathan')" style="flex:1;padding:8px 0;border:none;border-radius:8px;background:transparent;color:rgba(255,255,255,0.8);font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;">📦 Nathan</button>
             </div>
         </header>
 
@@ -1789,6 +1790,42 @@
                         <div style="color:var(--text-muted);font-size:18px;">›</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- ═══ PANNEAU NATHAN (fournisseur) ═══ -->
+            <div id="panelNathan" class="main-panel" style="display:none;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                    <div>
+                        <div style="font-size:20px;font-weight:800;color:#4338ca;line-height:1.1;">📦 Suivi Nathan</div>
+                        <div id="nathanMaj" style="font-size:11px;color:var(--text-muted);margin-top:2px;">—</div>
+                    </div>
+                    <button onclick="loadNathanData(true)" style="border:none;background:#eef2ff;color:#4338ca;width:40px;height:40px;border-radius:12px;font-size:18px;cursor:pointer;">↻</button>
+                </div>
+
+                <!-- Résumé global -->
+                <div id="nathanKpis" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+                    <div style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-radius:12px;padding:12px;border-left:4px solid #6366f1;">
+                        <div style="font-size:22px;font-weight:800;color:#4338ca;line-height:1;" id="nathanNbProd">—</div>
+                        <div style="font-size:10px;color:#5a6a7e;margin-top:3px;">Références</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border-radius:12px;padding:12px;border-left:4px solid #10b981;">
+                        <div style="font-size:22px;font-weight:800;color:#047857;line-height:1;" id="nathanStockTot">—</div>
+                        <div style="font-size:10px;color:#5a6a7e;margin-top:3px;">Stock total</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:12px;padding:12px;border-left:4px solid #f59e0b;">
+                        <div style="font-size:22px;font-weight:800;color:#b45309;line-height:1;" id="nathanVentesMois">—</div>
+                        <div style="font-size:10px;color:#5a6a7e;margin-top:3px;">Ventes 1er mois</div>
+                    </div>
+                </div>
+
+                <!-- Recherche -->
+                <div style="position:relative;margin-bottom:14px;">
+                    <input type="text" id="nathanSearch" oninput="renderNathan()" placeholder="Rechercher un produit ou EAN…" autocomplete="off" style="width:100%;padding:11px 14px;border:1.5px solid #e0e7ff;border-radius:12px;font-size:14px;box-sizing:border-box;outline:none;">
+                </div>
+
+                <!-- Liste produits -->
+                <div id="nathanStatus" style="display:none;text-align:center;padding:30px;color:var(--text-muted);">Chargement…</div>
+                <div id="nathanList"></div>
             </div>
 
             <!-- ═══ SECTION STATS ═══ -->
@@ -3043,6 +3080,7 @@
             // Masquer les panneaux home
             document.getElementById('panelInternet').style.display = 'none';
             document.getElementById('panelPharma').style.display = 'none';
+            const pn = document.getElementById('panelNathan'); if (pn) pn.style.display = 'none';
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
 
             // Remonter le scroll en haut
@@ -3110,8 +3148,9 @@
         function goHome() {
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
             // Afficher le bon panneau selon l'onglet actif
-            document.getElementById('panelInternet').style.display = currentMainTab === 'pharma' ? 'none' : 'block';
-            document.getElementById('panelPharma').style.display = currentMainTab === 'pharma' ? 'block' : 'none';
+            document.getElementById('panelInternet').style.display = (currentMainTab === 'internet') ? 'block' : 'none';
+            document.getElementById('panelPharma').style.display   = (currentMainTab === 'pharma')   ? 'block' : 'none';
+            document.getElementById('panelNathan').style.display   = (currentMainTab === 'nathan')   ? 'block' : 'none';
             document.getElementById('headerTitle') && (document.getElementById('headerTitle').textContent = '');
             currentSection = null;
         }
@@ -3144,38 +3183,38 @@
 
         function switchMainTab(tab) {
             currentMainTab = tab;
-            const isInternet = tab === 'internet';
 
-            // Style onglets header
-            const btnI = document.getElementById('mainTabInternet');
-            const btnP = document.getElementById('mainTabPharma');
-            if (btnI) {
-                btnI.style.background = isInternet ? 'white' : 'transparent';
-                btnI.style.color = isInternet ? 'var(--nast-pink)' : 'rgba(255,255,255,0.8)';
-                btnI.style.fontWeight = isInternet ? '700' : '600';
-            }
-            if (btnP) {
-                btnP.style.background = !isInternet ? 'white' : 'transparent';
-                btnP.style.color = !isInternet ? 'var(--nast-pink)' : 'rgba(255,255,255,0.8)';
-                btnP.style.fontWeight = !isInternet ? '700' : '600';
+            // Style des 3 onglets header
+            const tabs = { internet: 'mainTabInternet', pharma: 'mainTabPharma', nathan: 'mainTabNathan' };
+            for (const [key, id] of Object.entries(tabs)) {
+                const btn = document.getElementById(id);
+                if (!btn) continue;
+                const active = (key === tab);
+                btn.style.background = active ? 'white' : 'transparent';
+                btn.style.color = active ? 'var(--nast-pink)' : 'rgba(255,255,255,0.8)';
+                btn.style.fontWeight = active ? '700' : '600';
             }
 
-            document.getElementById('panelInternet').style.display = isInternet ? 'block' : 'none';
-            document.getElementById('panelPharma').style.display = !isInternet ? 'block' : 'none';
+            // Afficher le bon panneau
+            document.getElementById('panelInternet').style.display = (tab === 'internet') ? 'block' : 'none';
+            document.getElementById('panelPharma').style.display   = (tab === 'pharma')   ? 'block' : 'none';
+            document.getElementById('panelNathan').style.display   = (tab === 'nathan')   ? 'block' : 'none';
 
             // Fermer toute section ouverte
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
             currentSection = null;
 
-            if (isInternet) {
+            if (tab === 'internet') {
                 loadHomeKpis();
                 loadHomeTaches();
                 // Pré-charger les stats en arrière-plan → instantané quand on clique Stats
                 setTimeout(() => _refreshStatsBackground(), 2000);
-            } else {
+            } else if (tab === 'pharma') {
                 // Date pharma
                 const dp = document.getElementById('menuDatePharma');
                 if (dp) dp.textContent = new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+            } else if (tab === 'nathan') {
+                loadNathanData();
             }
         }
 
@@ -3687,6 +3726,131 @@
                 cols.push(cur.trim());
                 return cols;
             });
+        }
+
+        // ════════════════════════════════════════════════════════
+        //  SUIVI NATHAN — lecture seule d'une Google Sheet publiée
+        //  Auto-détection des colonnes : robuste si le format change
+        // ════════════════════════════════════════════════════════
+        const NATHAN_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw3ovESuTpQ8W7rYOzdOvd5tmzPwKo7vSYhBnJ3RoILL-dxQogaBYRReaoDrSve4yGXjVvlffePOPi/pub?gid=690951810&single=true&output=csv';
+
+        let _nathanRows = [];
+        let _nathanMonthCols = [];
+
+        function _norm(s) {
+            return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+        }
+        const _MOIS3 = ['JAN','FEV','MAR','AVR','MAI','JUN','JUI','JUL','AOU','SEP','OCT','NOV','DEC'];
+        function _isMonthCol(h) {
+            const parts = _norm(h).split(/\s+/);
+            return parts.length === 2 && _MOIS3.includes(parts[0]) && _MOIS3.includes(parts[1]);
+        }
+        function _numFR(v) {
+            if (v === undefined || v === null) return 0;
+            const n = parseFloat(String(v).replace(/\s/g,'').replace(',','.'));
+            return isNaN(n) ? 0 : n;
+        }
+
+        async function loadNathanData(force) {
+            const status = document.getElementById('nathanStatus');
+            const list   = document.getElementById('nathanList');
+            if (_nathanRows.length && !force) { renderNathan(); return; }
+            status.style.display = 'block'; status.textContent = 'Chargement…'; list.innerHTML = '';
+            try {
+                const res  = await fetch(NATHAN_CSV_URL + '&t=' + Date.now());
+                const text = await res.text();
+                const rows = parseCSV(text);
+                if (rows.length <= 1) { status.textContent = 'Sheet vide.'; return; }
+
+                const headers = rows[0];
+                const idx = { ean:-1, nom:-1, stock:-1, couv:-1, tendance:-1 };
+                const monthIdx = [];
+                headers.forEach((h, i) => {
+                    const n = _norm(h);
+                    if (idx.ean === -1 && n === 'EAN') idx.ean = i;
+                    else if (idx.nom === -1 && n === 'NOM') idx.nom = i;
+                    else if (idx.stock === -1 && n === 'STOCK') idx.stock = i;
+                    else if (idx.couv === -1 && n.startsWith('COUV')) idx.couv = i;
+                    else if (idx.tendance === -1 && n.startsWith('TENDANCE')) idx.tendance = i;
+                    if (_isMonthCol(h)) monthIdx.push({ i, label: String(h).trim() });
+                });
+                _nathanMonthCols = monthIdx.map(m => m.label);
+
+                _nathanRows = rows.slice(1)
+                    .filter(r => (idx.nom>-1 && r[idx.nom]) || (idx.ean>-1 && r[idx.ean]))
+                    .map(r => ({
+                        ean:   idx.ean>-1   ? String(r[idx.ean]||'').trim()   : '',
+                        nom:   idx.nom>-1   ? String(r[idx.nom]||'').trim()   : '',
+                        stock: idx.stock>-1 ? _numFR(r[idx.stock]) : 0,
+                        couv:  idx.couv>-1  ? String(r[idx.couv]||'').trim()  : '',
+                        tendance: idx.tendance>-1 ? String(r[idx.tendance]||'').trim() : '',
+                        ventes: monthIdx.map(m => _numFR(r[m.i]))
+                    }));
+
+                document.getElementById('nathanMaj').textContent =
+                    'Actualisé ' + new Date().toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+                status.style.display = 'none';
+                renderNathan();
+            } catch(e) {
+                status.style.display = 'block';
+                status.innerHTML = '⚠️ Erreur de chargement.<br><span style="font-size:12px;">Vérifie que la sheet est bien publiée en CSV.</span>';
+            }
+        }
+
+        function _stockColor(stock, couv) {
+            const c = parseFloat(String(couv).replace(',','.'));
+            if (stock <= 0) return { bg:'#fef2f2', fg:'#dc2626', label:'Rupture' };
+            if (!isNaN(c) && c < 1) return { bg:'#fff7ed', fg:'#ea580c', label:'Stock bas' };
+            if (stock <= 5)         return { bg:'#fff7ed', fg:'#ea580c', label:'Stock bas' };
+            return { bg:'#f0fdf4', fg:'#16a34a', label:'OK' };
+        }
+        function _tendanceBadge(t) {
+            const n = _norm(t);
+            if (n === 'HAUSSE') return '<span style="background:#dcfce7;color:#16a34a;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;">↗ Hausse</span>';
+            if (n === 'BAISSE') return '<span style="background:#fee2e2;color:#dc2626;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;">↘ Baisse</span>';
+            if (n === 'STABLE') return '<span style="background:#e0e7ff;color:#4338ca;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;">→ Stable</span>';
+            return '';
+        }
+
+        function renderNathan() {
+            const list = document.getElementById('nathanList');
+            if (!list) return;
+            const q = _norm(document.getElementById('nathanSearch')?.value || '');
+            const data = _nathanRows.filter(p =>
+                !q || _norm(p.nom).includes(q) || p.ean.includes(q.replace(/\D/g,''))
+            );
+
+            document.getElementById('nathanNbProd').textContent = _nathanRows.length;
+            document.getElementById('nathanStockTot').textContent = _nathanRows.reduce((s,p)=>s+(p.stock||0),0);
+            document.getElementById('nathanVentesMois').textContent = _nathanRows.reduce((s,p)=>s+((p.ventes&&p.ventes[0])||0),0);
+
+            if (!data.length) {
+                list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">Aucun produit.</div>';
+                return;
+            }
+            data.sort((a,b) => (a.stock||0) - (b.stock||0));
+
+            list.innerHTML = data.map(p => {
+                const col = _stockColor(p.stock, p.couv);
+                const hist = (p.ventes||[]).slice(0,4).map((v,i) =>
+                    `<div style="text-align:center;flex:1;"><div style="font-size:13px;font-weight:700;color:#334155;">${v}</div><div style="font-size:8px;color:#94a3b8;text-transform:uppercase;">${(_nathanMonthCols[i]||'').split(' ')[0]}</div></div>`
+                ).join('');
+                const couvTxt = p.couv && p.couv !== '0' && p.couv.toLowerCase() !== 'inf' ? `≈ ${p.couv} mois de stock` : '';
+                return `<div style="background:white;border:1px solid #eef0f4;border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:700;font-size:14px;color:#1e293b;line-height:1.25;">${escapeHtml(p.nom)}</div>
+                            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">${escapeHtml(p.ean)} ${_tendanceBadge(p.tendance)}</div>
+                        </div>
+                        <div style="text-align:center;background:${col.bg};border-radius:10px;padding:6px 10px;min-width:62px;">
+                            <div style="font-size:22px;font-weight:800;color:${col.fg};line-height:1;">${p.stock}</div>
+                            <div style="font-size:9px;color:${col.fg};font-weight:600;">${col.label}</div>
+                        </div>
+                    </div>
+                    ${couvTxt ? `<div style="font-size:11px;color:#64748b;margin-top:6px;">${couvTxt}</div>` : ''}
+                    ${hist ? `<div style="display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid #f1f5f9;">${hist}</div>` : ''}
+                </div>`;
+            }).join('');
         }
 
         // ─── COMMANDES NAST.COM ───
