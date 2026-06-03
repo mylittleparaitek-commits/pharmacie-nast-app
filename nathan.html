@@ -246,14 +246,18 @@
             const spark=sparkline(p.ventes);
             const recent=(p.ventes&&p.ventes[0]!=null)?p.ventes[0]:0;
             const couvTxt=p.couv&&p.couv!=='0'&&p.couv.toLowerCase()!=='inf'?'≈ '+p.couv+' mois':'';
+            const histRow=(p.ventes||[]).slice(0,6).map((v,i)=>({v,m:(monthCols[i]||'').split(' ')[0]})).reverse()
+                .map(o=>'<div style="text-align:center;flex:1;min-width:0;"><div style="font-size:8px;color:#94a3b8;text-transform:uppercase;">'+o.m+'</div><div style="font-size:13px;font-weight:700;color:#334155;">'+o.v+'</div></div>').join('');
             return '<div class="card"><div class="card-top">'
                 +'<div style="flex:1;min-width:0;"><div class="c-nom">'+esc(p.nom)+'</div>'
                 +'<div class="c-ean">'+esc(p.ean)+' '+tendanceBadge(p.tendance)+'</div></div>'
                 +'<div class="stock-box" style="background:'+col.bg+';"><div class="stock-val" style="color:'+col.fg+';">'+p.stock+'</div>'
                 +'<div class="stock-lbl" style="color:'+col.fg+';">'+col.label+'</div></div></div>'
                 +gauge(p.stock,p.couv)
-                +'<div class="footrow"><div class="foottxt">'+couvTxt+(couvTxt?' · ':'')+'<span style="color:#4338ca;font-weight:600;">'+recent+'</span> vendu(s) le dernier mois</div>'
-                +'<div style="flex-shrink:0;">'+spark+'</div></div></div>';
+                +'<div class="footrow"><div class="foottxt">'+(couvTxt||'Ventes / mois')+'</div>'
+                +'<div style="flex-shrink:0;">'+spark+'</div></div>'
+                +(histRow?'<div style="display:flex;gap:2px;margin-top:6px;">'+histRow+'</div>':'')
+                +'</div>';
         }).join('');
     }
 
