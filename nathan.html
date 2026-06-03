@@ -57,6 +57,13 @@
         </div>
     </header>
     <div class="content">
+        <!-- Sous-onglets -->
+        <div style="display:flex;gap:6px;margin-bottom:14px;background:#eef2ff;border-radius:10px;padding:3px;">
+            <button id="nvStock" onclick="switchView('stock')" style="flex:1;border:none;background:white;color:#4338ca;font-size:13px;font-weight:700;padding:9px 0;border-radius:8px;cursor:pointer;">📊 Suivi stock</button>
+            <button id="nvSim" onclick="switchView('sim')" style="flex:1;border:none;background:transparent;color:#4338ca;font-size:13px;font-weight:600;padding:9px 0;border-radius:8px;cursor:pointer;">🧮 Simulateur</button>
+        </div>
+
+        <div id="viewStock">
         <div class="kpis">
             <div class="kpi" style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-left:4px solid #6366f1;">
                 <div class="kpi-val" style="color:#4338ca;" id="kNb">—</div>
@@ -88,6 +95,27 @@
         </div>
         <div class="status" id="status">Chargement…</div>
         <div id="list"></div>
+        </div><!-- /viewStock -->
+
+        <!-- VUE SIMULATEUR -->
+        <div id="viewSim" style="display:none;">
+            <div style="display:flex;gap:6px;margin-bottom:16px;">
+                <button id="simModeFwd" onclick="setSimMode('fwd')" style="flex:1;border:1.5px solid #c7d2fe;background:#4338ca;color:white;font-size:12px;font-weight:600;padding:11px 4px;border-radius:10px;cursor:pointer;line-height:1.2;">Achat HT<br>→ Vente TTC</button>
+                <button id="simModeRev" onclick="setSimMode('rev')" style="flex:1;border:1.5px solid #c7d2fe;background:white;color:#4338ca;font-size:12px;font-weight:600;padding:11px 4px;border-radius:10px;cursor:pointer;line-height:1.2;">Vente TTC<br>→ Achat HT</button>
+            </div>
+            <div style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">TVA</div>
+            <div style="display:flex;gap:6px;margin-bottom:16px;">
+                <button class="simTva" data-tva="0.021" onclick="setSimTva(0.021)" style="flex:1;border:none;background:#eef2ff;color:#4338ca;font-size:13px;font-weight:600;padding:9px 0;border-radius:9px;cursor:pointer;">2,1 %</button>
+                <button class="simTva" data-tva="0.055" onclick="setSimTva(0.055)" style="flex:1;border:none;background:#eef2ff;color:#4338ca;font-size:13px;font-weight:600;padding:9px 0;border-radius:9px;cursor:pointer;">5,5 %</button>
+                <button class="simTva" data-tva="0.1" onclick="setSimTva(0.1)" style="flex:1;border:none;background:#eef2ff;color:#4338ca;font-size:13px;font-weight:600;padding:9px 0;border-radius:9px;cursor:pointer;">10 %</button>
+                <button class="simTva" data-tva="0.2" onclick="setSimTva(0.2)" style="flex:1;border:none;background:#4338ca;color:white;font-size:13px;font-weight:600;padding:9px 0;border-radius:9px;cursor:pointer;">20 %</button>
+            </div>
+            <div id="simInputLabel" style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">Prix d'achat HT (€)</div>
+            <input type="number" id="simInput" inputmode="decimal" step="0.01" oninput="computeSim()" placeholder="0,00" style="width:100%;padding:14px;border:1.5px solid #e0e7ff;border-radius:12px;font-size:18px;font-weight:600;box-sizing:border-box;outline:none;margin-bottom:16px;">
+            <div id="simResult" style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-radius:16px;padding:20px;text-align:center;">
+                <div style="font-size:12px;color:#5a6a7e;">Saisis un montant pour calculer</div>
+            </div>
+        </div><!-- /viewSim -->
     </div>
 </div>
 
@@ -278,6 +306,60 @@
             } else { ptr.style.height='0'; }
         },{passive:true});
     })();
+
+    // ─── SIMULATEUR DE PRIX (direct + inverse) ───
+    let simMode='fwd', simTva=0.2;
+    function venteTTC(C,D){ if(C===0)return 0; const bas=(C+0.2)/(0.91/(1+D)-0.01-5.41/49); return bas>=49?(C+0.2+5.41)/(0.91/(1+D)-0.01):bas; }
+    function achatHT(PV,D){ const a=0.91/(1+D)-0.01, b=a-5.41/49; return (PV<49)?(PV*b-0.2):(PV*a-0.2-5.41); }
+    function eur(n){ return (Math.round(n*100)/100).toFixed(2).replace('.',',')+' €'; }
+
+    function switchView(v){
+        const onStock=(v==='stock');
+        document.getElementById('viewStock').style.display=onStock?'block':'none';
+        document.getElementById('viewSim').style.display=onStock?'none':'block';
+        const bS=document.getElementById('nvStock'), bM=document.getElementById('nvSim');
+        bS.style.background=onStock?'white':'transparent'; bS.style.fontWeight=onStock?'700':'600';
+        bM.style.background=onStock?'transparent':'white'; bM.style.fontWeight=onStock?'600':'700';
+        if(!onStock)computeSim();
+    }
+    function setSimMode(m){
+        simMode=m; const fwd=(m==='fwd');
+        const bF=document.getElementById('simModeFwd'), bR=document.getElementById('simModeRev');
+        bF.style.background=fwd?'#4338ca':'white'; bF.style.color=fwd?'white':'#4338ca';
+        bR.style.background=fwd?'white':'#4338ca'; bR.style.color=fwd?'#4338ca':'white';
+        document.getElementById('simInputLabel').textContent=fwd?"Prix d'achat HT (€)":'Prix de vente TTC (€)';
+        computeSim();
+    }
+    function setSimTva(t){
+        simTva=t;
+        document.querySelectorAll('#viewSim .simTva').forEach(b=>{
+            const on=Math.abs(parseFloat(b.dataset.tva)-t)<1e-9;
+            b.style.background=on?'#4338ca':'#eef2ff'; b.style.color=on?'white':'#4338ca';
+        });
+        computeSim();
+    }
+    function computeSim(){
+        const box=document.getElementById('simResult');
+        const raw=(document.getElementById('simInput').value||'').replace(',','.');
+        const val=parseFloat(raw);
+        if(raw===''||isNaN(val)||val<0){ box.innerHTML='<div style="font-size:12px;color:#5a6a7e;">Saisis un montant pour calculer</div>'; return; }
+        if(simMode==='fwd'){
+            const pv=venteTTC(val,simTva), pvHT=pv/(1+simTva);
+            box.innerHTML='<div style="font-size:13px;color:#5a6a7e;margin-bottom:4px;">Prix de vente conseillé</div>'
+                +'<div style="font-size:34px;font-weight:800;color:#4338ca;line-height:1;">'+eur(pv)+'</div>'
+                +'<div style="font-size:12px;color:#5a6a7e;margin-top:5px;">TTC · soit '+eur(pvHT)+' HT</div>';
+        } else {
+            const ht=achatHT(val,simTva);
+            if(ht<=0){
+                box.innerHTML='<div style="font-size:13px;color:#dc2626;font-weight:600;">⚠️ Prix de vente trop bas</div>'
+                    +'<div style="font-size:12px;color:#5a6a7e;margin-top:5px;">À '+eur(val)+' TTC, il faudrait acheter à '+eur(ht)+' HT — impossible avec cette marge.</div>';
+            } else {
+                box.innerHTML='<div style="font-size:13px;color:#5a6a7e;margin-bottom:4px;">Prix d\'achat maximum</div>'
+                    +'<div style="font-size:34px;font-weight:800;color:#4338ca;line-height:1;">'+eur(ht)+'</div>'
+                    +'<div style="font-size:12px;color:#5a6a7e;margin-top:5px;">HT · pour vendre à '+eur(val)+' TTC</div>';
+            }
+        }
+    }
 
     load();
 </script>
