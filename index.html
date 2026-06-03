@@ -1818,9 +1818,25 @@
                     </div>
                 </div>
 
-                <!-- Recherche -->
-                <div style="position:relative;margin-bottom:14px;">
-                    <input type="text" id="nathanSearch" oninput="renderNathan()" placeholder="Rechercher un produit ou EAN…" autocomplete="off" style="width:100%;padding:11px 14px;border:1.5px solid #e0e7ff;border-radius:12px;font-size:14px;box-sizing:border-box;outline:none;">
+                <!-- Bandeau d'action -->
+                <div id="nathanBanner" style="display:none;background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:10px;padding:9px 12px;font-size:13px;margin-bottom:12px;"></div>
+
+                <!-- Filtres rapides -->
+                <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;">
+                    <button id="nfAll" onclick="setNathanFilter('all')" style="white-space:nowrap;border:none;background:#4338ca;color:white;font-size:12px;font-weight:600;padding:7px 13px;border-radius:20px;cursor:pointer;">Tout</button>
+                    <button id="nfReappro" onclick="setNathanFilter('reappro')" style="white-space:nowrap;border:none;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:600;padding:7px 13px;border-radius:20px;cursor:pointer;">À réappro</button>
+                    <button id="nfRupture" onclick="setNathanFilter('rupture')" style="white-space:nowrap;border:none;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:600;padding:7px 13px;border-radius:20px;cursor:pointer;">En rupture</button>
+                    <button id="nfTop" onclick="setNathanFilter('top')" style="white-space:nowrap;border:none;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:600;padding:7px 13px;border-radius:20px;cursor:pointer;">Top ventes</button>
+                </div>
+
+                <!-- Recherche + tri -->
+                <div style="display:flex;gap:8px;margin-bottom:14px;">
+                    <input type="text" id="nathanSearch" oninput="renderNathan()" placeholder="Rechercher…" autocomplete="off" style="flex:1;padding:11px 14px;border:1.5px solid #e0e7ff;border-radius:12px;font-size:14px;box-sizing:border-box;outline:none;">
+                    <select id="nathanSort" onchange="setNathanSort(this.value)" style="border:1.5px solid #e0e7ff;border-radius:12px;font-size:13px;padding:0 8px;background:white;color:#4338ca;font-weight:600;outline:none;cursor:pointer;">
+                        <option value="stock">Stock bas</option>
+                        <option value="ventes">Meilleures ventes</option>
+                        <option value="nom">Nom A-Z</option>
+                    </select>
                 </div>
 
                 <!-- Liste produits -->
@@ -3736,6 +3752,8 @@
 
         let _nathanRows = [];
         let _nathanMonthCols = [];
+        let _nathanFilter = 'all';   // all | reappro | rupture | top
+        let _nathanSort   = 'stock'; // stock | ventes | nom
 
         function _norm(s) {
             return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
@@ -3750,6 +3768,13 @@
             const n = parseFloat(String(v).replace(/\s/g,'').replace(',','.'));
             return isNaN(n) ? 0 : n;
         }
+        function _looksLikeDate(s) {
+            const t = String(s||'');
+            return /\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}/.test(t) || /\d{1,2}:\d{2}/.test(t);
+        }
+        function _totVentes(p) { return (p.ventes||[]).reduce((s,x)=>s+x,0); }
+        function _couvNum(p) { return parseFloat(String(p.couv).replace(',','.')); }
+        function _isReappro(p) { const c=_couvNum(p); return p.stock>0 && ((!isNaN(c)&&c<2)||p.stock<=5); }
 
         async function loadNathanData(force) {
             const status = document.getElementById('nathanStatus');
@@ -3759,10 +3784,18 @@
             try {
                 const res  = await fetch(NATHAN_CSV_URL + '&t=' + Date.now());
                 const text = await res.text();
-                const rows = parseCSV(text);
-                if (rows.length <= 1) { status.textContent = 'Sheet vide.'; return; }
+                const raw  = parseCSV(text);
+                if (raw.length <= 1) { status.textContent = 'Sheet vide.'; return; }
 
-                const headers = rows[0];
+                // Date de MAJ : cellule A1 si elle ressemble à une date
+                let majTxt = '';
+                if (raw[0] && _looksLikeDate(raw[0][0])) majTxt = String(raw[0][0]).trim();
+
+                // Ligne d'en-tête = première ligne contenant "EAN" (robuste si A1 = date)
+                let hRow = raw.findIndex(r => r.some(c => _norm(c) === 'EAN'));
+                if (hRow < 0) hRow = 0;
+                const headers = raw[hRow];
+
                 const idx = { ean:-1, nom:-1, stock:-1, couv:-1, tendance:-1 };
                 const monthIdx = [];
                 headers.forEach((h, i) => {
@@ -3776,7 +3809,7 @@
                 });
                 _nathanMonthCols = monthIdx.map(m => m.label);
 
-                _nathanRows = rows.slice(1)
+                _nathanRows = raw.slice(hRow+1)
                     .filter(r => (idx.nom>-1 && r[idx.nom]) || (idx.ean>-1 && r[idx.ean]))
                     .map(r => ({
                         ean:   idx.ean>-1   ? String(r[idx.ean]||'').trim()   : '',
@@ -3787,8 +3820,9 @@
                         ventes: monthIdx.map(m => _numFR(r[m.i]))
                     }));
 
-                document.getElementById('nathanMaj').textContent =
-                    'Actualisé ' + new Date().toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+                document.getElementById('nathanMaj').textContent = majTxt
+                    ? ('Données du ' + majTxt)
+                    : ('Consulté le ' + new Date().toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));
                 status.style.display = 'none';
                 renderNathan();
             } catch(e) {
@@ -3811,31 +3845,97 @@
             if (n === 'STABLE') return '<span style="background:#e0e7ff;color:#4338ca;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;">→ Stable</span>';
             return '';
         }
+        // Mini-courbe de ventes (SVG) — ordre chronologique gauche→droite
+        function _sparkline(vals) {
+            const v = (vals||[]).slice().reverse();
+            if (v.length < 2 || v.every(x => x === 0)) return '';
+            const w = 90, h = 26, pad = 2;
+            const max = Math.max(...v), min = Math.min(...v), range = (max - min) || 1;
+            const pts = v.map((x,i) => {
+                const px = (i/(v.length-1))*(w-pad*2)+pad;
+                const py = h - pad - ((x-min)/range)*(h-pad*2);
+                return px.toFixed(1)+','+py.toFixed(1);
+            });
+            const lastX = pts[pts.length-1].split(',')[0], lastY = pts[pts.length-1].split(',')[1];
+            return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block;">
+                <polyline points="${pts.join(' ')}" fill="none" stroke="#6366f1" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+                <circle cx="${lastX}" cy="${lastY}" r="2.4" fill="#4338ca"/></svg>`;
+        }
+        // Jauge de stock basée sur la couverture (mois), capée à 6
+        function _gauge(stock, couv) {
+            const c = parseFloat(String(couv).replace(',','.'));
+            let pct, color;
+            if (stock <= 0) { pct = 0; color = '#dc2626'; }
+            else if (!isNaN(c) && c > 0) { pct = Math.min(c/6, 1)*100; color = c<1?'#ea580c':(c<2?'#f59e0b':'#16a34a'); }
+            else { pct = Math.min(stock/30, 1)*100; color = stock<=5?'#ea580c':'#16a34a'; }
+            return `<div style="height:6px;background:#eef0f4;border-radius:3px;overflow:hidden;margin-top:7px;">
+                <div style="height:100%;width:${pct.toFixed(0)}%;background:${color};border-radius:3px;transition:width .3s;"></div></div>`;
+        }
+
+        function setNathanFilter(f) {
+            _nathanFilter = f;
+            if (f === 'top') _nathanSort = 'ventes';
+            const sel = document.getElementById('nathanSort'); if (sel) sel.value = _nathanSort;
+            renderNathan();
+        }
+        function setNathanSort(s) { _nathanSort = s; renderNathan(); }
 
         function renderNathan() {
             const list = document.getElementById('nathanList');
             if (!list) return;
-            const q = _norm(document.getElementById('nathanSearch')?.value || '');
-            const data = _nathanRows.filter(p =>
-                !q || _norm(p.nom).includes(q) || p.ean.includes(q.replace(/\D/g,''))
-            );
 
+            // KPIs globaux
             document.getElementById('nathanNbProd').textContent = _nathanRows.length;
             document.getElementById('nathanStockTot').textContent = _nathanRows.reduce((s,p)=>s+(p.stock||0),0);
             document.getElementById('nathanVentesMois').textContent = _nathanRows.reduce((s,p)=>s+((p.ventes&&p.ventes[0])||0),0);
+
+            // Bandeau d'action
+            const nbRupture = _nathanRows.filter(p => p.stock <= 0).length;
+            const nbReappro = _nathanRows.filter(_isReappro).length;
+            const banner = document.getElementById('nathanBanner');
+            if (banner) {
+                if (nbRupture || nbReappro) {
+                    const parts = [];
+                    if (nbRupture) parts.push(`<b style="color:#dc2626;">${nbRupture}</b> en rupture`);
+                    if (nbReappro) parts.push(`<b style="color:#ea580c;">${nbReappro}</b> à réapprovisionner`);
+                    banner.innerHTML = '⚠️ ' + parts.join(' · ');
+                    banner.style.display = 'block';
+                } else {
+                    banner.innerHTML = '✅ Tous les stocks sont au vert';
+                    banner.style.display = 'block';
+                }
+            }
+
+            // Style des boutons filtres
+            const filtBtns = { all:'nfAll', reappro:'nfReappro', rupture:'nfRupture', top:'nfTop' };
+            for (const [key, id] of Object.entries(filtBtns)) {
+                const b = document.getElementById(id); if (!b) continue;
+                const on = (key === _nathanFilter);
+                b.style.background = on ? '#4338ca' : '#eef2ff';
+                b.style.color = on ? 'white' : '#4338ca';
+            }
+
+            // Recherche + filtre + tri
+            const q = _norm(document.getElementById('nathanSearch')?.value || '');
+            let data = _nathanRows.filter(p => !q || _norm(p.nom).includes(q) || p.ean.includes(q.replace(/\D/g,'')));
+            if (_nathanFilter === 'rupture') data = data.filter(p => p.stock <= 0);
+            else if (_nathanFilter === 'reappro') data = data.filter(_isReappro);
+            else if (_nathanFilter === 'top') data = data.filter(p => _totVentes(p) > 0);
+
+            if (_nathanSort === 'ventes') data.sort((a,b) => _totVentes(b) - _totVentes(a));
+            else if (_nathanSort === 'nom') data.sort((a,b) => a.nom.localeCompare(b.nom));
+            else data.sort((a,b) => (a.stock||0) - (b.stock||0));
 
             if (!data.length) {
                 list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">Aucun produit.</div>';
                 return;
             }
-            data.sort((a,b) => (a.stock||0) - (b.stock||0));
 
             list.innerHTML = data.map(p => {
                 const col = _stockColor(p.stock, p.couv);
-                const hist = (p.ventes||[]).slice(0,4).map((v,i) =>
-                    `<div style="text-align:center;flex:1;"><div style="font-size:13px;font-weight:700;color:#334155;">${v}</div><div style="font-size:8px;color:#94a3b8;text-transform:uppercase;">${(_nathanMonthCols[i]||'').split(' ')[0]}</div></div>`
-                ).join('');
-                const couvTxt = p.couv && p.couv !== '0' && p.couv.toLowerCase() !== 'inf' ? `≈ ${p.couv} mois de stock` : '';
+                const spark = _sparkline(p.ventes);
+                const recent = (p.ventes && p.ventes[0] != null) ? p.ventes[0] : 0;
+                const couvTxt = p.couv && p.couv !== '0' && p.couv.toLowerCase() !== 'inf' ? `≈ ${p.couv} mois` : '';
                 return `<div style="background:white;border:1px solid #eef0f4;border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
                         <div style="flex:1;min-width:0;">
@@ -3847,8 +3947,11 @@
                             <div style="font-size:9px;color:${col.fg};font-weight:600;">${col.label}</div>
                         </div>
                     </div>
-                    ${couvTxt ? `<div style="font-size:11px;color:#64748b;margin-top:6px;">${couvTxt}</div>` : ''}
-                    ${hist ? `<div style="display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid #f1f5f9;">${hist}</div>` : ''}
+                    ${_gauge(p.stock, p.couv)}
+                    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid #f1f5f9;">
+                        <div style="font-size:11px;color:#64748b;">${couvTxt}${couvTxt?' · ':''}<span style="color:#4338ca;font-weight:600;">${recent}</span> vendu(s) le dernier mois</div>
+                        <div style="flex-shrink:0;">${spark}</div>
+                    </div>
                 </div>`;
             }).join('');
         }
@@ -8363,6 +8466,7 @@
 
         async function doPullRefresh() {
             try {
+                if (currentMainTab === 'nathan' && !currentSection) { await loadNathanData(true); return; }
                 if (currentSection === 'nastcom') { await loadCommandes(); return; }
                 if (currentSection === 'mlp') { await loadMLP(); return; }
                 if (currentSection === 'lcdp') { await loadLCDP(); return; }

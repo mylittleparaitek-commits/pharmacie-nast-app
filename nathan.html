@@ -6,32 +6,27 @@
 <title>Suivi de stock</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background:#f1f5f9; color:#1e293b; min-height:100vh;
-    }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f1f5f9; color:#1e293b; min-height:100vh; overflow-x:hidden; }
     .wrap { max-width:680px; margin:0 auto; padding:0 0 40px; }
-    header {
-        background:linear-gradient(135deg,#4338ca,#6366f1);
-        color:white; padding:22px 18px 18px; position:sticky; top:0; z-index:10;
-        box-shadow:0 2px 12px rgba(67,56,202,0.25);
-    }
+    header { background:linear-gradient(135deg,#4338ca,#6366f1); color:white; padding:22px 18px 18px; position:sticky; top:0; z-index:10; box-shadow:0 2px 12px rgba(67,56,202,0.25); }
+    .h-row { display:flex; justify-content:space-between; align-items:center; }
     .h-title { font-size:20px; font-weight:800; display:flex; align-items:center; gap:8px; }
     .h-maj { font-size:11px; opacity:0.85; margin-top:3px; }
+    .refresh { border:none; background:rgba(255,255,255,0.2); color:white; width:38px; height:38px; border-radius:11px; font-size:18px; cursor:pointer; }
     .content { padding:16px 14px 0; }
     .kpis { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
     .kpi { border-radius:12px; padding:12px; }
     .kpi-val { font-size:22px; font-weight:800; line-height:1; }
     .kpi-lbl { font-size:10px; color:#5a6a7e; margin-top:3px; }
-    .search {
-        width:100%; padding:11px 14px; border:1.5px solid #e0e7ff; border-radius:12px;
-        font-size:14px; box-sizing:border-box; outline:none; margin-bottom:14px;
-    }
+    .banner { background:#fffbeb; border:1px solid #fde68a; color:#92400e; border-radius:10px; padding:9px 12px; font-size:13px; margin-bottom:12px; display:none; }
+    .filters { display:flex; gap:6px; margin-bottom:10px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
+    .filter-btn { white-space:nowrap; border:none; background:#eef2ff; color:#4338ca; font-size:12px; font-weight:600; padding:7px 13px; border-radius:20px; cursor:pointer; }
+    .filter-btn.on { background:#4338ca; color:white; }
+    .toolbar { display:flex; gap:8px; margin-bottom:14px; }
+    .search { flex:1; padding:11px 14px; border:1.5px solid #e0e7ff; border-radius:12px; font-size:14px; box-sizing:border-box; outline:none; }
     .search:focus { border-color:#6366f1; }
-    .card {
-        background:white; border:1px solid #eef0f4; border-radius:14px;
-        padding:12px 14px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04);
-    }
+    .sortsel { border:1.5px solid #e0e7ff; border-radius:12px; font-size:13px; padding:0 8px; background:white; color:#4338ca; font-weight:600; outline:none; cursor:pointer; }
+    .card { background:white; border:1px solid #eef0f4; border-radius:14px; padding:12px 14px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
     .card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
     .c-nom { font-weight:700; font-size:14px; color:#1e293b; line-height:1.25; }
     .c-ean { font-size:11px; color:#94a3b8; margin-top:2px; }
@@ -39,20 +34,18 @@
     .stock-val { font-size:22px; font-weight:800; line-height:1; }
     .stock-lbl { font-size:9px; font-weight:600; }
     .badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; }
-    .couv { font-size:11px; color:#64748b; margin-top:6px; }
-    .hist { display:flex; gap:4px; margin-top:8px; padding-top:8px; border-top:1px solid #f1f5f9; }
-    .hist-cell { text-align:center; flex:1; }
-    .hist-v { font-size:13px; font-weight:700; color:#334155; }
-    .hist-m { font-size:8px; color:#94a3b8; text-transform:uppercase; }
+    .gauge { height:6px; background:#eef0f4; border-radius:3px; overflow:hidden; margin-top:7px; }
+    .gauge > div { height:100%; border-radius:3px; transition:width .3s; }
+    .footrow { display:flex; justify-content:space-between; align-items:flex-end; margin-top:8px; padding-top:8px; border-top:1px solid #f1f5f9; }
+    .foottxt { font-size:11px; color:#64748b; }
     .status { text-align:center; padding:40px 20px; color:#94a3b8; font-size:14px; }
-    .refresh {
-        border:none; background:rgba(255,255,255,0.2); color:white; width:38px; height:38px;
-        border-radius:11px; font-size:18px; cursor:pointer;
-    }
-    .h-row { display:flex; justify-content:space-between; align-items:center; }
+    .ptr { height:0; overflow:hidden; display:flex; align-items:center; justify-content:center; color:#6366f1; font-size:12px; transition:height .2s; }
+    .ptr.loading svg { animation:spin .7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
+<div class="ptr" id="ptr"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></div>
 <div class="wrap">
     <header>
         <div class="h-row">
@@ -78,7 +71,21 @@
                 <div class="kpi-lbl">Ventes 1er mois</div>
             </div>
         </div>
-        <input type="text" class="search" id="search" oninput="render()" placeholder="Rechercher un produit ou EAN…" autocomplete="off">
+        <div class="banner" id="banner"></div>
+        <div class="filters">
+            <button class="filter-btn on" id="fAll" onclick="setFilter('all')">Tout</button>
+            <button class="filter-btn" id="fReappro" onclick="setFilter('reappro')">À réappro</button>
+            <button class="filter-btn" id="fRupture" onclick="setFilter('rupture')">En rupture</button>
+            <button class="filter-btn" id="fTop" onclick="setFilter('top')">Top ventes</button>
+        </div>
+        <div class="toolbar">
+            <input type="text" class="search" id="search" oninput="render()" placeholder="Rechercher…" autocomplete="off">
+            <select class="sortsel" id="sort" onchange="setSort(this.value)">
+                <option value="stock">Stock bas</option>
+                <option value="ventes">Meilleures ventes</option>
+                <option value="nom">Nom A-Z</option>
+            </select>
+        </div>
         <div class="status" id="status">Chargement…</div>
         <div id="list"></div>
     </div>
@@ -88,13 +95,17 @@
     // ⚠️ Cette page ne contient QUE le suivi de stock. Aucune autre donnée.
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw3ovESuTpQ8W7rYOzdOvd5tmzPwKo7vSYhBnJ3RoILL-dxQogaBYRReaoDrSve4yGXjVvlffePOPi/pub?gid=690951810&single=true&output=csv';
 
-    let rows = [], monthCols = [];
+    let rows = [], monthCols = [], curFilter = 'all', curSort = 'stock';
 
     function esc(s){const d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
     function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();}
     const MOIS3=['JAN','FEV','MAR','AVR','MAI','JUN','JUI','JUL','AOU','SEP','OCT','NOV','DEC'];
     function isMonthCol(h){const p=norm(h).split(/\s+/);return p.length===2&&MOIS3.includes(p[0])&&MOIS3.includes(p[1]);}
     function numFR(v){if(v==null)return 0;const n=parseFloat(String(v).replace(/\s/g,'').replace(',','.'));return isNaN(n)?0:n;}
+    function looksLikeDate(s){const t=String(s||'');return /\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}/.test(t)||/\d{1,2}:\d{2}/.test(t);}
+    function totVentes(p){return (p.ventes||[]).reduce((s,x)=>s+x,0);}
+    function couvNum(p){return parseFloat(String(p.couv).replace(',','.'));}
+    function isReappro(p){const c=couvNum(p);return p.stock>0&&((!isNaN(c)&&c<2)||p.stock<=5);}
 
     function parseCSV(text){
         return text.trim().split('\n').map(line=>{
@@ -120,7 +131,12 @@
             const raw=parseCSV(text);
             if(raw.length<=1){status.textContent='Aucune donnée pour le moment.';return;}
 
-            const headers=raw[0];
+            let majTxt='';
+            if(raw[0]&&looksLikeDate(raw[0][0]))majTxt=String(raw[0][0]).trim();
+
+            let hRow=raw.findIndex(r=>r.some(c=>norm(c)==='EAN'));
+            if(hRow<0)hRow=0;
+            const headers=raw[hRow];
             const idx={ean:-1,nom:-1,stock:-1,couv:-1,tendance:-1};
             const mIdx=[];
             headers.forEach((h,i)=>{
@@ -134,7 +150,7 @@
             });
             monthCols=mIdx.map(m=>m.label);
 
-            rows=raw.slice(1)
+            rows=raw.slice(hRow+1)
                 .filter(r=>(idx.nom>-1&&r[idx.nom])||(idx.ean>-1&&r[idx.ean]))
                 .map(r=>({
                     ean:idx.ean>-1?String(r[idx.ean]||'').trim():'',
@@ -145,7 +161,9 @@
                     ventes:mIdx.map(m=>numFR(r[m.i]))
                 }));
 
-            document.getElementById('maj').textContent='Actualisé '+new Date().toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+            document.getElementById('maj').textContent=majTxt
+                ?('Données du '+majTxt)
+                :('Consulté le '+new Date().toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));
             status.style.display='none';
             render();
         }catch(e){
@@ -168,41 +186,94 @@
         if(n==='STABLE')return '<span class="badge" style="background:#e0e7ff;color:#4338ca;">→ Stable</span>';
         return '';
     }
+    function sparkline(vals){
+        const v=(vals||[]).slice().reverse();
+        if(v.length<2||v.every(x=>x===0))return '';
+        const w=90,h=26,pad=2,max=Math.max(...v),min=Math.min(...v),range=(max-min)||1;
+        const pts=v.map((x,i)=>{const px=(i/(v.length-1))*(w-pad*2)+pad;const py=h-pad-((x-min)/range)*(h-pad*2);return px.toFixed(1)+','+py.toFixed(1);});
+        const lx=pts[pts.length-1].split(',')[0],ly=pts[pts.length-1].split(',')[1];
+        return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block;"><polyline points="'+pts.join(' ')+'" fill="none" stroke="#6366f1" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+lx+'" cy="'+ly+'" r="2.4" fill="#4338ca"/></svg>';
+    }
+    function gauge(stock,couv){
+        const c=parseFloat(String(couv).replace(',','.'));
+        let pct,color;
+        if(stock<=0){pct=0;color='#dc2626';}
+        else if(!isNaN(c)&&c>0){pct=Math.min(c/6,1)*100;color=c<1?'#ea580c':(c<2?'#f59e0b':'#16a34a');}
+        else{pct=Math.min(stock/30,1)*100;color=stock<=5?'#ea580c':'#16a34a';}
+        return '<div class="gauge"><div style="width:'+pct.toFixed(0)+'%;background:'+color+';"></div></div>';
+    }
+
+    function setFilter(f){
+        curFilter=f;
+        if(f==='top'){curSort='ventes';document.getElementById('sort').value='ventes';}
+        ['all','reappro','rupture','top'].forEach(k=>{
+            const b=document.getElementById('f'+k.charAt(0).toUpperCase()+k.slice(1));
+            if(b)b.classList.toggle('on',k===f);
+        });
+        render();
+    }
+    function setSort(s){curSort=s;render();}
 
     function render(){
         const list=document.getElementById('list');
-        const q=norm(document.getElementById('search').value||'');
-        const data=rows.filter(p=>!q||norm(p.nom).includes(q)||p.ean.includes(q.replace(/\D/g,'')));
-
         document.getElementById('kNb').textContent=rows.length;
         document.getElementById('kStock').textContent=rows.reduce((s,p)=>s+(p.stock||0),0);
         document.getElementById('kVentes').textContent=rows.reduce((s,p)=>s+((p.ventes&&p.ventes[0])||0),0);
 
+        const nbR=rows.filter(p=>p.stock<=0).length, nbA=rows.filter(isReappro).length;
+        const banner=document.getElementById('banner');
+        if(nbR||nbA){
+            const parts=[];
+            if(nbR)parts.push('<b style="color:#dc2626;">'+nbR+'</b> en rupture');
+            if(nbA)parts.push('<b style="color:#ea580c;">'+nbA+'</b> à réapprovisionner');
+            banner.innerHTML='⚠️ '+parts.join(' · '); banner.style.display='block';
+        } else { banner.innerHTML='✅ Tous les stocks sont au vert'; banner.style.display='block'; }
+
+        const q=norm(document.getElementById('search').value||'');
+        let data=rows.filter(p=>!q||norm(p.nom).includes(q)||p.ean.includes(q.replace(/\D/g,'')));
+        if(curFilter==='rupture')data=data.filter(p=>p.stock<=0);
+        else if(curFilter==='reappro')data=data.filter(isReappro);
+        else if(curFilter==='top')data=data.filter(p=>totVentes(p)>0);
+
+        if(curSort==='ventes')data.sort((a,b)=>totVentes(b)-totVentes(a));
+        else if(curSort==='nom')data.sort((a,b)=>a.nom.localeCompare(b.nom));
+        else data.sort((a,b)=>(a.stock||0)-(b.stock||0));
+
         if(!data.length){list.innerHTML='<div class="status">Aucun produit.</div>';return;}
-        data.sort((a,b)=>(a.stock||0)-(b.stock||0));
 
         list.innerHTML=data.map(p=>{
             const col=stockColor(p.stock,p.couv);
-            const hist=(p.ventes||[]).slice(0,4).map((v,i)=>
-                `<div class="hist-cell"><div class="hist-v">${v}</div><div class="hist-m">${(monthCols[i]||'').split(' ')[0]}</div></div>`
-            ).join('');
-            const couvTxt=p.couv&&p.couv!=='0'&&p.couv.toLowerCase()!=='inf'?`≈ ${p.couv} mois de stock`:'';
-            return `<div class="card">
-                <div class="card-top">
-                    <div style="flex:1;min-width:0;">
-                        <div class="c-nom">${esc(p.nom)}</div>
-                        <div class="c-ean">${esc(p.ean)} ${tendanceBadge(p.tendance)}</div>
-                    </div>
-                    <div class="stock-box" style="background:${col.bg};">
-                        <div class="stock-val" style="color:${col.fg};">${p.stock}</div>
-                        <div class="stock-lbl" style="color:${col.fg};">${col.label}</div>
-                    </div>
-                </div>
-                ${couvTxt?`<div class="couv">${couvTxt}</div>`:''}
-                ${hist?`<div class="hist">${hist}</div>`:''}
-            </div>`;
+            const spark=sparkline(p.ventes);
+            const recent=(p.ventes&&p.ventes[0]!=null)?p.ventes[0]:0;
+            const couvTxt=p.couv&&p.couv!=='0'&&p.couv.toLowerCase()!=='inf'?'≈ '+p.couv+' mois':'';
+            return '<div class="card"><div class="card-top">'
+                +'<div style="flex:1;min-width:0;"><div class="c-nom">'+esc(p.nom)+'</div>'
+                +'<div class="c-ean">'+esc(p.ean)+' '+tendanceBadge(p.tendance)+'</div></div>'
+                +'<div class="stock-box" style="background:'+col.bg+';"><div class="stock-val" style="color:'+col.fg+';">'+p.stock+'</div>'
+                +'<div class="stock-lbl" style="color:'+col.fg+';">'+col.label+'</div></div></div>'
+                +gauge(p.stock,p.couv)
+                +'<div class="footrow"><div class="foottxt">'+couvTxt+(couvTxt?' · ':'')+'<span style="color:#4338ca;font-weight:600;">'+recent+'</span> vendu(s) le dernier mois</div>'
+                +'<div style="flex-shrink:0;">'+spark+'</div></div></div>';
         }).join('');
     }
+
+    // Pull-to-refresh isolé
+    (function(){
+        const ptr=document.getElementById('ptr'); let startY=0,pulling=false,trig=false; const TH=70;
+        document.addEventListener('touchstart',e=>{if(window.scrollY<=0){startY=e.touches[0].clientY;pulling=true;trig=false;}},{passive:true});
+        document.addEventListener('touchmove',e=>{
+            if(!pulling)return; const dy=e.touches[0].clientY-startY;
+            if(dy<0){pulling=false;ptr.style.height='0';return;}
+            ptr.style.height=Math.min(dy*0.5,46)+'px';
+            trig=dy>=TH;
+        },{passive:true});
+        document.addEventListener('touchend',()=>{
+            if(!pulling)return; pulling=false;
+            if(trig){ptr.classList.add('loading');ptr.style.height='40px';
+                load(true).finally(()=>setTimeout(()=>{ptr.classList.remove('loading');ptr.style.height='0';},400));
+            } else { ptr.style.height='0'; }
+        },{passive:true});
+    })();
 
     load();
 </script>
