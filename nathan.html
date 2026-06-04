@@ -138,6 +138,13 @@
                     <input type="number" id="remUG" inputmode="numeric" oninput="computeRemise()" placeholder="4" style="width:100%;padding:13px;border:1.5px solid #e0e7ff;border-radius:12px;font-size:16px;font-weight:600;box-sizing:border-box;outline:none;">
                 </div>
             </div>
+            <div style="font-size:12px;color:#64748b;margin:14px 0 6px;font-weight:600;">TVA (pour le prix de vente)</div>
+            <div style="display:flex;gap:6px;">
+                <button class="remTva" data-tva="0.021" onclick="setRemTva(0.021)" style="flex:1;border:none;background:#eef2ff;color:#4338ca;font-size:13px;font-weight:600;padding:9px 0;border-radius:9px;cursor:pointer;">2,1 %</button>
+                <button class="remTva" data-tva="0.055" onclick="setRemTva(0.055)" style="flex:1;border:none;background:#eef2ff;color:#4338ca;font-size:13px;font-weight:600;padding:9px 0;border-radius:9px;cursor:pointer;">5,5 %</button>
+                <button class="remTva" data-tva="0.1" onclick="setRemTva(0.1)" style="flex:1;border:none;background:#eef2ff;color:#4338ca;font-size:13px;font-weight:600;padding:9px 0;border-radius:9px;cursor:pointer;">10 %</button>
+                <button class="remTva" data-tva="0.2" onclick="setRemTva(0.2)" style="flex:1;border:none;background:#4338ca;color:white;font-size:13px;font-weight:600;padding:9px 0;border-radius:9px;cursor:pointer;">20 %</button>
+            </div>
             <div id="remResult" style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-radius:16px;padding:20px;text-align:center;margin-top:16px;">
                 <div style="font-size:12px;color:#5a6a7e;">Saisis une remise ou un nombre d'unités</div>
             </div>
@@ -386,6 +393,7 @@
         }
     }
 
+    let remTva=0.2;
     function computeRemise(){
         const box=document.getElementById('remResult');
         const Pv=(document.getElementById('remPrix').value||'').replace(',','.');
@@ -402,9 +410,22 @@
         if(Q>0&&UG>0){html+='<div style="font-size:12px;color:#5a6a7e;margin-top:5px;">'+Q+'+'+UG+' soit '+(Q+UG)+' unités'+(Rv!==''?' · remise '+(r*100).toString().replace('.',',')+' %':'')+'</div>';}
         if(!isNaN(P)){
             const net=P*(1-rg);
-            html+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid #c7d2fe;"><span style="font-size:13px;color:#5a6a7e;">Prix net final : </span><span style="font-size:20px;font-weight:800;color:#4338ca;">'+eur(net)+'</span><span style="font-size:11px;color:#5a6a7e;"> HT/unité</span></div>';
+            const pvTTC=venteTTC(net,remTva);
+            html+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid #c7d2fe;">'
+                +'<div style="font-size:13px;color:#5a6a7e;">Prix net d\'achat : <b style="color:#1e293b;">'+eur(net)+'</b> HT/unité</div>'
+                +'<div style="margin-top:8px;font-size:13px;color:#5a6a7e;">Prix de vente conseillé</div>'
+                +'<div style="font-size:30px;font-weight:800;color:#16a34a;line-height:1.05;">'+eur(pvTTC)+'</div>'
+                +'<div style="font-size:11px;color:#5a6a7e;">TTC · TVA '+(remTva*100).toString().replace('.',',')+' %</div></div>';
         }
         box.innerHTML=html;
+    }
+    function setRemTva(t){
+        remTva=t;
+        document.querySelectorAll('#viewRemise .remTva').forEach(b=>{
+            const on=Math.abs(parseFloat(b.dataset.tva)-t)<1e-9;
+            b.style.background=on?'#4338ca':'#eef2ff'; b.style.color=on?'white':'#4338ca';
+        });
+        computeRemise();
     }
 
     // ─── EXPORT EXCEL (lib chargée à la demande) ───
