@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16166b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bilan Prévention">
+<title>Mon Bilan Prévention — Pharmacie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16166b; --navy-2:#262a86; --ink:#1a1c2e; --muted:#5d6079;
+  --line:#e3e2dc; --line-strong:#cdccc4;
+  --bg:#f6f5f0; --surface:#ffffff; --surface-2:#fbfaf6;
+  --accent:#16166b; --accent-soft:#e9e9f5;
+  --ok:#1f8a5b; --ok-soft:#e3f3ea;
+  --warn:#b9791a; --warn-soft:#fbf1dd;
+  --alert:#c0392b; --alert-soft:#fbe7e3;
+  --radius:16px; --radius-sm:11px;
+  --shadow:0 1px 2px rgba(20,20,40,.05),0 8px 24px -12px rgba(20,20,40,.18);
+  --shadow-lg:0 24px 60px -28px rgba(20,20,60,.45);
+  --font:"Hanken Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --display:"Bricolage Grotesque",var(--font);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--font); color:var(--ink); background:var(--bg);
+  font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+}
+body[data-bracket="18-25"]{--accent:#caa015;--accent-soft:#fbf2d2}
+body[data-bracket="45-50"]{--accent:#0b9b82;--accent-soft:#d9f3ee}
+body[data-bracket="60-65"]{--accent:#b8338a;--accent-soft:#f8def0}
+body[data-bracket="70-75"]{--accent:#dd6a2f;--accent-soft:#fce6d6}
+h1,h2,h3,h4{font-family:var(--display);font-weight:700;letter-spacing:-.01em;margin:0}
+button{font-family:inherit}
+input,select,textarea{font-family:inherit;font-size:16px}
+a{color:var(--navy)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- App shell ---------- */
+.app{max-width:920px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+header.topbar{
+  position:sticky;top:0;z-index:40;background:rgba(246,245,240,.86);
+  backdrop-filter:saturate(160%) blur(10px);border-bottom:1px solid var(--line);
+}
+.topbar-in{padding:10px 16px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.logo{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;background:var(--navy);color:#fff;position:relative;overflow:hidden}
+.logo svg{width:22px;height:22px}
+.logo::after{content:"";position:absolute;inset:auto -6px -10px auto;width:26px;height:26px;border-radius:50%;background:var(--accent);opacity:.55}
+.brand-txt{min-width:0}
+.brand-txt b{font-family:var(--display);font-size:15px;display:block;line-height:1.1;color:var(--navy)}
+.brand-txt span{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:42vw}
+.topbar-spacer{flex:1}
+.bracket-pill{font-size:12px;font-weight:700;padding:6px 11px;border-radius:999px;background:var(--accent-soft);color:var(--navy);white-space:nowrap;border:1px solid color-mix(in srgb,var(--accent) 28%,transparent)}
+.iconbtn{appearance:none;border:1px solid var(--line-strong);background:var(--surface);width:40px;height:40px;border-radius:11px;display:grid;place-items:center;cursor:pointer;color:var(--ink);flex:none;transition:.15s}
+.iconbtn:hover{border-color:var(--navy);color:var(--navy)}
+.iconbtn svg{width:19px;height:19px}
+
+/* ---------- Stepper ---------- */
+.stepper{display:flex;gap:6px;padding:10px 16px 0;overflow-x:auto;scrollbar-width:none}
+.stepper::-webkit-scrollbar{display:none}
+.step{flex:1;min-width:118px;display:flex;flex-direction:column;gap:7px;cursor:pointer;border:0;background:none;padding:0;text-align:left}
+.step .bar{height:5px;border-radius:99px;background:var(--line-strong);transition:.2s}
+.step.active .bar{background:var(--accent)}
+.step.done .bar{background:var(--navy)}
+.step .lbl{font-size:11.5px;color:var(--muted);font-weight:600;line-height:1.2}
+.step.active .lbl{color:var(--navy)}
+.step .num{font-weight:700;color:var(--navy)}
+
+main{flex:1;padding:16px 16px 140px}
+.view{display:none;animation:fade .25s ease}
+.view.show{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- Cards / sections ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.card + .card{margin-top:14px}
+.card-h{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:11px;background:var(--surface-2)}
+.card-h .sicon{width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--navy);display:grid;place-items:center;flex:none}
+.card-h .sicon svg{width:17px;height:17px}
+.card-h h3{font-size:16px;color:var(--navy)}
+.card-h .meta{margin-left:auto;font-size:12px;color:var(--muted);font-weight:600}
+.card-b{padding:8px 17px 16px}
+
+.intro h2{font-family:var(--display);font-size:26px;color:var(--navy);line-height:1.05;letter-spacing:-.02em}
+.intro p{color:var(--muted);margin:.5rem 0 0;max-width:62ch}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:5px 10px;border-radius:8px}
+
+/* ---------- Question rows ---------- */
+.q{padding:14px 0;border-top:1px solid var(--line)}
+.q:first-child{border-top:0}
+.q-lbl{display:block;font-weight:600;font-size:15px;margin-bottom:10px;color:var(--ink)}
+.q-lbl .qid{display:inline-block;min-width:30px;color:var(--accent);font-family:var(--display);font-weight:700;font-size:13px}
+.q-note{font-size:12.5px;color:var(--muted);font-weight:500;display:block;margin:-4px 0 9px 30px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts.col{flex-direction:column}
+.opt{appearance:none;border:1.5px solid var(--line-strong);background:var(--surface);color:var(--ink);
+  padding:11px 14px;border-radius:11px;cursor:pointer;font-size:14.5px;font-weight:500;
+  transition:.12s;display:flex;align-items:center;gap:9px;line-height:1.25;min-height:46px;text-align:left}
+.opts.col .opt{width:100%}
+.opt:hover{border-color:var(--accent)}
+.opt .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--line-strong);flex:none;transition:.12s}
+.opt.multi .dot{border-radius:6px}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft);color:var(--navy);font-weight:600}
+.opt.sel .dot{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 3px var(--surface)}
+.opt.multi.sel .dot{box-shadow:inset 0 0 0 2px var(--accent-soft)}
+.opt.yes.sel{border-color:var(--ok);background:var(--ok-soft);color:#10643f}.opt.yes.sel .dot{border-color:var(--ok);background:var(--ok)}
+.opt.no.sel{border-color:var(--muted);background:#f0f0ee;color:var(--ink)}.opt.no.sel .dot{border-color:var(--muted);background:var(--muted)}
+.inp{display:flex;align-items:center;gap:8px}
+.inp input{border:1.5px solid var(--line-strong);border-radius:10px;padding:11px 13px;width:140px;background:var(--surface)}
+.inp input:focus{outline:none;border-color:var(--accent)}
+.inp .unit{color:var(--muted);font-weight:600}
+textarea.field,input.field{width:100%;border:1.5px solid var(--line-strong);border-radius:11px;padding:11px 13px;background:var(--surface);resize:vertical}
+textarea.field:focus,input.field:focus{outline:none;border-color:var(--accent)}
+
+/* identity grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fld label{font-size:12.5px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em}
+.fld input,.fld select{width:100%;border:1.5px solid var(--line-strong);border-radius:11px;padding:12px 13px;background:var(--surface)}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--accent)}
+.imc{margin-top:10px;font-size:13.5px;font-weight:600;color:var(--navy);background:var(--accent-soft);border-radius:10px;padding:9px 13px;display:none}
+.imc.show{display:block}
+
+/* section nav */
+.secnav{position:sticky;top:62px;z-index:30;display:flex;gap:7px;overflow-x:auto;padding:9px 0;margin:0 0 4px;scrollbar-width:none;background:linear-gradient(var(--bg) 70%,transparent)}
+.secnav::-webkit-scrollbar{display:none}
+.secnav button{white-space:nowrap;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);font-weight:600;font-size:12.5px;padding:7px 12px;border-radius:999px;cursor:pointer}
+.secnav button.cur{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* ---------- Repérage ---------- */
+.flag{display:flex;gap:11px;padding:13px;border-radius:12px;border:1px solid var(--line);margin-top:10px;background:var(--surface-2)}
+.flag:first-child{margin-top:0}
+.flag .fi{width:30px;height:30px;border-radius:8px;flex:none;display:grid;place-items:center;font-weight:800;font-family:var(--display)}
+.flag.warn{border-color:color-mix(in srgb,var(--warn) 40%,transparent);background:var(--warn-soft)}
+.flag.warn .fi{background:var(--warn);color:#fff}
+.flag.alert{border-color:color-mix(in srgb,var(--alert) 45%,transparent);background:var(--alert-soft)}
+.flag.alert .fi{background:var(--alert);color:#fff}
+.flag.info .fi{background:var(--accent-soft);color:var(--navy)}
+.flag b{display:block;font-size:14.5px}
+.flag p{margin:3px 0 0;font-size:13px;color:var(--muted)}
+.flag p strong{color:var(--ink)}
+.empty{color:var(--muted);font-size:14px;padding:8px 0}
+
+/* theme chips */
+.themes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.theme{border:1.5px solid var(--line-strong);background:var(--surface);border-radius:13px;padding:13px;cursor:pointer;display:flex;gap:10px;align-items:flex-start;transition:.12s;text-align:left}
+.theme:hover{border-color:var(--accent)}
+.theme.sel{border-color:var(--accent);background:var(--accent-soft)}
+.theme .tdot{width:20px;height:20px;border-radius:7px;border:2px solid var(--line-strong);flex:none;margin-top:1px;display:grid;place-items:center}
+.theme.sel .tdot{border-color:var(--accent);background:var(--accent);color:#fff}
+.theme .tdot svg{width:13px;height:13px;opacity:0;transition:.1s}
+.theme.sel .tdot svg{opacity:1}
+.theme b{font-size:14px;line-height:1.2;color:var(--ink)}
+.theme.sel b{color:var(--navy)}
+.theme small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.theme.suggested::after{content:"Suggéré";font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);background:var(--surface);border:1px solid var(--accent);border-radius:6px;padding:2px 5px;margin-left:auto;align-self:center}
+.priolimit{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+
+/* PPP blocks */
+.ppp-block{border:1px solid var(--line);border-radius:13px;padding:14px;margin-top:12px;background:var(--surface-2)}
+.ppp-block h4{font-size:15px;color:var(--navy);display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.ppp-block h4 .pn{width:24px;height:24px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:13px;flex:none}
+.ppp-row{margin-top:11px}
+.ppp-row label{font-size:12.5px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px}
+.chk{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:11px;cursor:pointer;margin-top:8px;background:var(--surface)}
+.chk.sel{border-color:var(--accent);background:var(--accent-soft)}
+.chk .cb{width:20px;height:20px;border-radius:6px;border:2px solid var(--line-strong);flex:none;display:grid;place-items:center}
+.chk.sel .cb{background:var(--accent);border-color:var(--accent);color:#fff}
+.chk .cb svg{width:12px;height:12px;opacity:0}.chk.sel .cb svg{opacity:1}
+.chk span{font-size:14px;font-weight:500}
+.chk small{display:block;color:var(--muted);font-size:11.5px;font-weight:500}
+
+/* recap */
+.recap{font-size:14px}
+.recap .rsec{border-top:1px solid var(--line);padding:13px 0}
+.recap .rsec:first-child{border-top:0}
+.recap h4{color:var(--navy);font-size:14px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.recap .kv{display:flex;gap:10px;padding:3px 0;font-size:13.5px}
+.recap .kv .k{color:var(--muted);min-width:46%;max-width:46%}
+.recap .kv .v{font-weight:600}
+.recap ul{margin:4px 0 0;padding-left:18px}
+.recap ul li{margin:3px 0}
+.banner{display:flex;gap:11px;align-items:flex-start;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:13px;padding:13px 14px;font-size:13.5px;color:var(--navy)}
+.banner svg{width:20px;height:20px;flex:none;margin-top:1px}
+.banner b{color:var(--navy)}
+
+/* ---------- Footer action bar ---------- */
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:11px 16px calc(11px + env(safe-area-inset-bottom))}
+.actionbar-in{max-width:920px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.btn{appearance:none;border:0;border-radius:13px;padding:14px 18px;font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s;line-height:1}
+.btn svg{width:18px;height:18px}
+.btn.primary{background:var(--navy);color:#fff}
+.btn.primary:hover{background:var(--navy-2)}
+.btn.accent{background:var(--accent);color:#fff}
+.btn.ghost{background:var(--surface);color:var(--navy);border:1.5px solid var(--line-strong)}
+.btn.ghost:hover{border-color:var(--navy)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.grow{flex:1}
+.btn.lg{padding:15px 20px}
+
+/* ---------- Modal ---------- */
+.modal{position:fixed;inset:0;z-index:80;background:rgba(20,20,40,.45);display:none;align-items:flex-end;justify-content:center;padding:0}
+.modal.show{display:flex}
+@media(min-width:640px){.modal{align-items:center;padding:20px}}
+.sheet{background:var(--surface);width:100%;max-width:560px;border-radius:20px 20px 0 0;box-shadow:var(--shadow-lg);max-height:92dvh;overflow:auto;animation:up .25s ease}
+@media(min-width:640px){.sheet{border-radius:20px}}
+@keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+.sheet-h{position:sticky;top:0;background:var(--surface);padding:17px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.sheet-h h3{font-size:17px;color:var(--navy)}
+.sheet-b{padding:16px 18px 22px}
+.sheet-b .fld{margin-bottom:13px}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* toast */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);z-index:90;background:var(--navy);color:#fff;padding:13px 18px;border-radius:13px;font-weight:600;font-size:14px;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--alert)}
+.toast.ok{background:var(--ok)}
+
+@media(max-width:560px){
+  .grid{grid-template-columns:1fr}
+  .themes{grid-template-columns:1fr}
+  .intro h2{font-size:22px}
+  .recap .kv .k{min-width:42%;max-width:42%}
+}
+
+/* ---------- Print ---------- */
+@media print{
+  body{background:#fff}
+  header.topbar,.stepper,.secnav,.actionbar,.toast,.modal,#printBtn{display:none !important}
+  main{padding:0}
+  .view{display:none !important}
+  #printArea{display:block !important}
+}
+#printArea{display:none}
+#printArea h1{font-size:20px;color:#000}
+#printArea h2{font-size:14px;margin-top:14px;border-bottom:1px solid #999;padding-bottom:3px}
+#printArea .pkv{display:flex;gap:8px;font-size:12px;padding:1px 0}
+#printArea .pkv .k{min-width:200px;color:#444}
+#printArea ul{margin:4px 0;font-size:12px}
+#printArea .pmeta{font-size:11px;color:#555}
+#printArea .pbox{border:1px solid #999;padding:8px 10px;margin-top:8px;font-size:12px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.2c-2.2 1.6-4.7 2.3-7 2.3v6.1c0 4.6 3 7.4 7 9.2 4-1.8 7-4.6 7-9.2V5.5c-2.3 0-4.8-.7-7-2.3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.3 11.8l1.9 1.9 3.6-3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="brand-txt">
+          <b>Mon Bilan Prévention</b>
+          <span id="phName">Pharmacie · à configurer</span>
+        </div>
+      </div>
+      <div class="topbar-spacer"></div>
+      <span class="bracket-pill" id="bracketPill">Tranche —</span>
+      <button class="iconbtn" id="cfgBtn" title="Paramètres" aria-label="Paramètres">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 100-6 3 3 0 000 6Z" stroke="currentColor" stroke-width="1.6"/><path d="M19.4 13a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-2.9 1.2V21a2 2 0 11-4 0v-.1A1.7 1.7 0 004.7 19l-.1.1a2 2 0 11-2.8-2.8l.1-.1A1.7 1.7 0 003.1 13H3a2 2 0 110-4h.1A1.7 1.7 0 004.3 6L4.2 6a2 2 0 112.8-2.8l.1.1A1.7 1.7 0 009 4.6V4a2 2 0 114 0v.1a1.7 1.7 0 002.9 1.2l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V11a1.7 1.7 0 001.6 1.4H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1Z" stroke="currentColor" stroke-width="1.4"/></svg>
+      </button>
+    </div>
+    <div class="stepper" id="stepper"></div>
+  </header>
+
+  <main>
+    <!-- STEP 1 -->
+    <section class="view show" id="view1">
+      <div class="intro card" style="border:0;box-shadow:none;background:transparent">
+        <span class="tag" id="introTag">Rendez-vous santé · âges clés</span>
+        <h2 style="margin-top:10px">Bilan de prévention</h2>
+        <p>Renseignez le patient, sélectionnez la tranche d'âge, puis déroulez le questionnaire avec lui. Chaque réponse alimente le repérage des risques et le Plan Personnalisé de Prévention.</p>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-h">
+          <span class="sicon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 12a4 4 0 100-8 4 4 0 000 8Z" stroke="currentColor" stroke-width="1.6"/><path d="M4 20c0-3.3 3.6-5.5 8-5.5s8 2.2 8 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          <h3>Identité du patient</h3>
+        </div>
+        <div class="card-b">
+          <div class="grid">
+            <div class="fld"><label>Nom</label><input id="pNom" autocomplete="off" placeholder="Nom"></div>
+            <div class="fld"><label>Prénom</label><input id="pPrenom" autocomplete="off" placeholder="Prénom"></div>
+            <div class="fld"><label>Date de naissance</label><input id="pDob" type="date"></div>
+            <div class="fld"><label>Tranche d'âge (acte RDP)</label>
+              <select id="pBracket">
+                <option value="">— Sélectionner —</option>
+                <option value="18-25">18 – 25 ans</option>
+                <option value="45-50">45 – 50 ans</option>
+                <option value="60-65">60 – 65 ans</option>
+                <option value="70-75">70 – 75 ans</option>
+              </select>
+            </div>
+            <div class="fld"><label>E-mail du patient (envoi du PPP)</label><input id="pMail" type="email" autocomplete="off" placeholder="patient@email.fr"></div>
+            <div class="fld"><label>NIR / n° sécu (optionnel)</label><input id="pNir" inputmode="numeric" autocomplete="off" placeholder="1 23 45 ..."></div>
+          </div>
+          <div class="imc" id="imcBox"></div>
+          <div class="flag info" id="bracketHint" style="margin-top:12px;display:none"></div>
+        </div>
+      </div>
+
+      <div id="qHost"></div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="view" id="view2">
+      <div class="card">
+        <div class="card-h">
+          <span class="sicon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.3 3.9 2.6 17.1A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.9L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <h3>Repérage des risques — aide</h3>
+          <span class="meta">à valider par le professionnel</span>
+        </div>
+        <div class="card-b" id="flagsHost"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <span class="sicon"><svg viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          <h3>Priorisation des thématiques</h3>
+        </div>
+        <div class="card-b">
+          <p class="priolimit">Décision partagée : sélectionnez <b>1 à 2 thématiques</b> sur lesquelles agir. (<span id="prioCount">0</span>/2)</p>
+          <div class="themes" id="themesHost"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="view" id="view3">
+      <div class="card">
+        <div class="card-h">
+          <span class="sicon"><svg viewBox="0 0 24 24" fill="none"><path d="M8 4h8a2 2 0 0 1 2 2v14l-3-2-3 2-3-2-3 2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 9h6M9 12h6M9 15h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          <h3>Plan Personnalisé de Prévention (PPP)</h3>
+        </div>
+        <div class="card-b">
+          <div class="banner" style="margin-bottom:6px">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 16v-5m0-3h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="1.6"/></svg>
+            <div>Fixez <b>1 ou 2 objectifs pratiques et atteignables</b>, identifiez les freins, donnez des conseils et orientez si besoin. Le PPP devra être <b>déposé dans le DMP</b> du patient.</div>
+          </div>
+          <div id="pppHost"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <span class="sicon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9.5 12 4l9 5.5M5 11v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <h3>Actes & suivi</h3>
+        </div>
+        <div class="card-b">
+          <div class="ppp-row">
+            <label>Acte de prévention réalisé en sus (facturable, si besoin identifié)</label>
+            <div id="acteHost"></div>
+            <p class="hint">Un seul acte facturable en sus du RDP : vaccination (RVA) ou remise du kit de dépistage colorectal (RKD).</p>
+          </div>
+          <div class="ppp-row" style="margin-top:14px">
+            <label>Dépistages / vaccinations à programmer ou mettre à jour</label>
+            <textarea class="field" id="suiviDep" rows="2" placeholder="Ex. : mammographie à programmer, rappel dTP, frottis à prévoir..."></textarea>
+          </div>
+          <div class="ppp-row">
+            <label>Orientation vers le médecin traitant / autre professionnel</label>
+            <textarea class="field" id="suiviOrient" rows="2" placeholder="Ex. : orientation médecin traitant pour glycémie à jeun..."></textarea>
+          </div>
+          <div class="ppp-row">
+            <label>Transmission du PPP</label>
+            <div id="dmpHost"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section class="view" id="view4">
+      <div class="card">
+        <div class="card-h">
+          <span class="sicon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 2h9l5 5v15a0 0 0 0 1 0 0H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 2v6h6M9 13h6M9 16h6M9 10h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          <h3>Synthèse & envoi</h3>
+        </div>
+        <div class="card-b">
+          <div class="recap" id="recapHost"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-b" style="padding-top:16px">
+          <div class="banner">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M22 6 12 13 2 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/></svg>
+            <div>À l'envoi, les données sont transmises au <b>webhook n8n</b> qui génère le résumé par IA, crée le PDF, l'enregistre sur le <b>Drive</b> de la pharmacie et l'envoie par e-mail au patient.</div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+            <button class="btn ghost grow" id="printBtn">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2M6 14h12v8H6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              Imprimer / PDF local
+            </button>
+            <button class="btn accent grow" id="sendBtn">
+              <svg viewBox="0 0 24 24" fill="none"><path d="m22 2-7 20-4-9-9-4 20-7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              Générer & envoyer
+            </button>
+          </div>
+          <p class="hint" id="sendHint" style="margin-top:10px">Webhook n8n non configuré — ouvrez les paramètres ⚙ pour le renseigner.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="actionbar">
+    <div class="actionbar-in">
+      <button class="btn ghost" id="backBtn" style="display:none">← Précédent</button>
+      <div style="flex:1"></div>
+      <button class="btn primary lg" id="nextBtn">Repérage & priorisation →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal" id="cfgModal">
+  <div class="sheet">
+    <div class="sheet-h">
+      <h3>Paramètres</h3>
+      <div style="flex:1"></div>
+      <button class="iconbtn" id="cfgClose" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="sheet-b">
+      <div class="fld"><label>Nom de la pharmacie</label><input id="cfgPh" placeholder="Pharmacie Nast — Chelles"></div>
+      <div class="fld"><label>FINESS / RPPS (apparaît sur le PPP)</label><input id="cfgFiness" placeholder="FINESS"></div>
+      <div class="fld"><label>Pharmacien effecteur</label><input id="cfgUser" placeholder="Nom du pharmacien"></div>
+      <div class="fld"><label>Webhook n8n (URL de réception)</label><input id="cfgHook" placeholder="https://n8n.exemple.fr/webhook/bilan-prevention"><p class="hint">L'app envoie un POST JSON à cette URL. n8n gère résumé IA + PDF + Drive + e-mail.</p></div>
+      <div class="fld"><label>Dossier Google Drive (info transmise au webhook)</label><input id="cfgDrive" placeholder="ID ou nom du dossier Drive"></div>
+      <div class="fld"><label>E-mail expéditeur (info transmise au webhook)</label><input id="cfgFrom" type="email" placeholder="contact@pharmacie.fr"></div>
+      <button class="btn primary" id="cfgSave" style="width:100%;margin-top:6px">Enregistrer</button>
+      <button class="btn ghost" id="cfgReset" style="width:100%;margin-top:10px">Réinitialiser le bilan en cours</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   Mon Bilan Prévention — PWA officine
+   Questionnaires retranscrits du document CPAM "Mon Bilan
+   Prévention — 17 fiches thématiques" (auto-questionnaires
+   par tranche d'âge). Aucune question inventée.
+   ============================================================ */
+
+/* ---- safe storage (works hosted; degrades in sandbox) ---- */
+const mem={};
+const store={
+  get(k){try{const v=localStorage.getItem(k);return v==null?(k in mem?mem[k]:null):v;}catch(e){return k in mem?mem[k]:null;}},
+  set(k,v){try{localStorage.setItem(k,v);}catch(e){mem[k]=v;}},
+  del(k){try{localStorage.removeItem(k);}catch(e){}delete mem[k];}
+};
+const CFG_KEY="mbp.cfg.v1", DATA_KEY="mbp.data.v1", APP_VER="1.0";
+
+/* ---------- reusable option sets ---------- */
+const ON=["Oui","Non"];
+const ONN=["Oui","Non","Je ne sais pas"];
+const FREQ_AP=["Jamais","1 à 2 fois par semaine","3 à 4 fois par semaine","5 à 7 fois par semaine"];
+const FRUITS=["Au moins 5 portions par jour","Entre 1 et 4 portions par jour","De temps en temps","Rarement","Jamais"];
+const GRAS=["Plusieurs fois par jour","Plusieurs fois par semaine","Une fois par semaine","Une fois par mois","Jamais"];
+const ASSIS=["Moins de 2 heures","Entre 2 et 4 heures","Entre 4 et 7 heures","Plus de 7 heures","Je ne sais pas"];
+const ECRAN=["Moins d'une heure","Entre 1 heure et 2 heures","Entre 2 et 4 heures","Plus de 4 heures","Je ne sais pas"];
+const POIDS_VAR=["Oui, un amaigrissement","Oui, une prise de poids","Non"];
+const ALCOOL=["Plus de 2 verres standards par jour","Plus de 10 verres standards par semaine","Pas de boisson alcoolisée au moins 2 jours par semaine"];
+const TABAC=["Oui, je fume","Oui, je vapote","Non","J'ai arrêté"];
+const ARRET=["Moins d'un an","Entre 1 an et 5 ans","Plus de 5 ans"];
+const SUBST=["Oui, du cannabis","Oui, d'autres drogues","Non"];
+const SUBST_J=["Oui, du cannabis","Oui, d'autres drogues","Oui, du protoxyde d'azote","Non"];
+const JEU=["Oui, souvent","Oui, de temps en temps","Oui, rarement","Non"];
+const SOM_PB=["Oui, souvent","Oui, parfois","Non","Vous prenez des somnifères"];
+const SOM_DUR=["Moins de 6h par nuit","Entre 6h et 10h par nuit","10h ou plus par nuit"];
+const PHQ=["Jamais","Plusieurs jours","Plus de sept jours","Presque tous les jours"];
+const IDEES=["Oui, des idées noires/suicidaires","Oui, une ou des tentative(s) de suicide","Non"];
+const SEXE_SIT=["Plus d'un(e) partenaire sexuel(le) au cours des 12 derniers mois","Souhait d'arrêter le préservatif avec un(e) nouveau(elle) partenaire","Mon(ma) partenaire a eu un diagnostic d'IST dans les 12 derniers mois","Rapports sexuels ces 12 derniers mois mais non concerné(e) par les situations ci-dessus","Non concerné(e)"];
+const DEP2=["Oui, il y a moins de 2 ans","Oui, il y a plus de 2 ans","Non, jamais","Je ne sais pas"];
+const FROT5=["Oui, il y a moins de 5 ans","Oui, il y a plus de 5 ans","Non, jamais","Je ne sais pas"];
+const RETR_R=["Très positif","Plutôt positif","Plutôt négatif","Très négatif"];
+const RETR_P=["Oui, et j'ai déjà mis en place ces projets","Oui, des projets prévus mais non concrétisés","Non, je ne sais pas encore"];
+const MALADIES_4550=["Hypertension artérielle, diabète, cholestérol élevé","Maladies cardiovasculaires (infarctus, coronaropathie, insuffisance cardiaque, AVC…)","Cancers","Maladies respiratoires (asthme, bronchite chronique, BPCO)","Maladie inflammatoire chronique de l'intestin (Crohn, RCH)","Autre(s) maladie(s)","Aucune"];
+const MALADIES_60=["Hypertension artérielle, diabète, cholestérol élevé","Maladies cardiovasculaires (infarctus, coronaropathie, insuffisance cardiaque, AVC…)","Cancers","Maladies respiratoires (asthme, bronchite chronique, BPCO)","Arthrose ou maladie rhumatismale","Fractures d'une vertèbre/du col du fémur et/ou ostéoporose","Autre(s) maladie(s)","Aucune"];
+const MALADIES_18=["Diabète","Maladie congénitale","Allergie(s)","Cancers","Maladies respiratoires (asthme…)","Dépression et/ou troubles anxieux et/ou troubles du comportement alimentaire","Autre(s) maladie(s)","Aucune"];
+
+/* helpers to build question objects */
+const on=(id,q,note)=>({id,q,t:"single",o:ON,note,yn:1});
+const onn=(id,q,note)=>({id,q,t:"single",o:ONN,note});
+const s=(id,q,o,note)=>({id,q,t:"single",o,note});
+const m=(id,q,o,note)=>({id,q,t:"multi",o,note});
+const num=(id,q,unit)=>({id,q,t:"num",unit});
+
+const SEC_AP="Activité physique, sédentarité & alimentation";
+const SEC_VAC="Vaccins, dépistages & santé sexuelle";
+const SEC_ADD="Conduites addictives (alcool, tabac, autres)";
+const SEC_MEN="Santé & bien-être mental, violences";
+const SEC_SOC="Situation personnelle & antécédents";
+const SEC_ETAT="État de santé actuel";
+
+/* ===================== 18-25 ans ===================== */
+const Q_18=[
+ {sec:SEC_SOC,items:[
+   s("q1","Vous êtes :",["Une femme","Un homme"]),
+   s("q2","Vous êtes :",["En études","En emploi","À la recherche d'un emploi","En cumul étude-emploi","Autre"]),
+   s("q3","Vous habitez :",["Seul(e)","Chez vos parents","En couple","Avec d'autres personnes (amis, colocataires…)"]),
+   on("q4","Avez-vous un ou plusieurs enfants ?"),
+   on("q5","Si oui, êtes-vous seul(e) pour l'élever ou les élever ?"),
+   onn("q6","Envisagez-vous d'avoir un enfant dans les 5 prochaines années ?"),
+   on("q7","Assumez-vous un rôle d'aidant (aide régulière à une personne en raison de l'âge, la maladie ou un handicap) ?"),
+   on("q8","En cas de besoin, pouvez-vous compter sur une personne de votre entourage ?"),
+   on("q9","Jugez-vous vos conditions de vie, de travail ou d'étude difficiles/pénibles ?"),
+   m("q10","Avez-vous ou avez-vous eu une de ces maladies ?",MALADIES_18),
+   on("q11","Avez-vous déjà été hospitalisé(e) ?"),
+   s("q12","À quand remonte votre dernière prise de sang et/ou analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois","Jamais réalisée"]),
+   onn("q13","Des personnes de votre famille proche (mère, père, sœur, frère) sont/ont été atteintes de maladies connues ?","Diabète, HTA, cancer, infarctus, mort subite, hypercholestérolémie familiale…"),
+ ]},
+ {sec:SEC_ETAT,items:[
+   on("q14","Suivez-vous actuellement un traitement ?","Si oui, apporter les ordonnances lors du bilan."),
+   num("q15","Taille","m"),
+   num("q16","Poids","kg"),
+   s("q17","Variation de poids lors des 6 derniers mois ?",POIDS_VAR),
+   on("q18","Diriez-vous que la nourriture occupe une place très importante dans votre vie ?"),
+   on("q19","Avez-vous l'impression de voir moins bien ?"),
+   on("q20","Êtes-vous allé(e) chez le dentiste dans les 12 derniers mois ?"),
+ ]},
+ {sec:SEC_AP,items:[
+   s("q21","Combien de fois par semaine ≥ 30 min d'activité physique dynamique ?",FREQ_AP),
+   s("q22","Consommation de fruits et légumes :",FRUITS),
+   s("q23","Fréquence d'aliments gras/sucrés/salés (charcuterie, soda, bonbons, chips, fast-food…) :",GRAS),
+   s("q24","Temps par jour assis(e)/allongé(e) hors sommeil :",ASSIS),
+   s("q25","Temps d'écran par jour hors études/travail :",ECRAN),
+ ]},
+ {sec:SEC_VAC,items:[
+   onn("q26","Êtes-vous à jour de vos vaccins et rappels ?","Apporter le carnet de vaccination si possible."),
+   onn("q27","Êtes-vous vacciné(e) contre les papillomavirus humains (HPV) ?"),
+   onn("q28","Si vous avez 25 ans : frottis de dépistage du cancer du col de l'utérus réalisé ?"),
+   s("q29","Êtes-vous allée chez le gynécologue dans les 12 derniers mois ?",["Oui","Non","Non concerné(e)"]),
+   on("q30","Utilisez-vous un moyen de contraception ?"),
+   s("q31","Douleurs intenses au bas-ventre pendant les règles ?",["Oui","Non","Non concerné(e)"]),
+   onn("q32","Avez-vous déjà réalisé un dépistage des IST ?"),
+   m("q33","Êtes-vous dans l'une de ces situations ?",SEXE_SIT),
+ ]},
+ {sec:SEC_ADD,items:[
+   m("q34","Au cours de l'année écoulée, consommation d'alcool :",ALCOOL),
+   on("q35","Vous arrive-t-il de consommer rapidement une grande quantité d'alcool pour être ivre (binge) ?"),
+   s("q36","Actuellement, fumez-vous ou vapotez-vous ?",TABAC),
+   m("q37","Autres substances au cours des 12 derniers mois ?",SUBST_J),
+   s("q38","Avez-vous misé de l'argent (jeu, pari) au cours des 12 derniers mois ?",JEU),
+ ]},
+ {sec:SEC_MEN,items:[
+   s("q39","Diriez-vous que vous avez des problèmes de sommeil ?",SOM_PB),
+   s("q40","En moyenne, vous dormez :",SOM_DUR),
+   s("q41","2 dernières semaines — nervosité, anxiété ou tension :",PHQ),
+   s("q42","2 dernières semaines — incapable d'arrêter de vous inquiéter :",PHQ),
+   s("q43","2 dernières semaines — peu d'intérêt ou de plaisir à faire les choses :",PHQ),
+   s("q44","2 dernières semaines — tristesse, déprime ou désespoir :",PHQ),
+   s("q45","Avez-vous déjà eu des idées noires/suicidaires ou fait une tentative de suicide ?",IDEES),
+   onn("q46","Avez-vous déjà été victime de violences (physiques, sexuelles, psychiques), harcèlement, discrimination, soumission chimique… ?"),
+ ]},
+];
+
+/* ===================== 45-50 ans ===================== */
+const Q_45=[
+ {sec:SEC_SOC,items:[
+   s("q1","Vous êtes :",["Une femme","Un homme"]),
+   on("q2","Avez-vous un ou plusieurs enfants à la maison ?"),
+   on("q3","Si oui, les élevez-vous seul(e) ?"),
+   on("q4","Assumez-vous un rôle d'aidant ?"),
+   on("q5","En cas de besoin, pouvez-vous compter sur une personne de votre entourage ?"),
+   on("q6","Vos conditions de vie et/ou de travail sont-elles difficiles/pénibles ?"),
+   m("q7","Avez-vous ou avez-vous eu une de ces maladies ou facteurs de risque ?",MALADIES_4550),
+   s("q8","À quand remonte votre dernière prise de sang et/ou analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois"]),
+   onn("q9","Des personnes de votre famille proche sont/ont été atteintes de maladies connues ?","Diabète, HTA, cancer, infarctus, mort subite, hypercholestérolémie familiale, fracture du col du fémur…"),
+ ]},
+ {sec:SEC_ETAT,items:[
+   on("q10","Suivez-vous actuellement un traitement ?","Apporter les ordonnances si possible."),
+   num("q11","Taille","m"),
+   num("q12","Poids","kg"),
+   s("q13","Variation de poids lors des 6 derniers mois ?",POIDS_VAR),
+   on("q14","Gonflements importants/inhabituels des chevilles ou des jambes ?"),
+   on("q15","Toussez-vous souvent (tous les jours) ?"),
+   on("q16","Avez-vous souvent une toux grasse / des crachats ?"),
+   on("q17","Êtes-vous plus facilement essoufflé(e) que les personnes de votre âge ?"),
+   onn("q18","Pauses respiratoires ou ronflements importants pendant le sommeil (constatés par l'entourage) ?"),
+   s("q19","Souhaitez-vous aborder les symptômes de ménopause (bouffées de chaleur, sommeil, sécheresse vaginale, fatigue…) ?",["Oui","Non","Je suis déjà ménopausée","Non concerné(e)"]),
+   on("q20","Êtes-vous allé(e) chez le dentiste dans les 12 derniers mois ?"),
+   on("q21","Avez-vous l'impression de voir moins bien ?"),
+   on("q22","Avez-vous l'impression d'entendre moins bien (ou l'entourage le constate) ?"),
+   on("q23","Problèmes (douleurs, inconfort) au cou/dos/épaules/mains impactant le quotidien (12 mois) ?"),
+ ]},
+ {sec:SEC_AP,items:[
+   s("q24","Combien de fois par semaine ≥ 30 min d'activité physique dynamique ?",FREQ_AP),
+   s("q25","Consommation de fruits et légumes :",FRUITS),
+   s("q26","Fréquence d'aliments gras/sucrés/salés :",GRAS),
+   s("q27","Temps par jour assis(e)/allongé(e) hors sommeil :",ASSIS),
+   s("q28","Temps d'écran par jour hors travail :",ECRAN),
+ ]},
+ {sec:SEC_VAC,items:[
+   onn("q29","Êtes-vous à jour de vos vaccins et rappels ?","Apporter le carnet si possible."),
+   onn("q30","Test de dépistage du cancer colorectal et/ou mammographie réalisé(e) ?"),
+   s("q31","Frottis de dépistage du cancer du col de l'utérus ?",FROT5),
+   m("q32","Êtes-vous dans l'une de ces situations ?",SEXE_SIT),
+ ]},
+ {sec:SEC_ADD,items:[
+   m("q33","Au cours de l'année écoulée, consommation d'alcool :",ALCOOL),
+   s("q34","Actuellement, fumez-vous ou vapotez-vous ?",TABAC),
+   s("q35","Si vous avez arrêté de fumer, depuis combien de temps ?",ARRET),
+   m("q36","Autres substances au cours des 12 derniers mois ?",SUBST),
+   s("q37","Avez-vous misé de l'argent (jeu, pari) au cours des 12 derniers mois ?",JEU),
+ ]},
+ {sec:SEC_MEN,items:[
+   s("q38","Diriez-vous que vous avez des problèmes de sommeil ?",SOM_PB),
+   s("q39","En moyenne, vous dormez :",SOM_DUR),
+   s("q40","2 dernières semaines — nervosité, anxiété ou tension :",PHQ),
+   s("q41","2 dernières semaines — incapable d'arrêter de vous inquiéter :",PHQ),
+   s("q42","2 dernières semaines — peu d'intérêt ou de plaisir à faire les choses :",PHQ),
+   s("q43","2 dernières semaines — tristesse, déprime ou désespoir :",PHQ),
+   s("q44","Avez-vous déjà eu des idées noires/suicidaires ou fait une tentative de suicide ?",IDEES),
+   onn("q45","Avez-vous déjà été victime de violences, harcèlement, discrimination… ?"),
+ ]},
+];
+
+/* ===================== 60-65 ans ===================== */
+const Q_60=[
+ {sec:SEC_SOC,items:[
+   s("q1","Vous êtes :",["Une femme","Un homme"]),
+   on("q2","Assumez-vous un rôle d'aidant ?"),
+   on("q3","En cas de besoin, pouvez-vous compter sur une personne de votre entourage ?"),
+   on("q4","Au cours des 6 derniers mois, avez-vous eu des contacts avec des proches ?"),
+   m("q5","Avez-vous ou avez-vous eu une de ces maladies ou facteurs de risque ?",MALADIES_60),
+   s("q6","À quand remonte votre dernière prise de sang et/ou analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois"]),
+   onn("q7","Des personnes de votre famille proche sont/ont été atteintes de maladies connues ?","Diabète, HTA, cancer, DMLA, Alzheimer, ostéoporose, fracture du col du fémur…"),
+ ]},
+ {sec:SEC_ETAT,items:[
+   on("q8","Suivez-vous actuellement un traitement ?","Apporter les ordonnances si possible."),
+   num("q9","Taille","m"),
+   num("q10","Poids","kg"),
+   s("q11","Variation de poids lors des 6 derniers mois ?",POIDS_VAR),
+   on("q12","Gonflements importants/inhabituels des chevilles ou des jambes ?"),
+   on("q13","Vous arrive-t-il d'avoir des douleurs dans la poitrine, notamment à l'effort ?"),
+   on("q14","Toussez-vous souvent (tous les jours) ?"),
+   on("q15","Avez-vous souvent une toux grasse / des crachats ?"),
+   on("q16","Êtes-vous plus facilement essoufflé(e) que les personnes de votre âge ?"),
+   onn("q17","Pauses respiratoires ou ronflements importants pendant le sommeil ?"),
+   {id:"q18",q:"Si vous êtes une femme, à quel âge avez-vous été ménopausée ?",t:"text"},
+   on("q19","Êtes-vous allé(e) chez le dentiste dans les 12 derniers mois ?"),
+   on("q20","Avez-vous l'impression de voir moins bien ?"),
+   on("q21","Avez-vous l'impression d'entendre moins bien (ou l'entourage le constate) ?"),
+   on("q22","Êtes-vous sujet(te) à des troubles urinaires ?"),
+   on("q23","Problèmes au cou/dos/épaules/mains impactant le quotidien (12 mois) ?"),
+   on("q24","Si toujours en activité professionnelle, jugez-vous vos conditions de travail difficiles/pénibles ?"),
+   on("q25","Avez-vous la sensation d'oublier des choses ?"),
+   onn("q26","Avez-vous l'impression d'avoir plus de difficultés à réaliser vos activités quotidiennes ?"),
+ ]},
+ {sec:SEC_AP,items:[
+   s("q27","Combien de fois par semaine ≥ 30 min d'activité physique dynamique ?",FREQ_AP),
+   s("q28","Consommation de fruits et légumes :",FRUITS),
+   s("q29","Fréquence d'aliments gras/sucrés/salés :",GRAS),
+   s("q30","Temps par jour assis(e)/allongé(e) hors sommeil :",ASSIS),
+   s("q31","Temps d'écran par jour hors travail :",ECRAN),
+ ]},
+ {sec:SEC_VAC,items:[
+   onn("q32","Êtes-vous à jour de vos vaccins et rappels ?","Apporter le carnet si possible."),
+   s("q33","Test de dépistage du cancer colorectal réalisé ?",DEP2),
+   s("q34","Mammographie de dépistage du cancer du sein réalisée ?",DEP2),
+   s("q34b","Frottis de dépistage du cancer du col de l'utérus ?",FROT5),
+   m("q35","Êtes-vous dans l'une de ces situations ?",SEXE_SIT),
+ ]},
+ {sec:SEC_ADD,items:[
+   m("q36","Au cours de l'année écoulée, consommation d'alcool :",ALCOOL),
+   s("q37","Actuellement, fumez-vous ou vapotez-vous ?",TABAC),
+   s("q38","Si vous avez arrêté de fumer, depuis combien de temps ?",ARRET),
+   m("q39","Autres substances au cours des 12 derniers mois ?",SUBST),
+   s("q40","Avez-vous misé de l'argent (jeu, pari) au cours des 12 derniers mois ?",JEU),
+   s("q41","Votre regard sur le fait de passer/d'être à la retraite est :",RETR_R),
+   s("q42","Envisagez-vous de nouveaux projets (passe-temps, sorties, associations…) ?",RETR_P),
+ ]},
+ {sec:SEC_MEN,items:[
+   s("q43","Diriez-vous que vous avez des problèmes de sommeil ?",SOM_PB),
+   s("q44","En moyenne, vous dormez :",SOM_DUR),
+   s("q45","2 dernières semaines — nervosité, anxiété ou tension :",PHQ),
+   s("q46","2 dernières semaines — incapable d'arrêter de vous inquiéter :",PHQ),
+   s("q47","2 dernières semaines — peu d'intérêt ou de plaisir à faire les choses :",PHQ),
+   s("q48","2 dernières semaines — tristesse, déprime ou désespoir :",PHQ),
+   s("q49","Avez-vous déjà eu des idées noires/suicidaires ou fait une tentative de suicide ?",IDEES),
+   onn("q50","Avez-vous déjà été victime de violences, harcèlement, discrimination… ?"),
+ ]},
+];
+
+/* ===================== 70-75 ans ===================== */
+const Q_70=[
+ {sec:SEC_SOC,items:[
+   s("q1","Vous êtes :",["Une femme","Un homme"]),
+   on("q2","Assumez-vous un rôle d'aidant ?"),
+   on("q3","En cas de besoin, pouvez-vous compter sur une personne de votre entourage ?"),
+   on("q4","Au cours des 6 derniers mois, avez-vous eu des contacts avec des proches ?"),
+   m("q5","Avez-vous ou avez-vous eu une de ces maladies ou facteurs de risque ?",MALADIES_60),
+   s("q6","À quand remonte votre dernière prise de sang et/ou analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois"]),
+   onn("q7","Des personnes de votre famille proche sont/ont été atteintes de maladies connues ?","Diabète, HTA, cancer, DMLA, Alzheimer, ostéoporose, fracture du col du fémur…"),
+ ]},
+ {sec:SEC_ETAT,items:[
+   on("q8","Suivez-vous actuellement un traitement ?","Apporter les ordonnances si possible."),
+   num("q9","Taille","m"),
+   num("q10","Poids","kg"),
+   s("q11","Variation de poids lors des 6 derniers mois ?",POIDS_VAR),
+   on("q12","Gonflements importants/inhabituels des chevilles ou des jambes ?"),
+   on("q13","Vous arrive-t-il d'avoir des douleurs dans la poitrine, notamment à l'effort ?"),
+   on("q14","Toussez-vous souvent (tous les jours) ?"),
+   on("q15","Avez-vous souvent une toux grasse / des crachats ?"),
+   on("q16","Êtes-vous plus facilement essoufflé(e) que les personnes de votre âge ?"),
+   onn("q17","Pauses respiratoires ou ronflements importants pendant le sommeil ?"),
+   {id:"q18",q:"Si vous êtes une femme, à quel âge avez-vous été ménopausée ?",t:"text"},
+   on("q19","Êtes-vous allé(e) chez le dentiste dans les 12 derniers mois ?"),
+   on("q20","Avez-vous l'impression de voir moins bien ?"),
+   on("q21","Avez-vous l'impression d'entendre moins bien (ou l'entourage le constate) ?"),
+   on("q22","Êtes-vous sujet(te) à des troubles urinaires ?"),
+   on("q23","Problèmes au cou/dos/épaules/mains impactant le quotidien (12 mois) ?"),
+   on("q24","Avez-vous la sensation d'oublier des choses ?"),
+   m("q25","Difficultés à réaliser certains gestes de la vie quotidienne ?",["Quitter/rejoindre son lit seul(e)","Aller seul(e) aux toilettes","Faire sa toilette seul(e)","Se vêtir/dévêtir seul(e)","Manger et boire seul(e)","Marcher seul(e) (avec ou sans aide)","Utiliser seul(e) un moyen de transport"]),
+ ]},
+ {sec:SEC_AP,items:[
+   s("q26","Combien de fois par semaine ≥ 30 min d'activité physique dynamique ?",FREQ_AP),
+   s("q27","Consommation de fruits et légumes :",FRUITS),
+   s("q28","Fréquence d'aliments gras/sucrés/salés :",GRAS),
+   s("q29","Temps par jour assis(e)/allongé(e) hors sommeil :",ASSIS),
+   s("q30","Temps d'écran par jour :",ECRAN),
+   on("q31","Avez-vous un logement facile d'accès en cas de mobilité réduite (plain-pied, ascenseur, rampe…) ?"),
+   on("q32","Avez-vous un logement adapté à la prévention des chutes (douche, barre d'appui, antidérapant, WC surélevé…) ?"),
+ ]},
+ {sec:SEC_VAC,items:[
+   onn("q33","Êtes-vous à jour de vos vaccins et rappels ?","Apporter le carnet si possible."),
+   s("q34","Test de dépistage du cancer colorectal réalisé ?",DEP2),
+   s("q35","Mammographie de dépistage du cancer du sein réalisée ?",DEP2),
+   onn("q35b","Frottis de dépistage du cancer du col de l'utérus réalisé ?"),
+   m("q36","Êtes-vous dans l'une de ces situations ?",SEXE_SIT),
+ ]},
+ {sec:SEC_ADD,items:[
+   m("q37","Au cours de l'année écoulée, consommation d'alcool :",ALCOOL),
+   s("q38","Actuellement, fumez-vous ou vapotez-vous ?",TABAC),
+   s("q39","Si vous avez arrêté de fumer, depuis combien de temps ?",ARRET),
+   m("q40","Autres substances au cours des 12 derniers mois ?",SUBST),
+   s("q41","Avez-vous misé de l'argent (jeu, pari) au cours des 12 derniers mois ?",JEU),
+   s("q42","Votre regard sur le fait d'être à la retraite est :",RETR_R),
+   s("q43","Depuis la retraite, vous impliquez-vous dans de nouveaux projets ?",RETR_P),
+ ]},
+ {sec:SEC_MEN,items:[
+   s("q44","Diriez-vous que vous avez des problèmes de sommeil ?",SOM_PB),
+   s("q45","En moyenne, vous dormez :",SOM_DUR),
+   s("q46","2 dernières semaines — nervosité, anxiété ou tension :",PHQ),
+   s("q47","2 dernières semaines — incapable d'arrêter de vous inquiéter :",PHQ),
+   s("q48","2 dernières semaines — peu d'intérêt ou de plaisir à faire les choses :",PHQ),
+   s("q49","2 dernières semaines — tristesse, déprime ou désespoir :",PHQ),
+   s("q50","Avez-vous déjà eu des idées noires/suicidaires ou fait une tentative de suicide ?",IDEES),
+   onn("q51","Avez-vous déjà été victime de violences, harcèlement, discrimination… ?"),
+ ]},
+];
+
+const QUESTIONNAIRES={"18-25":Q_18,"45-50":Q_45,"60-65":Q_60,"70-75":Q_70};
+
+/* The 12 prevention themes (champs thématiques officiels du bilan) */
+const THEMES=[
+ {id:"nutrition",l:"Alimentation",d:"Équilibre, dénutrition, Nutri-score"},
+ {id:"ap",l:"Activité physique & sédentarité",d:"30 min/j, réduire l'assis"},
+ {id:"addiction",l:"Tabac, alcool & addictions",d:"RPIB, substituts, repères"},
+ {id:"mental",l:"Bien-être mental & social",d:"Anxiété, dépression, isolement"},
+ {id:"sommeil",l:"Sommeil",d:"Hygiène du sommeil"},
+ {id:"cancers",l:"Prévention des cancers",d:"Dépistages organisés"},
+ {id:"chronique",l:"Autres maladies chroniques",d:"Diabète, cardiovasculaire, BPCO"},
+ {id:"autonomie",l:"Perte d'autonomie",d:"Fragilité, chutes (60+/70+)"},
+ {id:"bucco",l:"Santé bucco-dentaire",d:"Brossage, suivi dentaire"},
+ {id:"vaccins",l:"Vaccinations",d:"Statut vaccinal, rappels"},
+ {id:"sexuelle",l:"Santé sexuelle",d:"Contraception, IST, HPV"},
+ {id:"menopause",l:"Ménopause",d:"Troubles climatériques (45-50)"},
+ {id:"environnement",l:"Santé & environnement",d:"Air intérieur, perturbateurs"},
+ {id:"auditive",l:"Santé auditive",d:"Presbyacousie, exposition"},
+];
+
+/* ============================================================
+   State
+   ============================================================ */
+let state={
+  patient:{nom:"",prenom:"",dob:"",bracket:"",mail:"",nir:""},
+  answers:{},          // id -> string or array
+  priorities:[],       // theme ids (max 2)
+  ppp:{},              // theme id -> {objectif, frein, conseil, orient}
+  acte:"Aucun",
+  suiviDep:"", suiviOrient:"",
+  dmp:[],              // transmission methods
+};
+let cfg={ph:"",finess:"",user:"",hook:"",drive:"",from:""};
+let curStep=1, curSec=0;
+
+/* ============================================================
+   Persistence
+   ============================================================ */
+function saveData(){store.set(DATA_KEY,JSON.stringify(state));}
+function loadData(){const v=store.get(DATA_KEY);if(v){try{state=Object.assign(state,JSON.parse(v));}catch(e){}}}
+function saveCfg(){store.set(CFG_KEY,JSON.stringify(cfg));}
+function loadCfg(){const v=store.get(CFG_KEY);if(v){try{cfg=Object.assign(cfg,JSON.parse(v));}catch(e){}}}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(msg,kind){const t=$("#toast");t.textContent=msg;t.className="toast show"+(kind?" "+kind:"");clearTimeout(t._t);t._t=setTimeout(()=>t.className="toast",3200);}
+function ageFromDob(dob){if(!dob)return null;const d=new Date(dob);if(isNaN(d))return null;const n=new Date();let a=n.getFullYear()-d.getFullYear();const mm=n.getMonth()-d.getMonth();if(mm<0||(mm===0&&n.getDate()<d.getDate()))a--;return a;}
+function bracketForAge(a){if(a==null)return"";if(a>=18&&a<=25)return"18-25";if(a>=45&&a<=50)return"45-50";if(a>=60&&a<=65)return"60-65";if(a>=70&&a<=75)return"70-75";return"";}
+function imc(){const t=parseFloat(String(state.answers.q15||state.answers.q9||state.answers.q11||"").replace(",","."));
+  // taille id differs by bracket; resolve by bracket
+  const b=state.patient.bracket;
+  const ids={"18-25":["q15","q16"],"45-50":["q11","q12"],"60-65":["q9","q10"],"70-75":["q9","q10"]}[b];
+  if(!ids)return null;
+  let h=parseFloat(String(state.answers[ids[0]]||"").replace(",","."));
+  const w=parseFloat(String(state.answers[ids[1]]||"").replace(",","."));
+  if(!h||!w)return null; if(h>3) h=h/100; // entered in cm
+  const v=w/(h*h); if(!isFinite(v)||v<8||v>80)return null;
+  return v;
+}
+function imcCat(v){if(v<18.5)return["Insuffisance pondérale","warn"];if(v<25)return["Corpulence normale","ok"];if(v<30)return["Surpoids","warn"];return["Obésité","alert"];}
+
+/* ============================================================
+   Step 1 — questionnaire rendering
+   ============================================================ */
+function renderQuestionnaire(){
+  const host=$("#qHost"); host.innerHTML="";
+  const b=state.patient.bracket;
+  if(!b){host.innerHTML='<div class="card"><div class="card-b" style="padding:18px"><p class="empty">Sélectionnez d\'abord une <b>tranche d\'âge</b> pour afficher le questionnaire correspondant.</p></div></div>';updateStepper();return;}
+  const Q=QUESTIONNAIRES[b];
+
+  // section nav
+  const nav=document.createElement("div");nav.className="secnav";
+  Q.forEach((sec,i)=>{const btn=document.createElement("button");btn.textContent=(i+1)+". "+shortSec(sec.sec);btn.className=i===curSec?"cur":"";btn.onclick=()=>{document.getElementById("sec_"+i).scrollIntoView({behavior:"smooth",block:"start"});};nav.appendChild(btn);});
+  host.appendChild(nav);
+
+  Q.forEach((sec,i)=>{
+    const card=document.createElement("div");card.className="card";card.id="sec_"+i;
+    const answered=sec.items.filter(it=>hasAns(it.id)).length;
+    card.innerHTML='<div class="card-h"><span class="sicon">'+secIcon(sec.sec)+'</span><h3>'+esc(sec.sec)+'</h3><span class="meta">'+answered+"/"+sec.items.length+'</span></div><div class="card-b"></div>';
+    const body=card.querySelector(".card-b");
+    sec.items.forEach(it=>body.appendChild(renderQ(it)));
+    host.appendChild(card);
+  });
+  // observe to highlight section
+  const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const idx=+e.target.id.split("_")[1];$$(".secnav button").forEach((b,i)=>b.classList.toggle("cur",i===idx));}});},{rootMargin:"-70px 0px -70% 0px"});
+  Q.forEach((_,i)=>obs.observe(document.getElementById("sec_"+i)));
+  updateStepper();
+}
+function shortSec(s){return s.replace("Activité physique, sédentarité & alimentation","Mode de vie").replace("Vaccins, dépistages & santé sexuelle","Dépistages").replace("Conduites addictives (alcool, tabac, autres)","Addictions").replace("Santé & bien-être mental, violences","Mental").replace("Situation personnelle & antécédents","Profil").replace("État de santé actuel","Santé");}
+function secIcon(s){
+  const i={};
+  return '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+}
+function hasAns(id){const v=state.answers[id];return Array.isArray(v)?v.length>0:(v!=null&&v!=="");}
+
+function renderQ(it){
+  const wrap=document.createElement("div");wrap.className="q";
+  let html='<span class="q-lbl"><span class="qid">'+it.id.toUpperCase().replace("Q","Q")+'</span> '+esc(it.q)+'</span>';
+  if(it.note)html+='<span class="q-note">'+esc(it.note)+'</span>';
+  wrap.innerHTML=html;
+
+  if(it.t==="num"){
+    const v=state.answers[it.id]||"";
+    const d=document.createElement("div");d.className="inp";
+    d.innerHTML='<input inputmode="decimal" value="'+esc(v)+'" placeholder="0"><span class="unit">'+esc(it.unit)+'</span>';
+    const inp=d.querySelector("input");
+    inp.oninput=()=>{state.answers[it.id]=inp.value;saveData();refreshImc();markSection(it.id);};
+    wrap.appendChild(d);return wrap;
+  }
+  if(it.t==="text"){
+    const v=state.answers[it.id]||"";
+    const inp=document.createElement("input");inp.className="field";inp.style.maxWidth="220px";inp.value=v;inp.placeholder="Réponse";
+    inp.oninput=()=>{state.answers[it.id]=inp.value;saveData();markSection(it.id);};
+    wrap.appendChild(inp);return wrap;
+  }
+  const opts=document.createElement("div");opts.className="opts"+( (it.o&&it.o.length>3&&!it.yn)||it.t==="multi"||(it.o&&it.o.some(o=>o.length>22))?" col":"");
+  it.o.forEach(o=>{
+    const btn=document.createElement("button");btn.type="button";
+    let cls="opt";
+    if(it.t==="multi")cls+=" multi";
+    if(it.yn){if(o==="Oui")cls+=" yes";if(o==="Non")cls+=" no";}
+    btn.className=cls;
+    btn.innerHTML='<span class="dot"></span><span>'+esc(o)+'</span>';
+    const sel=()=>{
+      if(it.t==="multi"){
+        let arr=Array.isArray(state.answers[it.id])?state.answers[it.id].slice():[];
+        if(arr.includes(o))arr=arr.filter(x=>x!==o);else arr.push(o);
+        state.answers[it.id]=arr;
+      }else{
+        state.answers[it.id]=(state.answers[it.id]===o)?"":o;
+      }
+      saveData();paintOpts(opts,it);markSection(it.id);
+    };
+    btn.onclick=sel;
+    opts.appendChild(btn);
+  });
+  paintOpts(opts,it);
+  wrap.appendChild(opts);
+  return wrap;
+}
+function paintOpts(opts,it){
+  const cur=state.answers[it.id];
+  $$(".opt",opts).forEach((b)=>{
+    const label=b.querySelector("span:last-child").textContent;
+    const on=it.t==="multi"?(Array.isArray(cur)&&cur.includes(label)):(cur===label);
+    b.classList.toggle("sel",on);
+  });
+}
+function markSection(id){
+  // update the X/Y meta of the section containing id
+  const b=state.patient.bracket;const Q=QUESTIONNAIRES[b];
+  Q.forEach((sec,i)=>{
+    const card=document.getElementById("sec_"+i);if(!card)return;
+    const answered=sec.items.filter(it=>hasAns(it.id)).length;
+    const meta=card.querySelector(".meta");if(meta)meta.textContent=answered+"/"+sec.items.length;
+  });
+  updateStepper();
+}
+function refreshImc(){
+  const v=imc();const box=$("#imcBox");
+  if(v){const c=imcCat(v);box.className="imc show";box.innerHTML="IMC : <b class='tnum'>"+v.toFixed(1)+"</b> kg/m² — "+c[0];}
+  else box.className="imc";
+}
+
+/* ============================================================
+   Step 2 — repérage (aide) + priorisation
+   Toutes les règles s'appuient sur les seuils des fiches
+   officielles (Santé publique France / HAS). Aide non
+   automatique : à valider par le professionnel.
+   ============================================================ */
+function a(id){return state.answers[id];}
+function aHas(id,val){const v=state.answers[id];return Array.isArray(v)?v.includes(val):v===val;}
+function phqScore(ids){return ids.reduce((s,id)=>{const idx=PHQ.indexOf(state.answers[id]);return s+(idx>0?idx:0);},0);}
+
+function buildFlags(){
+  const b=state.patient.bracket;const f=[];
+  const push=(kind,title,txt)=>f.push({kind,title,txt});
+  // map bracket-specific ids
+  const idmap={
+    "18-25":{alcool:"q34",binge:"q35",tabac:"q36",subst:"q37",vac:"q26",hpv:"q27",col:"q28",ist:"q32",idees:"q45",viol:"q46",gad:["q41","q42"],phq:["q43","q44"],som_dur:"q40",assis:"q24",ess:null,tousse:null,aud:null,view:"q19",dent:"q20",ap:"q21"},
+    "45-50":{alcool:"q33",tabac:"q34",subst:"q36",vac:"q29",depCS:"q30",frottis:"q31",idees:"q44",viol:"q45",gad:["q40","q41"],phq:["q42","q43"],som_dur:"q39",assis:"q27",ess:"q17",tousse:"q15",aud:"q22",view:"q21",dent:"q20",ap:"q24"},
+    "60-65":{alcool:"q36",tabac:"q37",subst:"q39",vac:"q32",col:"q33",mammo:"q34",frottis:"q34b",idees:"q49",viol:"q50",gad:["q45","q46"],phq:["q47","q48"],som_dur:"q44",assis:"q30",ess:"q16",tousse:"q14",aud:"q21",view:"q20",dent:"q19",ap:"q27",oubli:"q25"},
+    "70-75":{alcool:"q37",tabac:"q38",subst:"q40",vac:"q33",col:"q34",mammo:"q35",frottis:"q35b",idees:"q50",viol:"q51",gad:["q46","q47"],phq:["q48","q49"],som_dur:"q45",assis:"q29",ess:"q16",tousse:"q14",aud:"q21",view:"q20",dent:"q19",ap:"q26",chutes:"q32",gestes:"q25"},
+  }[b];
+  if(!idmap)return f;
+
+  // SUICIDE — alerte prioritaire
+  if(aHas(idmap.idees,"Oui, des idées noires/suicidaires")||aHas(idmap.idees,"Oui, une ou des tentative(s) de suicide")){
+    push("alert","Idées suicidaires / antécédent de tentative","Orientation médicale <strong>sans délai</strong> (médecin traitant / urgences). Ressource nationale : <strong>3114</strong> (numéro national de prévention du suicide, 24h/24). Thématique <strong>bien-être mental</strong> à prioriser.");
+  }
+  // Violences
+  if(aHas(idmap.viol,"Oui")) push("alert","Violences déclarées","Climat d'écoute confidentiel, sans jugement. Informer du <strong>3919</strong> (violences faites aux femmes) ; <strong>3977</strong> pour les personnes âgées / en situation de handicap.");
+  // PHQ-2 / GAD-2
+  if(idmap.gad){const g=phqScore(idmap.gad);if(g>=3)push("warn","Dépistage anxiété (GAD-2) positif","Score "+g+"/6 ≥ 3 — évaluation approfondie / orientation. Thématique <strong>bien-être mental</strong>.");}
+  if(idmap.phq){const p=phqScore(idmap.phq);if(p>=3)push("warn","Dépistage dépression (PHQ-2) positif","Score "+p+"/6 ≥ 3 — évaluation approfondie / orientation médecin traitant.");}
+  // Alcool
+  if(aHas(idmap.alcool,"Plus de 2 verres standards par jour")||aHas(idmap.alcool,"Plus de 10 verres standards par semaine"))
+    push("warn","Consommation d'alcool à risque","Au-delà des repères (≤ 2 verres/j, ≤ 10/sem, avec jours sans). Intervention brève (RPIB), Alcool Info Service. Thématique <strong>addictions</strong>.");
+  if(idmap.binge&&aHas(idmap.binge,"Oui")) push("warn","Alcoolisations ponctuelles importantes (binge)","Repérage et information sur les risques.");
+  // Tabac
+  if(aHas(idmap.tabac,"Oui, je fume")) push("warn","Tabagisme actif","Proposer l'arrêt : substituts nicotiniques, accompagnement (Tabac Info Service 3989). Thématique <strong>addictions</strong>.");
+  // Substances
+  if(aHas(idmap.subst,"Oui, du cannabis")||aHas(idmap.subst,"Oui, d'autres drogues")||aHas(idmap.subst,"Oui, du protoxyde d'azote"))
+    push("warn","Consommation de substances psychoactives","Repérage, information, orientation CSAPA si besoin.");
+  // BPCO (essoufflement + toux + tabac)
+  if(idmap.ess&&aHas(idmap.ess,"Oui")&&((idmap.tousse&&aHas(idmap.tousse,"Oui"))||aHas(idmap.tabac,"Oui, je fume")))
+    push("warn","Signes évocateurs de BPCO","Essoufflement et/ou toux chronique chez un fumeur/ex-fumeur — auto-questionnaire BPCO (HAS) / orientation. Thématique <strong>maladies chroniques</strong>.");
+  // Audition
+  if(idmap.aud&&aHas(idmap.aud,"Oui")) push("info","Baisse de l'audition signalée","Repérage (test voix chuchotée, appli Höra, HHIE-S), orientation ORL. Thématique <strong>santé auditive</strong>.");
+  // Vue
+  if(idmap.view&&aHas(idmap.view,"Oui")) push("info","Baisse de la vision signalée","Orientation ophtalmologique.");
+  // Dentiste
+  if(idmap.dent&&aHas(idmap.dent,"Non")) push("info","Pas de suivi dentaire dans l'année","Consultation dentaire annuelle recommandée. Thématique <strong>bucco-dentaire</strong>.");
+  // Vaccins
+  if(aHas(idmap.vac,"Non")||aHas(idmap.vac,"Je ne sais pas")) push("info","Statut vaccinal à vérifier","Évaluer / mettre à jour selon le calendrier vaccinal. Thématique <strong>vaccinations</strong>.");
+  // HPV (18-25)
+  if(idmap.hpv&&(aHas(idmap.hpv,"Non")||aHas(idmap.hpv,"Je ne sais pas"))) push("info","Vaccination HPV non confirmée","Information / proposition de rattrapage selon recommandations.");
+  // Dépistages cancers
+  if(idmap.col&&(aHas(idmap.col,"Non, jamais")||aHas(idmap.col,"Je ne sais pas")||aHas(idmap.col,"Non"))) push("info","Dépistage du cancer colorectal à programmer","Kit de dépistage (remise possible, code RKD si réalisé). Thématique <strong>cancers</strong>.");
+  if(idmap.mammo&&(aHas(idmap.mammo,"Non, jamais")||aHas(idmap.mammo,"Oui, il y a plus de 2 ans")||aHas(idmap.mammo,"Je ne sais pas"))) push("info","Mammographie à programmer/renouveler","Dépistage organisé 50-74 ans tous les 2 ans.");
+  if(idmap.frottis&&(aHas(idmap.frottis,"Non, jamais")||aHas(idmap.frottis,"Oui, il y a plus de 5 ans")||aHas(idmap.frottis,"Non")||aHas(idmap.frottis,"Je ne sais pas"))) push("info","Dépistage du col de l'utérus à prévoir","Selon stratégie de dépistage (frottis / test HPV).");
+  // IST (18-25)
+  if(idmap.ist&&(aHas(idmap.ist,"Non")||aHas(idmap.ist,"Je ne sais pas"))) push("info","Dépistage IST jamais réalisé","Information / proposition selon facteurs de risque. Thématique <strong>santé sexuelle</strong>.");
+  // Sédentarité
+  if(aHas(idmap.assis,"Plus de 7 heures")) push("info","Sédentarité élevée (> 7h/jour)","Réduire et fractionner le temps assis. Thématique <strong>activité physique</strong>.");
+  if(aHas(idmap.ap,"Jamais")) push("info","Activité physique insuffisante","Objectif : 30 min/j d'activité modérée, ≥ 5 j/sem. Thématique <strong>activité physique</strong>.");
+  // Sommeil court
+  if(aHas(idmap.som_dur,"Moins de 6h par nuit")) push("info","Sommeil court (< 6h)","Conseils d'hygiène du sommeil. Thématique <strong>sommeil</strong>.");
+  // Chutes (70-75)
+  if(idmap.chutes&&aHas(idmap.chutes,"Non")) push("warn","Logement non adapté aux chutes","Aménagement, aides techniques, APA. Thématique <strong>perte d'autonomie</strong>.");
+  if(idmap.gestes&&Array.isArray(a(idmap.gestes))&&a(idmap.gestes).length>0) push("warn","Difficultés dans les gestes du quotidien","Repérage fragilité (ICOPE, GFST), orientation. Thématique <strong>perte d'autonomie</strong>.");
+  if(idmap.oubli&&aHas(idmap.oubli,"Oui")) push("info","Plainte mnésique signalée","Repérage cognitif, orientation si besoin.");
+  // IMC
+  const v=imc();if(v){const c=imcCat(v);if(c[1]!=="ok")push(c[1],"IMC : "+v.toFixed(1)+" kg/m² — "+c[0],"À aborder dans une approche globale (alimentation, activité physique). Chez la personne âgée, vigilance dénutrition.");}
+
+  return f;
+}
+function suggestedThemes(){
+  const flags=buildFlags();const txt=flags.map(x=>x.txt+" "+x.title).join(" ");
+  const set=new Set();
+  const map={"bien-être mental":"mental","addictions":"addiction","activité physique":"ap","maladies chroniques":"chronique","santé auditive":"auditive","bucco-dentaire":"bucco","vaccinations":"vaccins","cancers":"cancers","santé sexuelle":"sexuelle","sommeil":"sommeil","perte d'autonomie":"autonomie","alimentation":"nutrition"};
+  Object.keys(map).forEach(k=>{if(txt.toLowerCase().includes(k))set.add(map[k]);});
+  // priority subjects question
+  const b=state.patient.bracket;const pid={"18-25":"q47","45-50":"q46","60-65":"q51","70-75":"q52"}[b];
+  const pv=a(pid);if(Array.isArray(pv)){pv.forEach(x=>{const l=x.toLowerCase();if(l.includes("dormir"))set.add("sommeil");if(l.includes("aliment"))set.add("nutrition");if(l.includes("tabac"))set.add("addiction");if(l.includes("alcool"))set.add("addiction");if(l.includes("mental")||l.includes("stress"))set.add("mental");if(l.includes("dépistage"))set.add("cancers");if(l.includes("ménopause"))set.add("menopause");if(l.includes("vieillissement"))set.add("autonomie");if(l.includes("écran"))set.add("ap");});}
+  return set;
+}
+function renderStep2(){
+  const fh=$("#flagsHost");const flags=buildFlags();
+  if(!flags.length){fh.innerHTML='<p class="empty">Aucun point d\'attention détecté automatiquement. Le repérage reste à compléter par l\'échange clinique.</p>';}
+  else fh.innerHTML=flags.map(f=>'<div class="flag '+f.kind+'"><div class="fi">'+(f.kind==="alert"?"!":f.kind==="warn"?"!":"i")+'</div><div><b>'+esc(f.title)+'</b><p>'+f.txt+'</p></div></div>').join("");
+
+  const sug=suggestedThemes();
+  const th=$("#themesHost");
+  // filter menopause/autonomie by relevance but keep all available
+  th.innerHTML=THEMES.map(t=>{
+    const sel=state.priorities.includes(t.id);
+    const s2=sug.has(t.id)&&!sel?" suggested":"";
+    return '<button type="button" class="theme'+(sel?" sel":"")+s2+'" data-t="'+t.id+'"><span class="tdot"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5 9-10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>'+esc(t.l)+'</b><small>'+esc(t.d)+'</small></span></button>';
+  }).join("");
+  $$(".theme",th).forEach(btn=>btn.onclick=()=>{
+    const id=btn.dataset.t;
+    if(state.priorities.includes(id))state.priorities=state.priorities.filter(x=>x!==id);
+    else{if(state.priorities.length>=2){toast("2 thématiques maximum",null);return;}state.priorities.push(id);}
+    saveData();renderStep2();updateStepper();
+  });
+  $("#prioCount").textContent=state.priorities.length;
+}
+
+/* ============================================================
+   Step 3 — PPP
+   ============================================================ */
+function renderStep3(){
+  const host=$("#pppHost");
+  if(!state.priorities.length){host.innerHTML='<p class="empty">Aucune thématique priorisée. Revenez à l\'étape précédente pour en choisir 1 à 2.</p>';}
+  else{
+    host.innerHTML="";
+    state.priorities.forEach((id,i)=>{
+      const t=THEMES.find(x=>x.id===id);
+      state.ppp[id]=state.ppp[id]||{objectif:"",frein:"",conseil:"",orient:""};
+      const p=state.ppp[id];
+      const block=document.createElement("div");block.className="ppp-block";
+      block.innerHTML='<h4><span class="pn">'+(i+1)+'</span>'+esc(t.l)+'</h4>'+
+        ppRow("Objectif(s) pratique(s) et atteignable(s)",id,"objectif","Ex. : marcher 30 min/jour ; ≤ 1 verre/jour…",p.objectif)+
+        ppRow("Freins identifiés",id,"frein","Ex. : manque de temps, isolement…",p.frein)+
+        ppRow("Conseils & ressources proposés",id,"conseil","Ex. : Tabac Info Service, atelier nutrition…",p.conseil)+
+        ppRow("Orientation / intervenant",id,"orient","Ex. : médecin traitant, diététicien, ORL…",p.orient);
+      host.appendChild(block);
+    });
+    $$("textarea[data-ppp]",host).forEach(ta=>ta.oninput=()=>{const[id,k]=ta.dataset.ppp.split("|");state.ppp[id][k]=ta.value;saveData();});
+  }
+  // acte en sus
+  const actes=["Aucun","Acte de vaccination (RVA)","Remise du kit de dépistage colorectal (RKD)"];
+  $("#acteHost").innerHTML=actes.map(x=>'<button type="button" class="opt'+(state.acte===x?" sel":"")+'" data-acte="'+esc(x)+'" style="margin:5px 6px 0 0"><span class="dot"></span><span>'+esc(x)+'</span></button>').join("");
+  $$("#acteHost .opt").forEach(b=>b.onclick=()=>{state.acte=b.dataset.acte;saveData();renderStep3();});
+  // dmp transmission
+  const dmps=["Dépôt dans le DMP (Mon espace santé)","Messagerie sécurisée MSSanté","Remise d'un exemplaire au patient"];
+  $("#dmpHost").innerHTML=dmps.map(x=>{const sel=state.dmp.includes(x);return '<label class="chk'+(sel?" sel":"")+'" data-dmp="'+esc(x)+'"><span class="cb"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5 9-10" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>'+esc(x)+'</span></label>';}).join("");
+  $$("#dmpHost .chk").forEach(c=>c.onclick=()=>{const v=c.dataset.dmp;if(state.dmp.includes(v))state.dmp=state.dmp.filter(x=>x!==v);else state.dmp.push(v);saveData();renderStep3();});
+  $("#suiviDep").value=state.suiviDep;$("#suiviOrient").value=state.suiviOrient;
+}
+function ppRow(label,id,key,ph,val){return '<div class="ppp-row"><label>'+esc(label)+'</label><textarea class="field" rows="2" data-ppp="'+id+'|'+key+'" placeholder="'+esc(ph)+'">'+esc(val||"")+'</textarea></div>';}
+
+/* ============================================================
+   Step 4 — recap
+   ============================================================ */
+function fullName(){return ((state.patient.prenom||"")+" "+(state.patient.nom||"")).trim()||"—";}
+function brLabel(b){return{"18-25":"18 – 25 ans","45-50":"45 – 50 ans","60-65":"60 – 65 ans","70-75":"70 – 75 ans"}[b]||"—";}
+function answeredSummary(){
+  const b=state.patient.bracket;if(!b)return[];const Q=QUESTIONNAIRES[b];const out=[];
+  Q.forEach(sec=>{const rows=[];sec.items.forEach(it=>{if(hasAns(it.id)){let v=state.answers[it.id];if(Array.isArray(v))v=v.join(", ");rows.push({q:it.q,v});}});if(rows.length)out.push({sec:sec.sec,rows});});
+  return out;
+}
+function renderStep4(){
+  const v=imc();
+  let h='<div class="rsec"><h4>Patient</h4>'+
+    kv("Nom",fullName())+kv("Date de naissance",state.patient.dob||"—")+kv("Tranche d'âge",brLabel(state.patient.bracket))+
+    (v?kv("IMC",v.toFixed(1)+" kg/m² — "+imcCat(v)[0]):"")+
+    kv("E-mail",state.patient.mail||"— (à renseigner pour l'envoi)")+'</div>';
+
+  h+='<div class="rsec"><h4>Repérage — points d\'attention</h4>';
+  const flags=buildFlags();
+  if(flags.length)h+="<ul>"+flags.map(f=>"<li>"+esc(f.title)+"</li>").join("")+"</ul>";else h+='<p class="empty">Aucun point automatique.</p>';
+  h+="</div>";
+
+  h+='<div class="rsec"><h4>Plan personnalisé de prévention</h4>';
+  if(state.priorities.length){
+    state.priorities.forEach((id,i)=>{const t=THEMES.find(x=>x.id===id);const p=state.ppp[id]||{};
+      h+='<div style="margin-top:'+(i?10:2)+'px"><b style="color:var(--navy)">'+(i+1)+". "+esc(t.l)+'</b><ul>'+
+        (p.objectif?"<li><b>Objectif :</b> "+esc(p.objectif)+"</li>":"")+
+        (p.frein?"<li><b>Freins :</b> "+esc(p.frein)+"</li>":"")+
+        (p.conseil?"<li><b>Conseils/ressources :</b> "+esc(p.conseil)+"</li>":"")+
+        (p.orient?"<li><b>Orientation :</b> "+esc(p.orient)+"</li>":"")+
+        '</ul></div>';
+    });
+  }else h+='<p class="empty">Aucune thématique priorisée.</p>';
+  h+="</div>";
+
+  h+='<div class="rsec"><h4>Actes & suivi</h4>'+
+    kv("Acte facturé en sus",state.acte)+
+    (state.suiviDep?kv("Dépistages/vaccins",state.suiviDep):"")+
+    (state.suiviOrient?kv("Orientation",state.suiviOrient):"")+
+    kv("Transmission",state.dmp.length?state.dmp.join(", "):"—")+'</div>';
+
+  $("#recapHost").innerHTML=h;
+  // send hint
+  $("#sendHint").style.display=cfg.hook?"none":"block";
+  $("#sendBtn").disabled=false;
+}
+function kv(k,v){return '<div class="kv"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v)+'</span></div>';}
+
+/* ============================================================
+   Payload + send
+   ============================================================ */
+function buildPayload(){
+  const b=state.patient.bracket;const v=imc();
+  return {
+    meta:{app:"Mon Bilan Prévention",version:APP_VER,generatedAt:new Date().toISOString(),codeActe:"RDP",tarif:"30€ (31,50€ DROM)"},
+    pharmacie:{nom:cfg.ph,finess:cfg.finess,effecteur:cfg.user,emailExpediteur:cfg.from,driveFolder:cfg.drive},
+    patient:{nom:state.patient.nom,prenom:state.patient.prenom,dateNaissance:state.patient.dob,age:ageFromDob(state.patient.dob),trancheAge:b,email:state.patient.mail,nir:state.patient.nir,imc:v?+v.toFixed(1):null},
+    reponses:answeredSummary(),
+    reponsesBrutes:state.answers,
+    reperage:buildFlags().map(f=>({niveau:f.kind,titre:f.title})),
+    priorites:state.priorities.map(id=>{const t=THEMES.find(x=>x.id===id);return{theme:t.l,...(state.ppp[id]||{})};}),
+    acteEnSus:state.acte,
+    suivi:{depistages:state.suiviDep,orientation:state.suiviOrient,transmission:state.dmp},
+  };
+}
+async function sendBilan(){
+  if(!state.patient.bracket){toast("Sélectionnez une tranche d'âge","err");return;}
+  if(!state.priorities.length){toast("Priorisez au moins une thématique","err");goStep(2);return;}
+  if(!cfg.hook){toast("Webhook n8n non configuré (⚙)","err");openCfg();return;}
+  const btn=$("#sendBtn");btn.disabled=true;const old=btn.innerHTML;btn.innerHTML="Envoi en cours…";
+  try{
+    const res=await fetch(cfg.hook,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(buildPayload())});
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    toast("Bilan envoyé au webhook n8n ✓","ok");
+  }catch(e){
+    toast("Échec de l'envoi : "+e.message+" — vérifiez l'URL/CORS","err");
+  }finally{btn.disabled=false;btn.innerHTML=old;}
+}
+
+/* ============================================================
+   Print (PDF local de secours)
+   ============================================================ */
+function buildPrint(){
+  const v=imc();const p=buildPayload();
+  let h='<h1>Plan Personnalisé de Prévention (PPP)</h1>';
+  h+='<p class="pmeta">'+esc(cfg.ph||"Pharmacie")+(cfg.finess?" · FINESS "+esc(cfg.finess):"")+(cfg.user?" · "+esc(cfg.user):"")+' — Acte RDP — '+new Date().toLocaleDateString("fr-FR")+'</p>';
+  h+='<h2>Patient</h2>';
+  h+=pk("Nom",fullName())+pk("Date de naissance",state.patient.dob||"—")+pk("Tranche d'âge",brLabel(state.patient.bracket))+(v?pk("IMC",v.toFixed(1)+" kg/m² — "+imcCat(v)[0]):"");
+  h+='<h2>Repérage des risques — points d\'attention</h2>';const fl=buildFlags();
+  h+=fl.length?"<ul>"+fl.map(f=>"<li><b>"+esc(f.title)+"</b> — "+f.txt.replace(/<[^>]+>/g,"")+"</li>").join("")+"</ul>":"<p>—</p>";
+  h+='<h2>Objectifs priorisés</h2>';
+  if(state.priorities.length)state.priorities.forEach((id,i)=>{const t=THEMES.find(x=>x.id===id);const pp=state.ppp[id]||{};h+='<div class="pbox"><b>'+(i+1)+". "+esc(t.l)+'</b><ul>'+(pp.objectif?"<li>Objectif : "+esc(pp.objectif)+"</li>":"")+(pp.frein?"<li>Freins : "+esc(pp.frein)+"</li>":"")+(pp.conseil?"<li>Conseils/ressources : "+esc(pp.conseil)+"</li>":"")+(pp.orient?"<li>Orientation : "+esc(pp.orient)+"</li>":"")+"</ul></div>";});else h+="<p>—</p>";
+  h+='<h2>Actes & suivi</h2>'+pk("Acte facturé en sus",state.acte)+(state.suiviDep?pk("Dépistages/vaccins",state.suiviDep):"")+(state.suiviOrient?pk("Orientation",state.suiviOrient):"")+pk("Transmission",state.dmp.join(", ")||"—");
+  h+='<h2>Réponses au questionnaire</h2>';
+  answeredSummary().forEach(sec=>{h+="<p style='font-size:12px;margin-top:8px'><b>"+esc(sec.sec)+"</b></p><ul>"+sec.rows.map(r=>"<li>"+esc(r.q)+" — <b>"+esc(r.v)+"</b></li>").join("")+"</ul>";});
+  h+='<p class="pmeta" style="margin-top:14px">Bilan de prévention pris en charge à 100% par l\'Assurance Maladie (code RDP). PPP à déposer dans le DMP du patient.</p>';
+  $("#printArea").innerHTML=h;
+}
+function pk(k,v){return '<div class="pkv"><span class="k">'+esc(k)+'</span><span>'+esc(v)+'</span></div>';}
+
+/* ============================================================
+   Navigation
+   ============================================================ */
+const STEPS=[
+ {n:1,lbl:"Patient & questionnaire"},
+ {n:2,lbl:"Repérage & priorisation"},
+ {n:3,lbl:"Plan personnalisé"},
+ {n:4,lbl:"Synthèse & envoi"},
+];
+function buildStepper(){
+  $("#stepper").innerHTML=STEPS.map(st=>'<button class="step" data-s="'+st.n+'"><span class="bar"></span><span class="lbl"><span class="num">'+st.n+'.</span> '+st.lbl+'</span></button>').join("");
+  $$("#stepper .step").forEach(b=>b.onclick=()=>goStep(+b.dataset.s));
+}
+function updateStepper(){
+  $$("#stepper .step").forEach(b=>{const n=+b.dataset.s;b.classList.toggle("active",n===curStep);b.classList.toggle("done",n<curStep);});
+}
+function goStep(n){
+  if(n<1||n>4)return;
+  curStep=n;
+  $$(".view").forEach(v=>v.classList.remove("show"));
+  $("#view"+n).classList.add("show");
+  updateStepper();
+  // footer buttons
+  $("#backBtn").style.display=n>1?"inline-flex":"none";
+  const next=$("#nextBtn");
+  if(n===1)next.textContent="Repérage & priorisation →";
+  else if(n===2)next.textContent="Plan personnalisé →";
+  else if(n===3)next.textContent="Synthèse →";
+  else next.style.display="none";
+  if(n<4)next.style.display="inline-flex";
+  if(n===2)renderStep2();
+  if(n===3)renderStep3();
+  if(n===4)renderStep4();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ============================================================
+   Settings / identity wiring
+   ============================================================ */
+function syncIdentityUI(){
+  $("#pNom").value=state.patient.nom;$("#pPrenom").value=state.patient.prenom;
+  $("#pDob").value=state.patient.dob;$("#pMail").value=state.patient.mail;$("#pNir").value=state.patient.nir;
+  $("#pBracket").value=state.patient.bracket;
+  applyBracket();
+}
+function applyBracket(){
+  const b=state.patient.bracket;
+  document.body.dataset.bracket=b||"";
+  $("#bracketPill").textContent=b?("Tranche "+b):"Tranche —";
+  $("#introTag").textContent=b?("Rendez-vous "+b+" ans"):"Rendez-vous santé · âges clés";
+  refreshImc();
+}
+function bindIdentity(){
+  $("#pNom").oninput=e=>{state.patient.nom=e.target.value;saveData();};
+  $("#pPrenom").oninput=e=>{state.patient.prenom=e.target.value;saveData();};
+  $("#pMail").oninput=e=>{state.patient.mail=e.target.value;saveData();};
+  $("#pNir").oninput=e=>{state.patient.nir=e.target.value;saveData();};
+  $("#pDob").onchange=e=>{
+    state.patient.dob=e.target.value;
+    const age=ageFromDob(e.target.value);const auto=bracketForAge(age);
+    const hint=$("#bracketHint");
+    if(age!=null){
+      if(auto){state.patient.bracket=auto;$("#pBracket").value=auto;hint.style.display="none";}
+      else{hint.style.display="flex";hint.innerHTML='<div class="fi" style="background:var(--warn);color:#fff">!</div><div><b>'+age+' ans — hors tranche éligible</b><p>Le bilan ne concerne que 18-25, 45-50, 60-65 et 70-75 ans. Sélectionnez manuellement si nécessaire.</p></div>';}
+    }
+    saveData();applyBracket();renderQuestionnaire();
+  };
+  $("#pBracket").onchange=e=>{state.patient.bracket=e.target.value;saveData();applyBracket();renderQuestionnaire();};
+}
+function openCfg(){syncCfgUI();$("#cfgModal").classList.add("show");}
+function syncCfgUI(){$("#cfgPh").value=cfg.ph;$("#cfgFiness").value=cfg.finess;$("#cfgUser").value=cfg.user;$("#cfgHook").value=cfg.hook;$("#cfgDrive").value=cfg.drive;$("#cfgFrom").value=cfg.from;}
+function bindCfg(){
+  $("#cfgBtn").onclick=openCfg;
+  $("#cfgClose").onclick=()=>$("#cfgModal").classList.remove("show");
+  $("#cfgModal").onclick=e=>{if(e.target.id==="cfgModal")$("#cfgModal").classList.remove("show");};
+  $("#cfgSave").onclick=()=>{
+    cfg={ph:$("#cfgPh").value.trim(),finess:$("#cfgFiness").value.trim(),user:$("#cfgUser").value.trim(),hook:$("#cfgHook").value.trim(),drive:$("#cfgDrive").value.trim(),from:$("#cfgFrom").value.trim()};
+    saveCfg();$("#phName").textContent=cfg.ph||"Pharmacie · à configurer";$("#cfgModal").classList.remove("show");$("#sendHint").style.display=cfg.hook?"none":"block";toast("Paramètres enregistrés ✓","ok");
+  };
+  $("#cfgReset").onclick=()=>{
+    if(!confirm("Réinitialiser le bilan en cours ? (les paramètres de la pharmacie sont conservés)"))return;
+    store.del(DATA_KEY);
+    state={patient:{nom:"",prenom:"",dob:"",bracket:"",mail:"",nir:""},answers:{},priorities:[],ppp:{},acte:"Aucun",suiviDep:"",suiviOrient:"",dmp:[]};
+    syncIdentityUI();renderQuestionnaire();goStep(1);$("#cfgModal").classList.remove("show");toast("Bilan réinitialisé","ok");
+  };
+}
+function bindSuivi(){
+  $("#suiviDep").oninput=e=>{state.suiviDep=e.target.value;saveData();};
+  $("#suiviOrient").oninput=e=>{state.suiviOrient=e.target.value;saveData();};
+}
+
+/* ============================================================
+   Boot
+   ============================================================ */
+function init(){
+  loadCfg();loadData();
+  buildStepper();bindIdentity();bindCfg();bindSuivi();
+  $("#phName").textContent=cfg.ph||"Pharmacie · à configurer";
+  syncIdentityUI();
+  renderQuestionnaire();
+  $("#nextBtn").onclick=()=>goStep(curStep+1);
+  $("#backBtn").onclick=()=>goStep(curStep-1);
+  $("#printBtn").onclick=()=>{buildPrint();setTimeout(()=>window.print(),60);};
+  $("#sendBtn").onclick=sendBilan;
+  goStep(1);
+  // PWA: minimal manifest + SW (graceful)
+  try{
+    const manifest={name:"Mon Bilan Prévention",short_name:"Bilan Prév.",start_url:".",display:"standalone",background_color:"#f6f5f0",theme_color:"#16166b",icons:[]};
+    const blob=new Blob([JSON.stringify(manifest)],{type:"application/json"});
+    const l=document.createElement("link");l.rel="manifest";l.href=URL.createObjectURL(blob);document.head.appendChild(l);
+  }catch(e){}
+}
+document.addEventListener("DOMContentLoaded",init);
+</script>
+</body>
+</html>
