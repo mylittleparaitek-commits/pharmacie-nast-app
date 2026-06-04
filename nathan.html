@@ -93,6 +93,9 @@
                 <option value="nom">Nom A-Z</option>
             </select>
         </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+            <button onclick="exportExcel()" style="border:1.5px solid #c7d2fe;background:white;color:#4338ca;font-size:12px;font-weight:600;padding:8px 14px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px;">⬇️ Exporter en Excel</button>
+        </div>
         <div class="status" id="status">Chargement…</div>
         <div id="list"></div>
         </div><!-- /viewStock -->
@@ -358,6 +361,30 @@
                     +'<div style="font-size:34px;font-weight:800;color:#4338ca;line-height:1;">'+eur(ht)+'</div>'
                     +'<div style="font-size:12px;color:#5a6a7e;margin-top:5px;">HT · pour vendre à '+eur(val)+' TTC</div>';
             }
+        }
+    }
+
+    // ─── EXPORT EXCEL (lib chargée à la demande) ───
+    function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('load'));document.head.appendChild(s);});}
+    async function exportExcel(){
+        if(!rows.length){alert('Les données ne sont pas encore chargées.');return;}
+        try{
+            if(!window.XLSX){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');}
+            const moisLabels=monthCols.slice().reverse();
+            const header=['EAN','Nom','Stock',...moisLabels,'Moyenne/mois','Total ventes'];
+            const data=rows.map(p=>{
+                const v=(p.ventes||[]).slice().reverse();
+                const total=v.reduce((s,x)=>s+x,0);
+                const moy=v.length?Math.round((total/v.length)*100)/100:0;
+                return [p.ean,p.nom,p.stock,...v,moy,total];
+            });
+            const ws=XLSX.utils.aoa_to_sheet([header,...data]);
+            ws['!cols']=[{wch:15},{wch:30},{wch:8}].concat(moisLabels.map(()=>({wch:9}))).concat([{wch:12},{wch:12}]);
+            const wb=XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb,ws,'Suivi Nathan');
+            XLSX.writeFile(wb,'Suivi_Nathan_'+new Date().toISOString().slice(0,10)+'.xlsx');
+        }catch(e){
+            alert('Export impossible : la librairie Excel n\'a pas pu se charger. Vérifie ta connexion et réessaie.');
         }
     }
 
