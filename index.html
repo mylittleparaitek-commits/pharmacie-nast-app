@@ -1803,9 +1803,10 @@
                 </div>
 
                 <!-- Sous-onglets Nathan -->
-                <div style="display:flex;gap:6px;margin-bottom:14px;background:#eef2ff;border-radius:10px;padding:3px;">
-                    <button id="nvStock" onclick="switchNathanView('stock')" style="flex:1;border:none;background:white;color:#4338ca;font-size:13px;font-weight:700;padding:9px 0;border-radius:8px;cursor:pointer;">📊 Suivi stock</button>
-                    <button id="nvSim" onclick="switchNathanView('sim')" style="flex:1;border:none;background:transparent;color:#4338ca;font-size:13px;font-weight:600;padding:9px 0;border-radius:8px;cursor:pointer;">🧮 Simulateur</button>
+                <div style="display:flex;gap:4px;margin-bottom:14px;background:#eef2ff;border-radius:10px;padding:3px;">
+                    <button id="nvStock" onclick="switchNathanView('stock')" style="flex:1;border:none;background:white;color:#4338ca;font-size:12px;font-weight:700;padding:9px 0;border-radius:8px;cursor:pointer;">📊 Stock</button>
+                    <button id="nvSim" onclick="switchNathanView('sim')" style="flex:1;border:none;background:transparent;color:#4338ca;font-size:12px;font-weight:600;padding:9px 0;border-radius:8px;cursor:pointer;">🧮 Prix vente</button>
+                    <button id="nvRemise" onclick="switchNathanView('remise')" style="flex:1;border:none;background:transparent;color:#4338ca;font-size:12px;font-weight:600;padding:9px 0;border-radius:8px;cursor:pointer;">🏷️ Remise</button>
                 </div>
 
                 <!-- VUE SUIVI STOCK -->
@@ -1883,6 +1884,28 @@
                         <div style="font-size:12px;color:#5a6a7e;">Saisis un montant pour calculer</div>
                     </div>
                 </div><!-- /nathanViewSim -->
+
+                <!-- VUE SIMULATEUR REMISE / UG -->
+                <div id="nathanViewRemise" style="display:none;">
+                    <div style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">Prix catalogue HT (€) <span style="font-weight:400;color:#94a3b8;">— optionnel</span></div>
+                    <input type="number" id="remPrix" inputmode="decimal" step="0.01" oninput="computeRemise()" placeholder="vide = juste la remise %" style="width:100%;padding:13px;border:1.5px solid #e0e7ff;border-radius:12px;font-size:16px;font-weight:600;box-sizing:border-box;outline:none;">
+                    <div style="font-size:12px;color:#64748b;margin:14px 0 6px;font-weight:600;">Remise (%)</div>
+                    <input type="number" id="remRemise" inputmode="decimal" step="0.1" oninput="computeRemise()" placeholder="ex : 35" style="width:100%;padding:13px;border:1.5px solid #e0e7ff;border-radius:12px;font-size:16px;font-weight:600;box-sizing:border-box;outline:none;">
+                    <div style="display:flex;gap:10px;margin-top:14px;align-items:flex-end;">
+                        <div style="flex:1;">
+                            <div style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">Qté commandée</div>
+                            <input type="number" id="remQte" inputmode="numeric" oninput="computeRemise()" placeholder="6" style="width:100%;padding:13px;border:1.5px solid #e0e7ff;border-radius:12px;font-size:16px;font-weight:600;box-sizing:border-box;outline:none;">
+                        </div>
+                        <div style="font-size:22px;color:#94a3b8;padding-bottom:11px;font-weight:700;">+</div>
+                        <div style="flex:1;">
+                            <div style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">UG (gratuites)</div>
+                            <input type="number" id="remUG" inputmode="numeric" oninput="computeRemise()" placeholder="4" style="width:100%;padding:13px;border:1.5px solid #e0e7ff;border-radius:12px;font-size:16px;font-weight:600;box-sizing:border-box;outline:none;">
+                        </div>
+                    </div>
+                    <div id="remResult" style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-radius:16px;padding:20px;text-align:center;margin-top:16px;">
+                        <div style="font-size:12px;color:#5a6a7e;">Saisis une remise ou un nombre d'unités</div>
+                    </div>
+                </div><!-- /nathanViewRemise -->
             </div>
 
             <!-- ═══ SECTION STATS ═══ -->
@@ -4021,17 +4044,19 @@
         function _eur(n) { return (Math.round(n*100)/100).toFixed(2).replace('.', ',') + ' €'; }
 
         function switchNathanView(v) {
-            const stock = document.getElementById('nathanViewStock');
-            const sim   = document.getElementById('nathanViewSim');
-            const bS = document.getElementById('nvStock'), bM = document.getElementById('nvSim');
-            const onStock = (v === 'stock');
-            stock.style.display = onStock ? 'block' : 'none';
-            sim.style.display   = onStock ? 'none' : 'block';
-            bS.style.background = onStock ? 'white' : 'transparent';
-            bS.style.fontWeight = onStock ? '700' : '600';
-            bM.style.background = onStock ? 'transparent' : 'white';
-            bM.style.fontWeight = onStock ? '600' : '700';
-            if (!onStock) computeSim();
+            const views = { stock:'nathanViewStock', sim:'nathanViewSim', remise:'nathanViewRemise' };
+            const btns  = { stock:'nvStock', sim:'nvSim', remise:'nvRemise' };
+            for (const [k, id] of Object.entries(views)) {
+                const el = document.getElementById(id); if (el) el.style.display = (k===v) ? 'block' : 'none';
+            }
+            for (const [k, id] of Object.entries(btns)) {
+                const b = document.getElementById(id); if (!b) continue;
+                const on = (k===v);
+                b.style.background = on ? 'white' : 'transparent';
+                b.style.fontWeight = on ? '700' : '600';
+            }
+            if (v === 'sim') computeSim();
+            if (v === 'remise') computeRemise();
         }
         function setSimMode(m) {
             _simMode = m;
@@ -4076,6 +4101,36 @@
                         <div style="font-size:12px;color:#5a6a7e;margin-top:5px;">HT · pour vendre à ${_eur(val)} TTC</div>`;
                 }
             }
+        }
+
+        function computeRemise() {
+            const box = document.getElementById('remResult');
+            const Pv  = (document.getElementById('remPrix').value||'').replace(',','.');
+            const Rv  = (document.getElementById('remRemise').value||'');
+            const P   = parseFloat(Pv);
+            const r   = (parseFloat(Rv.replace(',','.')) || 0) / 100;
+            const Q   = parseFloat((document.getElementById('remQte').value||'').replace(',','.')) || 0;
+            const UG  = parseFloat((document.getElementById('remUG').value||'').replace(',','.')) || 0;
+            if (Rv === '' && Q === 0 && UG === 0) {
+                box.innerHTML = '<div style="font-size:12px;color:#5a6a7e;">Saisis une remise ou un nombre d\'unités</div>';
+                return;
+            }
+            const rg = (Q > 0) ? (1 - (Q*(1-r))/(Q+UG)) : r;
+            const rgPct = (Math.round(rg*1000)/10).toString().replace('.', ',');
+            let html = '<div style="font-size:13px;color:#5a6a7e;margin-bottom:4px;">Remise globale</div>'
+                + '<div style="font-size:34px;font-weight:800;color:#4338ca;line-height:1;">' + rgPct + ' %</div>';
+            if (Q > 0 && UG > 0) {
+                html += '<div style="font-size:12px;color:#5a6a7e;margin-top:5px;">' + Q + '+' + UG + ' soit ' + (Q+UG) + ' unités'
+                    + (Rv !== '' ? ' · remise ' + (r*100).toString().replace('.',',') + ' %' : '') + '</div>';
+            }
+            if (!isNaN(P)) {
+                const net = P * (1 - rg);
+                html += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid #c7d2fe;">'
+                    + '<span style="font-size:13px;color:#5a6a7e;">Prix net final : </span>'
+                    + '<span style="font-size:20px;font-weight:800;color:#4338ca;">' + _eur(net) + '</span>'
+                    + '<span style="font-size:11px;color:#5a6a7e;"> HT/unité</span></div>';
+            }
+            box.innerHTML = html;
         }
 
         // ─── EXPORT EXCEL (chargement lib à la demande) ───
