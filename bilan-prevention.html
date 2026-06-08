@@ -248,6 +248,8 @@ textarea.field:focus,input.field:focus{outline:none;border-color:var(--accent)}
 #printArea ul{margin:4px 0;font-size:12px}
 #printArea .pmeta{font-size:11px;color:#555}
 #printArea .pbox{border:1px solid #999;padding:8px 10px;margin-top:8px;font-size:12px;border-radius:6px}
+.qprog{margin:0 0 12px;padding:0 2px}.qprog-b{height:7px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}.qprog-f{height:100%;width:0;background:var(--accent);border-radius:999px;transition:width .25s}.qprog-t{margin-top:6px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.rasbtn{margin-left:auto;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);font-weight:700;font-size:11.5px;padding:5px 11px;border-radius:999px;cursor:pointer;white-space:nowrap}.rasbtn:active{transform:scale(.96)}.card-h .meta{margin-left:8px}
 </style>
 </head>
 <body>
@@ -462,7 +464,7 @@ const store={
 };
 const CFG_KEY="mbp.cfg.v1", DATA_KEY="mbp.data.v1", APP_VER="1.0";
 
-/* ---------- reusable option sets ---------- */
+/* ---------- listes d'options — recopiées MOT POUR MOT du JSON officiel ---------- */
 const ON=["Oui","Non"];
 const ONN=["Oui","Non","Je ne sais pas"];
 const FREQ_AP=["Jamais","1 à 2 fois par semaine","3 à 4 fois par semaine","5 à 7 fois par semaine"];
@@ -471,24 +473,25 @@ const GRAS=["Plusieurs fois par jour","Plusieurs fois par semaine","Une fois par
 const ASSIS=["Moins de 2 heures","Entre 2 et 4 heures","Entre 4 et 7 heures","Plus de 7 heures","Je ne sais pas"];
 const ECRAN=["Moins d'une heure","Entre 1 heure et 2 heures","Entre 2 et 4 heures","Plus de 4 heures","Je ne sais pas"];
 const POIDS_VAR=["Oui, un amaigrissement","Oui, une prise de poids","Non"];
-const ALCOOL=["Plus de 2 verres standards par jour","Plus de 10 verres standards par semaine","Pas de boisson alcoolisée au moins 2 jours par semaine"];
+const ALCOOL=["Vous buvez plus de 2 verres standards par jour","Vous buvez plus de 10 verres standards par semaine","Vous ne buvez pas de boissons alcoolisées au moins 2 jours dans la semaine"];
 const TABAC=["Oui, je fume","Oui, je vapote","Non","J'ai arrêté"];
 const ARRET=["Moins d'un an","Entre 1 an et 5 ans","Plus de 5 ans"];
-const SUBST=["Oui, du cannabis","Oui, d'autres drogues","Non"];
-const SUBST_J=["Oui, du cannabis","Oui, d'autres drogues","Oui, du protoxyde d'azote","Non"];
 const JEU=["Oui, souvent","Oui, de temps en temps","Oui, rarement","Non"];
 const SOM_PB=["Oui, souvent","Oui, parfois","Non","Vous prenez des somnifères"];
 const SOM_DUR=["Moins de 6h par nuit","Entre 6h et 10h par nuit","10h ou plus par nuit"];
 const PHQ=["Jamais","Plusieurs jours","Plus de sept jours","Presque tous les jours"];
 const IDEES=["Oui, des idées noires/suicidaires","Oui, une ou des tentative(s) de suicide","Non"];
-const SEXE_SIT=["Plus d'un(e) partenaire sexuel(le) au cours des 12 derniers mois","Souhait d'arrêter le préservatif avec un(e) nouveau(elle) partenaire","Mon(ma) partenaire a eu un diagnostic d'IST dans les 12 derniers mois","Rapports sexuels ces 12 derniers mois mais non concerné(e) par les situations ci-dessus","Non concerné(e)"];
+const SEXE_SIT=["Plus d'un(e) partenaire sexuel(le) au cours des 12 derniers mois","Souhait d'arrêter le préservatif avec mon nouveau (ou ma nouvelle) partenaire","Mon(ma) partenaire sexuel(le) a eu un (ou plusieurs) diagnostic(s) d'infection sexuellement transmissible (VIH, chlamydia, gonocoque, syphilis…) dans les 12 derniers mois","Rapports sexuels ces 12 derniers mois, mais non concerné(e) par une de ces trois situations ci-dessus","Non concerné(e)"];
 const DEP2=["Oui, il y a moins de 2 ans","Oui, il y a plus de 2 ans","Non, jamais","Je ne sais pas"];
 const FROT5=["Oui, il y a moins de 5 ans","Oui, il y a plus de 5 ans","Non, jamais","Je ne sais pas"];
 const RETR_R=["Très positif","Plutôt positif","Plutôt négatif","Très négatif"];
-const RETR_P=["Oui, et j'ai déjà mis en place ces projets","Oui, des projets prévus mais non concrétisés","Non, je ne sais pas encore"];
-const MALADIES_4550=["Hypertension artérielle, diabète, cholestérol élevé","Maladies cardiovasculaires (infarctus, coronaropathie, insuffisance cardiaque, AVC…)","Cancers","Maladies respiratoires (asthme, bronchite chronique, BPCO)","Maladie inflammatoire chronique de l'intestin (Crohn, RCH)","Autre(s) maladie(s)","Aucune"];
-const MALADIES_60=["Hypertension artérielle, diabète, cholestérol élevé","Maladies cardiovasculaires (infarctus, coronaropathie, insuffisance cardiaque, AVC…)","Cancers","Maladies respiratoires (asthme, bronchite chronique, BPCO)","Arthrose ou maladie rhumatismale","Fractures d'une vertèbre/du col du fémur et/ou ostéoporose","Autre(s) maladie(s)","Aucune"];
-const MALADIES_18=["Diabète","Maladie congénitale","Allergie(s)","Cancers","Maladies respiratoires (asthme…)","Dépression et/ou troubles anxieux et/ou troubles du comportement alimentaire","Autre(s) maladie(s)","Aucune"];
+const RETR_P=["Oui, et j'ai déjà mis en place ces projets","Oui, j'ai des projets prévus mais je ne les ai pas encore concrétisés","Non, je ne sais pas encore quels seront mes projets"];
+/* substances : 18-25 inclut le protoxyde d'azote (liste inline officielle) */
+const SUBST_J=["Oui, du cannabis","Oui, d'autres drogues","Oui, du protoxyde d'azote","Non"];
+/* antécédents/maladies : listes propres à chaque tranche (opts inline officielles) */
+const MALADIES_18=["Diabète","Maladie congénitale","Allergie(s)","Cancers","Maladies respiratoires (asthme…)","Dépression et/ou troubles anxieux et/ou troubles du comportement alimentaire (anorexie, boulimie…)","Autre(s) maladie(s) :","Aucune"];
+const MALADIES_4550=["Hypertension artérielle, diabète, cholestérol sanguin élevé","Maladies cardiovasculaires (infarctus, maladie coronaire, insuffisance cardiaque, AVC…)","Cancers","Maladies respiratoires (asthme, bronchite chronique, BPCO)","Maladie inflammatoire chronique de l'intestin (maladie de Crohn, rectocolite hémorragique)","Autre(s) maladie(s) :","Aucune"];
+const MALADIES_60=["Hypertension artérielle, diabète, cholestérol sanguin élevé","Maladies cardiovasculaires (infarctus, maladie coronaire, insuffisance cardiaque, AVC…)","Cancers","Maladies respiratoires (asthme, bronchite chronique, BPCO)","Arthrose ou maladie rhumatismale","Fractures d'une vertèbre ou du col du fémur et/ou ostéoporose","Autre(s) maladie(s) :","Aucune"];
 
 /* helpers to build question objects */
 const on=(id,q,note)=>({id,q,t:"single",o:ON,note,yn:1});
@@ -504,261 +507,287 @@ const SEC_MEN="Santé & bien-être mental, violences";
 const SEC_SOC="Situation personnelle & antécédents";
 const SEC_ETAT="État de santé actuel";
 
-/* ===================== 18-25 ans ===================== */
+/* ===================== 18-25 ans — généré depuis le JSON officiel ===================== */
 const Q_18=[
- {sec:SEC_SOC,items:[
+ {sec:"Situation personnelle, environnement social et familial",items:[
    s("q1","Vous êtes :",["Une femme","Un homme"]),
    s("q2","Vous êtes :",["En études","En emploi","À la recherche d'un emploi","En cumul étude-emploi","Autre"]),
-   s("q3","Vous habitez :",["Seul(e)","Chez vos parents","En couple","Avec d'autres personnes (amis, colocataires…)"]),
+   s("q3","Vous habitez :",["Seul(e)","Chez vos parents","En couple","Avec d'autres personnes (amis, colocataires, …)"]),
    on("q4","Avez-vous un ou plusieurs enfants ?"),
    on("q5","Si oui, êtes-vous seul(e) pour l'élever ou les élever ?"),
    onn("q6","Envisagez-vous d'avoir un enfant dans les 5 prochaines années ?"),
-   on("q7","Assumez-vous un rôle d'aidant (aide régulière à une personne en raison de l'âge, la maladie ou un handicap) ?"),
+   on("q7","Assumez-vous un rôle d'aidant, c'est-à-dire aidez-vous une personne (adolescente ou adulte) de manière régulière et fréquente, en raison de son âge, de la maladie ou d'une situation de handicap ?"),
    on("q8","En cas de besoin, pouvez-vous compter sur une personne de votre entourage ?"),
    on("q9","Jugez-vous vos conditions de vie, de travail ou d'étude difficiles/pénibles ?"),
-   m("q10","Avez-vous ou avez-vous eu une de ces maladies ?",MALADIES_18),
+ ]},
+ {sec:"Vos antécédents personnels et familiaux",items:[
+   m("q10","Avez-vous ou avez-vous eu une de ces maladies ?",["Diabète","Maladie congénitale","Allergie(s)","Cancers","Maladies respiratoires (asthme…)","Dépression et/ou troubles anxieux et/ou troubles du comportement alimentaire (anorexie, boulimie…)","Autre(s) maladie(s) :","Aucune"]),
    on("q11","Avez-vous déjà été hospitalisé(e) ?"),
-   s("q12","À quand remonte votre dernière prise de sang et/ou analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois","Jamais réalisée"]),
-   onn("q13","Des personnes de votre famille proche (mère, père, sœur, frère) sont/ont été atteintes de maladies connues ?","Diabète, HTA, cancer, infarctus, mort subite, hypercholestérolémie familiale…"),
+   s("q12","À quand remonte votre dernière prise de sang et/ou une analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois","Jamais réalisée"]),
+   onn("q13","Des personnes de votre famille proche (mère, père, sœur ou frère) sont ou ont été atteintes de maladies connues ? Exemple : diabète, hypertension artérielle, cancer, infarctus, mort subite, hypercholestérolémie familiale, …"),
  ]},
- {sec:SEC_ETAT,items:[
-   on("q14","Suivez-vous actuellement un traitement ?","Si oui, apporter les ordonnances lors du bilan."),
-   num("q15","Taille","m"),
-   num("q16","Poids","kg"),
-   s("q17","Variation de poids lors des 6 derniers mois ?",POIDS_VAR),
+ {sec:"Votre état de santé actuel",items:[
+   on("q14","Suivez-vous actuellement un traitement ?"),
+   num("q15","Taille :","m"),
+   num("q16","Poids :","kg"),
+ ]},
+ {sec:"Activité physique, sédentarité et alimentation",items:[
+   s("q17","Avez-vous constaté une variation de votre poids lors des 6 derniers mois ?",POIDS_VAR),
    on("q18","Diriez-vous que la nourriture occupe une place très importante dans votre vie ?"),
-   on("q19","Avez-vous l'impression de voir moins bien ?"),
+   on("q19","Avez-vous l'impression de voir moins bien (difficultés pour lire, pour voir de loin…) ?"),
    on("q20","Êtes-vous allé(e) chez le dentiste dans les 12 derniers mois ?"),
+   s("q21","Combien de fois par semaine faites-vous au moins 30 minutes d'activités physiques dynamiques au cours d'une journée (marche, ménage, jogging, vélo, activité physique liée à votre profession, autre activité sportive, …) ?",FREQ_AP),
+   s("q22","Concernant votre consommation de fruits et légumes, vous en mangez :",FRUITS),
+   s("q23","À quelle fréquence consommez-vous des aliments gras/sucrés/salés (exemple : charcuterie, soda, bonbons, pâtisseries, chips, fast-food, glaces) ?",GRAS),
+   s("q24","Combien de temps par jour passez-vous assis(e) ou allongé(e) hors période de sommeil ?",ASSIS),
+   s("q25","Combien de temps par jour passez-vous devant un écran en dehors des études ou du travail (téléphone portable, télévision, jeux vidéo, ordinateur) ?",ECRAN),
  ]},
- {sec:SEC_AP,items:[
-   s("q21","Combien de fois par semaine ≥ 30 min d'activité physique dynamique ?",FREQ_AP),
-   s("q22","Consommation de fruits et légumes :",FRUITS),
-   s("q23","Fréquence d'aliments gras/sucrés/salés (charcuterie, soda, bonbons, chips, fast-food…) :",GRAS),
-   s("q24","Temps par jour assis(e)/allongé(e) hors sommeil :",ASSIS),
-   s("q25","Temps d'écran par jour hors études/travail :",ECRAN),
- ]},
- {sec:SEC_VAC,items:[
-   onn("q26","Êtes-vous à jour de vos vaccins et rappels ?","Apporter le carnet de vaccination si possible."),
+ {sec:"Vaccins, dépistages et santé sexuelle",items:[
+   onn("q26","Êtes-vous à jour de vos vaccins et rappels de vaccins ?"),
    onn("q27","Êtes-vous vacciné(e) contre les papillomavirus humains (HPV) ?"),
-   onn("q28","Si vous avez 25 ans : frottis de dépistage du cancer du col de l'utérus réalisé ?"),
+   onn("q28","Si vous avez 25 ans, avez-vous réalisé un frottis de dépistage du cancer du col de l'utérus ?"),
    s("q29","Êtes-vous allée chez le gynécologue dans les 12 derniers mois ?",["Oui","Non","Non concerné(e)"]),
    on("q30","Utilisez-vous un moyen de contraception ?"),
-   s("q31","Douleurs intenses au bas-ventre pendant les règles ?",["Oui","Non","Non concerné(e)"]),
-   onn("q32","Avez-vous déjà réalisé un dépistage des IST ?"),
-   m("q33","Êtes-vous dans l'une de ces situations ?",SEXE_SIT),
+   s("q31","Avez-vous des douleurs intenses au bas ventre au moment de la période des règles ?",["Oui","Non","Non concerné(e)"]),
+   onn("q32","Avez-vous déjà réalisé un dépistage des infections sexuellement transmissibles ?"),
+   m("q33","Êtes-vous dans l'une des situations suivantes (possibilité de cocher plusieurs réponses) ?",SEXE_SIT),
  ]},
- {sec:SEC_ADD,items:[
-   m("q34","Au cours de l'année écoulée, consommation d'alcool :",ALCOOL),
-   on("q35","Vous arrive-t-il de consommer rapidement une grande quantité d'alcool pour être ivre (binge) ?"),
-   s("q36","Actuellement, fumez-vous ou vapotez-vous ?",TABAC),
-   m("q37","Autres substances au cours des 12 derniers mois ?",SUBST_J),
-   s("q38","Avez-vous misé de l'argent (jeu, pari) au cours des 12 derniers mois ?",JEU),
+ {sec:"Conduites addictives, consommation de boissons alcoolisées, tabac et autres substances",items:[
+   m("q34","Au cours de l'année écoulée, concernant votre consommation de boissons alcoolisées :",ALCOOL),
+   on("q35","Vous arrive-t-il de consommer rapidement une quantité importante de boissons alcoolisées afin d'obtenir une sensation d'ivresse ?"),
+   s("q36","Actuellement, fumez-vous (cigarette, tabac à rouler, cigare, pipe, chicha, narguilé…) ou vapotez-vous ?",TABAC),
+   m("q37","Avez-vous consommé d'autres substances au cours des 12 derniers mois ? Cannabis (haschisch, marijuana, herbe, joint ou shit), d'autres drogues (ecstasy, cocaïne, héroïne, etc.) ou du protoxyde d'azote ?",SUBST_J),
+   s("q38","Au cours des 12 derniers mois, avez-vous misé de l'argent pour un jeu (loterie, poker, ...), un pari (sportif, hippique, ...) ?",JEU),
  ]},
- {sec:SEC_MEN,items:[
+ {sec:"Santé et bien-être mental, violences",items:[
    s("q39","Diriez-vous que vous avez des problèmes de sommeil ?",SOM_PB),
-   s("q40","En moyenne, vous dormez :",SOM_DUR),
-   s("q41","2 dernières semaines — nervosité, anxiété ou tension :",PHQ),
-   s("q42","2 dernières semaines — incapable d'arrêter de vous inquiéter :",PHQ),
-   s("q43","2 dernières semaines — peu d'intérêt ou de plaisir à faire les choses :",PHQ),
-   s("q44","2 dernières semaines — tristesse, déprime ou désespoir :",PHQ),
-   s("q45","Avez-vous déjà eu des idées noires/suicidaires ou fait une tentative de suicide ?",IDEES),
-   onn("q46","Avez-vous déjà été victime de violences (physiques, sexuelles, psychiques), harcèlement, discrimination, soumission chimique… ?"),
+   s("q40","Concernant le sommeil, en moyenne vous dormez :",SOM_DUR),
+   s("q41","Au cours des 2 dernières semaines, combien de fois avez-vous eu un sentiment de nervosité, d'anxiété ou de tension ?",PHQ),
+   s("q42","Au cours des 2 dernières semaines, combien de fois avez-vous été incapable d'arrêter de vous inquiéter ou de contrôler vos inquiétudes ?",PHQ),
+   s("q43","Au cours des 2 dernières semaines, combien de fois avez-vous éprouvé peu d'intérêt ou de plaisir à faire les choses ?",PHQ),
+   s("q44","Au cours des 2 dernières semaines, combien de fois avez-vous éprouvé un sentiment de tristesse, de déprime ou de désespoir ?",PHQ),
+   s("q45","Avez-vous déjà eu des idées noires/suicidaires ou fait une tentative de suicide ?",["Oui, des idées noires/suicidaires","Oui, une ou des tentatives de suicide","Non"]),
+   onn("q46","Avez-vous déjà été victime de violences physiques, sexuelles ou psychiques (menaces, chantage, humiliations, coups, mutilations, …), harcèlements, discrimination, soumission chimiques ou drogues sans consentement (ex : GHB) .... ?"),
+ ]},
+ {sec:"Précisions complémentaires concernant votre santé",items:[
+   m("q47","Souhaitez-vous aborder un ou plusieurs sujets en priorité, avec le professionnel de santé au cours de votre Bilan Prévention ?",["Mieux dormir","Améliorer mon alimentation et bouger plus","Réduire ou arrêter ma consommation de tabac","Réduire ou arrêter ma consommation d'alcool","Améliorer mon bien-être mental, réduire mon stress ou mon anxiété","Passer moins de temps devant un écran ou mon téléphone","Mieux m'informer sur les dépistages concernant ma tranche d'âge"]),
+   {id:"q47bis",q:"Souhaitez-vous aborder un ou plusieurs sujets en priorité, avec le professionnel de santé au cours de votre Bilan Prévention ? (complément libre)",t:"text"},
  ]},
 ];
 
-/* ===================== 45-50 ans ===================== */
+/* ===================== 45-50 ans — généré depuis le JSON officiel ===================== */
 const Q_45=[
- {sec:SEC_SOC,items:[
+ {sec:"Situation personnelle, environnement social et familial",items:[
    s("q1","Vous êtes :",["Une femme","Un homme"]),
    on("q2","Avez-vous un ou plusieurs enfants à la maison ?"),
    on("q3","Si oui, les élevez-vous seul(e) ?"),
-   on("q4","Assumez-vous un rôle d'aidant ?"),
+   on("q4","Assumez-vous un rôle d'aidant ? Aidez-vous une personne de manière régulière et fréquente, en raison de son âge, de la maladie ou d'une situation de handicap ?"),
    on("q5","En cas de besoin, pouvez-vous compter sur une personne de votre entourage ?"),
    on("q6","Vos conditions de vie et/ou de travail sont-elles difficiles/pénibles ?"),
-   m("q7","Avez-vous ou avez-vous eu une de ces maladies ou facteurs de risque ?",MALADIES_4550),
-   s("q8","À quand remonte votre dernière prise de sang et/ou analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois"]),
-   onn("q9","Des personnes de votre famille proche sont/ont été atteintes de maladies connues ?","Diabète, HTA, cancer, infarctus, mort subite, hypercholestérolémie familiale, fracture du col du fémur…"),
  ]},
- {sec:SEC_ETAT,items:[
-   on("q10","Suivez-vous actuellement un traitement ?","Apporter les ordonnances si possible."),
-   num("q11","Taille","m"),
-   num("q12","Poids","kg"),
-   s("q13","Variation de poids lors des 6 derniers mois ?",POIDS_VAR),
-   on("q14","Gonflements importants/inhabituels des chevilles ou des jambes ?"),
+ {sec:"Vos antécédents personnels et familiaux",items:[
+   m("q7","Avez-vous ou avez-vous eu une de ces maladies ou facteurs de risques ?",["Hypertension artérielle, diabète, cholestérol sanguin élevé","Maladies cardiovasculaires (infarctus, maladie coronaire, insuffisance cardiaque, AVC…)","Cancers","Maladies respiratoires (asthme, bronchite chronique, BPCO)","Maladie inflammatoire chronique de l'intestin (maladie de Crohn, rectocolite hémorragique)","Autre(s) maladie(s) :","Aucune"]),
+   s("q8","À quand remonte votre dernière prise de sang et/ou une analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois"]),
+   onn("q9","Des personnes de votre famille proche (mère, père, sœur ou frère) sont ou ont été atteintes de maladies connues ? Exemple : diabète, hypertension artérielle, cancer, infarctus, mort subite, hypercholestérolémie familiale, fracture du col du fémur, …"),
+ ]},
+ {sec:"Votre état de santé actuel",items:[
+   on("q10","Suivez-vous actuellement un traitement ?"),
+   num("q11","Taille :","m"),
+   num("q12","Poids :","kg"),
+ ]},
+ {sec:"Activité physique, sédentarité et alimentation",items:[
+   s("q13","Avez-vous constaté une variation de votre poids lors des 6 derniers mois ?",POIDS_VAR),
+   on("q14","Avez-vous observé des gonflements importants et/ou inhabituels de vos chevilles ou de vos jambes ?"),
    on("q15","Toussez-vous souvent (tous les jours) ?"),
-   on("q16","Avez-vous souvent une toux grasse / des crachats ?"),
+   on("q16","Avez-vous souvent une toux grasse ou qui ramène des crachats ?"),
    on("q17","Êtes-vous plus facilement essoufflé(e) que les personnes de votre âge ?"),
-   onn("q18","Pauses respiratoires ou ronflements importants pendant le sommeil (constatés par l'entourage) ?"),
-   s("q19","Souhaitez-vous aborder les symptômes de ménopause (bouffées de chaleur, sommeil, sécheresse vaginale, fatigue…) ?",["Oui","Non","Je suis déjà ménopausée","Non concerné(e)"]),
+   onn("q18","Faites-vous des pauses respiratoires ou des ronflements importants lors de votre sommeil, notamment constatés par votre entourage ?"),
+   s("q19","Souhaitez-vous aborder lors de votre Bilan Prévention les symptômes de ménopause (bouffées de chaleur, problèmes de sommeil, sécheresse vaginale, troubles urinaires, fatigue, anxiété, irritabilité) ?",["Oui","Non","Je suis déjà ménopausée","Non concerné(e)"]),
    on("q20","Êtes-vous allé(e) chez le dentiste dans les 12 derniers mois ?"),
-   on("q21","Avez-vous l'impression de voir moins bien ?"),
-   on("q22","Avez-vous l'impression d'entendre moins bien (ou l'entourage le constate) ?"),
-   on("q23","Problèmes (douleurs, inconfort) au cou/dos/épaules/mains impactant le quotidien (12 mois) ?"),
+   on("q21","Avez-vous l'impression de voir moins bien (difficultés pour lire, pour voir de loin…) ?"),
+   on("q22","Avez-vous l'impression d'entendre moins bien et/ou votre entourage a-t-il l'impression que votre audition a baissé ?"),
+   on("q23","Avez-vous eu, durant les 12 derniers mois, des problèmes (courbatures, douleur, inconfort) au niveau du cou, du dos, des épaules ou des mains qui impactent votre vie quotidienne ?"),
+   s("q24","Combien de fois par semaine faites-vous au moins 30 minutes d'activités physiques dynamiques au cours d'une journée (marche, ménage, jogging, vélo, activité physique liée à votre profession, autre activité sportive, …) ?",FREQ_AP),
+   s("q25","Concernant votre consommation de fruits et légumes, vous en mangez :",FRUITS),
+   s("q26","À quelle fréquence consommez-vous des aliments gras/sucrés/salés (exemple : charcuterie, soda, bonbons, pâtisseries, chips, fast-food, glaces) ?",GRAS),
+   s("q27","Combien de temps par jour passez-vous assis(e) ou allongé(e) hors période de sommeil ?",ASSIS),
+   s("q28","Combien de temps par jour passez-vous devant un écran en dehors du travail (téléphone portable, télévision, ordinateur) ?",ECRAN),
  ]},
- {sec:SEC_AP,items:[
-   s("q24","Combien de fois par semaine ≥ 30 min d'activité physique dynamique ?",FREQ_AP),
-   s("q25","Consommation de fruits et légumes :",FRUITS),
-   s("q26","Fréquence d'aliments gras/sucrés/salés :",GRAS),
-   s("q27","Temps par jour assis(e)/allongé(e) hors sommeil :",ASSIS),
-   s("q28","Temps d'écran par jour hors travail :",ECRAN),
+ {sec:"Vaccins, dépistages et santé sexuelle",items:[
+   onn("q29","Êtes-vous à jour de vos vaccins et rappels de vaccins ?"),
+   onn("q30","Avez-vous réalisé un test de dépistage du cancer colorectal et/ou une mammographie de dépistage du cancer du sein ?"),
+   s("q31","Avez-vous réalisé un frottis de dépistage du cancer du col de l'utérus ?",FROT5),
+   m("q32","Êtes-vous dans l'une des situations suivantes (possibilité de cocher plusieurs réponses) ?",SEXE_SIT),
  ]},
- {sec:SEC_VAC,items:[
-   onn("q29","Êtes-vous à jour de vos vaccins et rappels ?","Apporter le carnet si possible."),
-   onn("q30","Test de dépistage du cancer colorectal et/ou mammographie réalisé(e) ?"),
-   s("q31","Frottis de dépistage du cancer du col de l'utérus ?",FROT5),
-   m("q32","Êtes-vous dans l'une de ces situations ?",SEXE_SIT),
- ]},
- {sec:SEC_ADD,items:[
-   m("q33","Au cours de l'année écoulée, consommation d'alcool :",ALCOOL),
-   s("q34","Actuellement, fumez-vous ou vapotez-vous ?",TABAC),
+ {sec:"Conduites addictives, consommation de boissons alcoolisées, tabac et autres substances",items:[
+   m("q33","Au cours de l'année écoulée, concernant votre consommation de boissons alcoolisées :",ALCOOL),
+   s("q34","Actuellement, fumez-vous (cigarette, tabac à rouler, cigare, pipe, chicha, narguilé…) ou vapotez-vous ?",TABAC),
    s("q35","Si vous avez arrêté de fumer, depuis combien de temps ?",ARRET),
-   m("q36","Autres substances au cours des 12 derniers mois ?",SUBST),
-   s("q37","Avez-vous misé de l'argent (jeu, pari) au cours des 12 derniers mois ?",JEU),
+   m("q36","Avez-vous consommé d'autres substances au cours des 12 derniers mois ? Cannabis (haschisch, marijuana, herbe, joint ou shit) ou d'autres drogues (ecstasy, cocaïne, héroïne etc.) ?",["Oui, du cannabis","Oui, d'autres drogues","Non"]),
+   s("q37","Au cours des 12 derniers mois, avez-vous misé de l'argent pour un jeu (loterie, poker, ...), un pari (sportif, hippique, ...) ?",JEU),
  ]},
- {sec:SEC_MEN,items:[
+ {sec:"Santé et bien-être mental, violences",items:[
    s("q38","Diriez-vous que vous avez des problèmes de sommeil ?",SOM_PB),
-   s("q39","En moyenne, vous dormez :",SOM_DUR),
-   s("q40","2 dernières semaines — nervosité, anxiété ou tension :",PHQ),
-   s("q41","2 dernières semaines — incapable d'arrêter de vous inquiéter :",PHQ),
-   s("q42","2 dernières semaines — peu d'intérêt ou de plaisir à faire les choses :",PHQ),
-   s("q43","2 dernières semaines — tristesse, déprime ou désespoir :",PHQ),
+   s("q39","Concernant le sommeil, en moyenne vous dormez :",SOM_DUR),
+   s("q40","Au cours des 2 dernières semaines, combien de fois avez-vous eu un sentiment de nervosité, d'anxiété ou de tension ?",PHQ),
+   s("q41","Au cours des 2 dernières semaines, combien de fois avez-vous été incapable d'arrêter de vous inquiéter ou de contrôler vos inquiétudes ?",PHQ),
+   s("q42","Au cours des 2 dernières semaines, combien de fois avez-vous éprouvé peu d'intérêt ou de plaisir à faire les choses ?",PHQ),
+   s("q43","Au cours des 2 dernières semaines, combien de fois avez-vous éprouvé un sentiment de tristesse, de déprime ou de désespoir ?",PHQ),
    s("q44","Avez-vous déjà eu des idées noires/suicidaires ou fait une tentative de suicide ?",IDEES),
-   onn("q45","Avez-vous déjà été victime de violences, harcèlement, discrimination… ?"),
+   onn("q45","Avez-vous déjà été victime de violences physiques, sexuelles ou psychiques (menaces, chantage, humiliations, coups, mutilations…), harcèlements, discrimination, … ?"),
+ ]},
+ {sec:"Précisions complémentaires concernant votre santé",items:[
+   m("q46","Souhaitez-vous aborder un ou plusieurs sujets en priorité, avec le professionnel de santé au cours de votre Bilan Prévention ?",["Améliorer mon alimentation et bouger plus","Réduire ou arrêter ma consommation de tabac","Réduire ou arrêter ma consommation d'alcool","Améliorer mon bien-être mental, réduire mon stress ou mon anxiété","Mieux connaitre / comprendre la ménopause et mieux prévenir certains de ses effets","Passer moins de temps devant un écran ou mon téléphone","Mieux m'informer sur les dépistages concernant ma tranche d'âge"]),
+   {id:"q46bis",q:"Souhaitez-vous aborder un ou plusieurs sujets en priorité, avec le professionnel de santé au cours de votre Bilan Prévention ? (complément libre)",t:"text"},
  ]},
 ];
 
-/* ===================== 60-65 ans ===================== */
+/* ===================== 60-65 ans — généré depuis le JSON officiel ===================== */
 const Q_60=[
- {sec:SEC_SOC,items:[
+ {sec:"Situation personnelle, environnement social et familial",items:[
    s("q1","Vous êtes :",["Une femme","Un homme"]),
-   on("q2","Assumez-vous un rôle d'aidant ?"),
+   on("q2","Assumez-vous un rôle d'aidant ? Aidez-vous une personne de manière régulière et fréquente, en raison de son âge, de la maladie ou d'une situation de handicap ?"),
    on("q3","En cas de besoin, pouvez-vous compter sur une personne de votre entourage ?"),
-   on("q4","Au cours des 6 derniers mois, avez-vous eu des contacts avec des proches ?"),
-   m("q5","Avez-vous ou avez-vous eu une de ces maladies ou facteurs de risque ?",MALADIES_60),
-   s("q6","À quand remonte votre dernière prise de sang et/ou analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois"]),
-   onn("q7","Des personnes de votre famille proche sont/ont été atteintes de maladies connues ?","Diabète, HTA, cancer, DMLA, Alzheimer, ostéoporose, fracture du col du fémur…"),
+   on("q4","Au cours des 6 derniers mois, avez-vous eu des contacts avec des proches (amis, membres de votre famille) ?"),
  ]},
- {sec:SEC_ETAT,items:[
-   on("q8","Suivez-vous actuellement un traitement ?","Apporter les ordonnances si possible."),
-   num("q9","Taille","m"),
-   num("q10","Poids","kg"),
-   s("q11","Variation de poids lors des 6 derniers mois ?",POIDS_VAR),
-   on("q12","Gonflements importants/inhabituels des chevilles ou des jambes ?"),
-   on("q13","Vous arrive-t-il d'avoir des douleurs dans la poitrine, notamment à l'effort ?"),
+ {sec:"Vos antécédents personnels et familiaux",items:[
+   m("q5","Avez-vous ou avez-vous eu une de ces maladies ou facteurs de risques ?",["Hypertension artérielle, diabète, cholestérol sanguin élevé","Maladies cardiovasculaires (infarctus, maladie coronaire, insuffisance cardiaque, AVC…)","Cancers","Maladies respiratoires (asthme, bronchite chronique, BPCO)","Arthrose ou maladie rhumatismale","Fractures d'une vertèbre ou du col du fémur et/ou ostéoporose","Autre(s) maladie(s) :","Aucune"]),
+   s("q6","À quand remonte votre dernière prise de sang et/ou une analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois"]),
+   onn("q7","Des personnes de votre famille proche (mère, père, sœur ou frère) sont ou ont été atteintes de maladies connues ? Exemple : diabète, hypertension artérielle, cancer, dégénérescence maculaire liée à l'âge (DMLA), maladie d'Alzheimer, ostéoporose, fracture du col du fémur,..."),
+ ]},
+ {sec:"Votre état de santé actuel",items:[
+   on("q8","Suivez-vous actuellement un traitement ?"),
+   num("q9","Taille :","m"),
+   num("q10","Poids :","kg"),
+ ]},
+ {sec:"Activité physique, sédentarité et alimentation",items:[
+   s("q11","Avez-vous constaté une variation de votre poids lors des 6 derniers mois ?",POIDS_VAR),
+   on("q12","Avez-vous observé des gonflements importants et/ou inhabituels de vos chevilles ou de vos jambes ?"),
+   on("q13","Vous arrive-t-il d'avoir des douleurs dans la poitrine notamment lors d'un effort ?"),
    on("q14","Toussez-vous souvent (tous les jours) ?"),
-   on("q15","Avez-vous souvent une toux grasse / des crachats ?"),
+   on("q15","Avez-vous souvent une toux grasse ou qui ramène des crachats ?"),
    on("q16","Êtes-vous plus facilement essoufflé(e) que les personnes de votre âge ?"),
-   onn("q17","Pauses respiratoires ou ronflements importants pendant le sommeil ?"),
-   {id:"q18",q:"Si vous êtes une femme, à quel âge avez-vous été ménopausée ?",t:"text"},
+   onn("q17","Faites-vous des pauses respiratoires ou des ronflements importants lors de votre sommeil, notamment constatés par votre entourage ?"),
+   num("q18","Si vous êtes une femme, à quel âge avez-vous été ménopausée ?","ans"),
    on("q19","Êtes-vous allé(e) chez le dentiste dans les 12 derniers mois ?"),
-   on("q20","Avez-vous l'impression de voir moins bien ?"),
-   on("q21","Avez-vous l'impression d'entendre moins bien (ou l'entourage le constate) ?"),
-   on("q22","Êtes-vous sujet(te) à des troubles urinaires ?"),
-   on("q23","Problèmes au cou/dos/épaules/mains impactant le quotidien (12 mois) ?"),
-   on("q24","Si toujours en activité professionnelle, jugez-vous vos conditions de travail difficiles/pénibles ?"),
+   on("q20","Avez-vous l'impression de voir moins bien (difficultés pour lire, pour voir de loin…) ?"),
+   on("q21","Avez-vous l'impression d'entendre moins bien et/ou votre entourage a-t-il l'impression que votre audition a baissé ?"),
+   on("q22","Êtes-vous sujet à des troubles urinaires ?"),
+   on("q23","Avez-vous eu, durant les 12 derniers mois, des problèmes (courbatures, douleur, inconfort) au niveau du cou, du dos, des épaules ou des mains qui impactent votre vie quotidienne ?"),
+   on("q24","Si vous êtes toujours en activité professionnelle, jugez-vous vos conditions de travail difficiles/pénibles ?"),
    on("q25","Avez-vous la sensation d'oublier des choses ?"),
    onn("q26","Avez-vous l'impression d'avoir plus de difficultés à réaliser vos activités quotidiennes ?"),
+   s("q27","Combien de fois par semaine faites-vous au moins 30 minutes d'activités physiques dynamiques au cours d'une journée (marche, ménage, jogging, vélo, jardinage, activité physique liée à votre profession, autre activité sportive, …) ?",FREQ_AP),
+   s("q28","Concernant votre consommation de fruits et légumes, vous en mangez :",FRUITS),
+   s("q29","À quelle fréquence consommez-vous des aliments gras/sucrés/salés (exemple : charcuterie, soda, bonbons, pâtisseries, chips, fast-food, glaces) ?",GRAS),
+   s("q30","Combien de temps par jour passez-vous assis(e) ou allongé(e) hors période de sommeil ?",ASSIS),
+   s("q31","Combien de temps par jour passez-vous devant un écran en dehors du travail (téléphone portable, télévision, ordinateur) ?",ECRAN),
  ]},
- {sec:SEC_AP,items:[
-   s("q27","Combien de fois par semaine ≥ 30 min d'activité physique dynamique ?",FREQ_AP),
-   s("q28","Consommation de fruits et légumes :",FRUITS),
-   s("q29","Fréquence d'aliments gras/sucrés/salés :",GRAS),
-   s("q30","Temps par jour assis(e)/allongé(e) hors sommeil :",ASSIS),
-   s("q31","Temps d'écran par jour hors travail :",ECRAN),
+ {sec:"Vaccins, dépistages et santé sexuelle",items:[
+   onn("q32","Êtes-vous à jour de vos vaccins et rappels de vaccins ?"),
+   s("q33","Avez-vous déjà réalisé un test de dépistage du cancer colorectal ?",DEP2),
+   s("q34","Avez-vous déjà réalisé une mammographie de dépistage du cancer du sein ?",DEP2),
+   s("q34bis","Avez-vous déjà réalisé un frottis de dépistage du cancer du col de l'utérus ?",FROT5),
+   m("q35","Êtes-vous dans l'une des situations suivantes (possibilité de cocher plusieurs réponses) ?",SEXE_SIT),
  ]},
- {sec:SEC_VAC,items:[
-   onn("q32","Êtes-vous à jour de vos vaccins et rappels ?","Apporter le carnet si possible."),
-   s("q33","Test de dépistage du cancer colorectal réalisé ?",DEP2),
-   s("q34","Mammographie de dépistage du cancer du sein réalisée ?",DEP2),
-   s("q34b","Frottis de dépistage du cancer du col de l'utérus ?",FROT5),
-   m("q35","Êtes-vous dans l'une de ces situations ?",SEXE_SIT),
- ]},
- {sec:SEC_ADD,items:[
-   m("q36","Au cours de l'année écoulée, consommation d'alcool :",ALCOOL),
-   s("q37","Actuellement, fumez-vous ou vapotez-vous ?",TABAC),
+ {sec:"Conduites addictives, consommation de boissons alcoolisées, tabac et autres substances",items:[
+   m("q36","Au cours de l'année écoulée, concernant votre consommation de boissons alcoolisées :",ALCOOL),
+   s("q37","Actuellement, fumez-vous (cigarette, tabac à rouler, cigare, pipe, chicha, narguilé…) ou vapotez-vous ?",TABAC),
    s("q38","Si vous avez arrêté de fumer, depuis combien de temps ?",ARRET),
-   m("q39","Autres substances au cours des 12 derniers mois ?",SUBST),
-   s("q40","Avez-vous misé de l'argent (jeu, pari) au cours des 12 derniers mois ?",JEU),
-   s("q41","Votre regard sur le fait de passer/d'être à la retraite est :",RETR_R),
-   s("q42","Envisagez-vous de nouveaux projets (passe-temps, sorties, associations…) ?",RETR_P),
+   m("q39","Avez-vous consommé d'autres substances au cours des 12 derniers mois ? Cannabis (haschisch, marijuana, herbe, joint ou shit) ou d'autres drogues (ecstasy, cocaïne, héroïne etc.) ?",["Oui, du cannabis","Oui, d'autres drogues","Non"]),
+   s("q40","Au cours des 12 derniers mois, avez-vous misé de l'argent pour un jeu (loterie, poker, ...), un pari (sportif, hippique, ...) ?",JEU),
+   s("q41","Votre regard sur le fait de passer ou d'être à la retraite est :",RETR_R),
+   s("q42","À l'approche de la retraite (ou depuis le passage à la retraite), envisagez-vous de nouveaux projets (passe-temps, sorties, associations, …) ?",RETR_P),
  ]},
- {sec:SEC_MEN,items:[
+ {sec:"Santé et bien-être mental, violences",items:[
    s("q43","Diriez-vous que vous avez des problèmes de sommeil ?",SOM_PB),
-   s("q44","En moyenne, vous dormez :",SOM_DUR),
-   s("q45","2 dernières semaines — nervosité, anxiété ou tension :",PHQ),
-   s("q46","2 dernières semaines — incapable d'arrêter de vous inquiéter :",PHQ),
-   s("q47","2 dernières semaines — peu d'intérêt ou de plaisir à faire les choses :",PHQ),
-   s("q48","2 dernières semaines — tristesse, déprime ou désespoir :",PHQ),
+   s("q44","Concernant le sommeil, en moyenne vous dormez :",SOM_DUR),
+   s("q45","Au cours des 2 dernières semaines, combien de fois avez-vous eu un sentiment de nervosité, d'anxiété ou de tension ?",PHQ),
+   s("q46","Au cours des 2 dernières semaines, combien de fois avez-vous été incapable d'arrêter de vous inquiéter ou de contrôler vos inquiétudes ?",PHQ),
+   s("q47","Au cours des 2 dernières semaines, combien de fois avez-vous éprouvé peu d'intérêt ou de plaisir à faire les choses ?",PHQ),
+   s("q48","Au cours des 2 dernières semaines, combien de fois avez-vous éprouvé un sentiment de tristesse, de déprime ou de désespoir ?",PHQ),
    s("q49","Avez-vous déjà eu des idées noires/suicidaires ou fait une tentative de suicide ?",IDEES),
-   onn("q50","Avez-vous déjà été victime de violences, harcèlement, discrimination… ?"),
+   onn("q50","Avez-vous déjà été victime de violences physiques, sexuelles ou psychiques (coups, mutilations, menaces, chantage, humiliations…), harcèlements, discrimination, soumission chimique etc… ?"),
+ ]},
+ {sec:"Précisions complémentaires concernant votre santé",items:[
+   m("q51","Souhaitez-vous aborder un ou plusieurs sujets en priorité, avec le professionnel de santé au cours de votre Bilan Prévention ?",["Mieux dormir","Améliorer mon alimentation et bouger plus","Réduire ou arrêter ma consommation de tabac","Réduire ou arrêter ma consommation d'alcool","Améliorer mon bien-être mental, réduire mon stress ou mon anxiété","Mieux connaitre / comprendre / prévenir les effets du vieillissement","Mieux m'informer sur les dépistages concernant ma tranche d'âge"]),
+   {id:"q51bis",q:"Souhaitez-vous aborder un ou plusieurs sujets en priorité, avec le professionnel de santé au cours de votre Bilan Prévention ? (complément libre)",t:"text"},
  ]},
 ];
 
-/* ===================== 70-75 ans ===================== */
+/* ===================== 70-75 ans — généré depuis le JSON officiel ===================== */
 const Q_70=[
- {sec:SEC_SOC,items:[
+ {sec:"Situation personnelle, environnement social et familial",items:[
    s("q1","Vous êtes :",["Une femme","Un homme"]),
-   on("q2","Assumez-vous un rôle d'aidant ?"),
+   on("q2","Assumez-vous un rôle d'aidant ? Aidez-vous une personne de manière régulière et fréquente, en raison de son âge, de la maladie ou d'une situation de handicap ?"),
    on("q3","En cas de besoin, pouvez-vous compter sur une personne de votre entourage ?"),
-   on("q4","Au cours des 6 derniers mois, avez-vous eu des contacts avec des proches ?"),
-   m("q5","Avez-vous ou avez-vous eu une de ces maladies ou facteurs de risque ?",MALADIES_60),
-   s("q6","À quand remonte votre dernière prise de sang et/ou analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois"]),
-   onn("q7","Des personnes de votre famille proche sont/ont été atteintes de maladies connues ?","Diabète, HTA, cancer, DMLA, Alzheimer, ostéoporose, fracture du col du fémur…"),
+   on("q4","Au cours des 6 derniers mois, avez-vous eu des contacts avec des proches (amis, membres de votre famille) ?"),
  ]},
- {sec:SEC_ETAT,items:[
-   on("q8","Suivez-vous actuellement un traitement ?","Apporter les ordonnances si possible."),
-   num("q9","Taille","m"),
-   num("q10","Poids","kg"),
-   s("q11","Variation de poids lors des 6 derniers mois ?",POIDS_VAR),
-   on("q12","Gonflements importants/inhabituels des chevilles ou des jambes ?"),
-   on("q13","Vous arrive-t-il d'avoir des douleurs dans la poitrine, notamment à l'effort ?"),
+ {sec:"Vos antécédents personnels et familiaux",items:[
+   m("q5","Avez-vous ou avez-vous eu une de ces maladies ou facteurs de risques ?",["Hypertension artérielle, diabète, cholestérol sanguin élevé","Maladies cardiovasculaires (infarctus, maladie coronaire, insuffisance cardiaque, AVC…)","Cancers","Maladies respiratoires (asthme, bronchite chronique, BPCO)","Arthrose ou maladie rhumatismale","Fractures d'une vertèbre ou du col du fémur et/ou ostéoporose","Autre(s) maladie(s) :","Aucune"]),
+   s("q6","À quand remonte votre dernière prise de sang et/ou une analyse d'urine ?",["Moins de 6 mois","Plus de 6 mois"]),
+   onn("q7","Des personnes de votre famille proche (mère, père, sœur ou frère) sont ou ont été atteintes de maladies connues ? Exemple : diabète, hypertension artérielle, cancer, dégénérescence maculaire liée à l'âge (DMLA), maladie d'Alzheimer, ostéoporose, fracture du col du fémur,..."),
+ ]},
+ {sec:"Votre état de santé actuel",items:[
+   on("q8","Suivez-vous actuellement un traitement ?"),
+   num("q9","Taille :","m"),
+   num("q10","Poids :","kg"),
+ ]},
+ {sec:"Activité physique, sédentarité et alimentation",items:[
+   s("q11","Avez-vous constaté une variation de votre poids lors des 6 derniers mois ?",POIDS_VAR),
+   on("q12","Avez-vous observé des gonflements importants et/ou inhabituels de vos chevilles ou de vos jambes ?"),
+   on("q13","Vous arrive-t-il d'avoir des douleurs dans la poitrine notamment lors d'un effort ?"),
    on("q14","Toussez-vous souvent (tous les jours) ?"),
-   on("q15","Avez-vous souvent une toux grasse / des crachats ?"),
+   on("q15","Avez-vous souvent une toux grasse ou qui ramène des crachats ?"),
    on("q16","Êtes-vous plus facilement essoufflé(e) que les personnes de votre âge ?"),
-   onn("q17","Pauses respiratoires ou ronflements importants pendant le sommeil ?"),
-   {id:"q18",q:"Si vous êtes une femme, à quel âge avez-vous été ménopausée ?",t:"text"},
+   onn("q17","Faites-vous des pauses respiratoires ou des ronflements importants lors de votre sommeil, notamment constatés par votre entourage ?"),
+   num("q18","Si vous êtes une femme, à quel âge avez-vous été ménopausée ?","ans"),
    on("q19","Êtes-vous allé(e) chez le dentiste dans les 12 derniers mois ?"),
-   on("q20","Avez-vous l'impression de voir moins bien ?"),
-   on("q21","Avez-vous l'impression d'entendre moins bien (ou l'entourage le constate) ?"),
-   on("q22","Êtes-vous sujet(te) à des troubles urinaires ?"),
-   on("q23","Problèmes au cou/dos/épaules/mains impactant le quotidien (12 mois) ?"),
+   on("q20","Avez-vous l'impression de voir moins bien (difficultés pour lire, pour voir de loin…) ?"),
+   on("q21","Avez-vous l'impression d'entendre moins bien et/ou votre entourage a-t-il l'impression que votre audition a baissé ?"),
+   on("q22","Êtes-vous sujet à des troubles urinaires ?"),
+   on("q23","Avez-vous eu, durant les 12 derniers mois, des problèmes (courbatures, douleur, inconfort) au niveau du cou, du dos, des épaules ou des mains qui impactent votre vie quotidienne ?"),
    on("q24","Avez-vous la sensation d'oublier des choses ?"),
-   m("q25","Difficultés à réaliser certains gestes de la vie quotidienne ?",["Quitter/rejoindre son lit seul(e)","Aller seul(e) aux toilettes","Faire sa toilette seul(e)","Se vêtir/dévêtir seul(e)","Manger et boire seul(e)","Marcher seul(e) (avec ou sans aide)","Utiliser seul(e) un moyen de transport"]),
+   m("q25","Avez-vous des difficultés à réaliser certains gestes de la vie quotidienne ?",["Quitter son lit et/ou se coucher seul(e)","Aller seul(e) aux toilettes","Faire sa toilette seul(e)","Se vêtir et/ou se dévêtir seul(e)","Manger et boire seul(e)","Marcher seul(e) avec ou sans béquille, canne…","Utiliser seul(e) un moyen de transport (transports en commun, voiture….)"]),
+   s("q26","Combien de fois par semaine faites-vous au moins 30 minutes d'activités physiques dynamiques au cours d'une journée (marche, ménage, jogging, vélo, jardinage, activité physique liée à votre profession, autre activité sportive, …) ?",FREQ_AP),
+   s("q27","Concernant votre consommation de fruits et légumes, vous en mangez :",FRUITS),
+   s("q28","À quelle fréquence consommez-vous des aliments gras/sucrés/salés (exemple : charcuterie, soda, bonbons, pâtisseries, chips, fast-food, glaces) ?",GRAS),
+   s("q29","Combien de temps par jour passez-vous assis(e) ou allongé(e) hors période de sommeil ?",ASSIS),
+   s("q30","Combien de temps par jour passez-vous devant un écran en dehors du travail (téléphone portable, télévision, ordinateur) ?",ECRAN),
  ]},
- {sec:SEC_AP,items:[
-   s("q26","Combien de fois par semaine ≥ 30 min d'activité physique dynamique ?",FREQ_AP),
-   s("q27","Consommation de fruits et légumes :",FRUITS),
-   s("q28","Fréquence d'aliments gras/sucrés/salés :",GRAS),
-   s("q29","Temps par jour assis(e)/allongé(e) hors sommeil :",ASSIS),
-   s("q30","Temps d'écran par jour :",ECRAN),
-   on("q31","Avez-vous un logement facile d'accès en cas de mobilité réduite (plain-pied, ascenseur, rampe…) ?"),
-   on("q32","Avez-vous un logement adapté à la prévention des chutes (douche, barre d'appui, antidérapant, WC surélevé…) ?"),
+ {sec:"Santé-environnement et prévention des chutes",items:[
+   on("q31","Avez-vous un logement facile d'accès en cas de mobilité réduite ? (logement de plain-pied, logement avec ascenseur, présence d'une rampe d'accès à l'immeuble ou au perron de la maison, …)"),
+   on("q32","Avez-vous un logement adapté à la prévention des chutes ? (douche plutôt qu'une baignoire, barre de douche, revêtement anti-chutes, WC surélevé, …)"),
  ]},
- {sec:SEC_VAC,items:[
-   onn("q33","Êtes-vous à jour de vos vaccins et rappels ?","Apporter le carnet si possible."),
-   s("q34","Test de dépistage du cancer colorectal réalisé ?",DEP2),
-   s("q35","Mammographie de dépistage du cancer du sein réalisée ?",DEP2),
-   onn("q35b","Frottis de dépistage du cancer du col de l'utérus réalisé ?"),
-   m("q36","Êtes-vous dans l'une de ces situations ?",SEXE_SIT),
+ {sec:"Vaccins, dépistages et santé sexuelle",items:[
+   onn("q33","Êtes-vous à jour de vos vaccins et rappels de vaccins ?"),
+   s("q34","Avez-vous déjà réalisé un test de dépistage du cancer colorectal ?",DEP2),
+   s("q35","Avez-vous déjà réalisé une mammographie de dépistage du cancer du sein ?",DEP2),
+   onn("q35bis","Avez-vous déjà réalisé un frottis de dépistage du cancer du col de l'utérus ?"),
+   m("q36","Êtes-vous dans l'une des situations suivantes (possibilité de cocher plusieurs réponses) ?",SEXE_SIT),
  ]},
- {sec:SEC_ADD,items:[
-   m("q37","Au cours de l'année écoulée, consommation d'alcool :",ALCOOL),
-   s("q38","Actuellement, fumez-vous ou vapotez-vous ?",TABAC),
+ {sec:"Conduites addictives, consommation de boissons alcoolisées, tabac et autres substances",items:[
+   m("q37","Au cours de l'année écoulée, concernant votre consommation de boissons alcoolisées :",ALCOOL),
+   s("q38","Actuellement, fumez-vous (cigarette, tabac à rouler, cigare, pipe, chicha, narguilé…) ou vapotez-vous ?",TABAC),
    s("q39","Si vous avez arrêté de fumer, depuis combien de temps ?",ARRET),
-   m("q40","Autres substances au cours des 12 derniers mois ?",SUBST),
-   s("q41","Avez-vous misé de l'argent (jeu, pari) au cours des 12 derniers mois ?",JEU),
-   s("q42","Votre regard sur le fait d'être à la retraite est :",RETR_R),
-   s("q43","Depuis la retraite, vous impliquez-vous dans de nouveaux projets ?",RETR_P),
+   m("q40","Avez-vous consommé d'autres substances au cours des 12 derniers mois ? Cannabis (haschisch, marijuana, herbe, joint ou shit) ou d'autres drogues (ecstasy, cocaïne, héroïne etc.) ?",["Oui, du cannabis","Oui, d'autres drogues","Non"]),
+   s("q41","Au cours des 12 derniers mois, avez-vous misé de l'argent pour un jeu (loterie, poker, ...), un pari (sportif, hippique, ...) ?",JEU),
+   s("q42","Votre regard sur le fait de passer ou d'être à la retraite est :",RETR_R),
+   s("q43","Depuis que vous êtes en retraite, vous impliquez-vous dans de nouveaux projets (sorties, passe-temps, clubs, associations...) ?",RETR_P),
  ]},
- {sec:SEC_MEN,items:[
+ {sec:"Santé et bien-être mental, violences",items:[
    s("q44","Diriez-vous que vous avez des problèmes de sommeil ?",SOM_PB),
-   s("q45","En moyenne, vous dormez :",SOM_DUR),
-   s("q46","2 dernières semaines — nervosité, anxiété ou tension :",PHQ),
-   s("q47","2 dernières semaines — incapable d'arrêter de vous inquiéter :",PHQ),
-   s("q48","2 dernières semaines — peu d'intérêt ou de plaisir à faire les choses :",PHQ),
-   s("q49","2 dernières semaines — tristesse, déprime ou désespoir :",PHQ),
+   s("q45","Concernant le sommeil, en moyenne vous dormez :",SOM_DUR),
+   s("q46","Au cours des 2 dernières semaines, combien de fois avez-vous eu un sentiment de nervosité, d'anxiété ou de tension ?",PHQ),
+   s("q47","Au cours des 2 dernières semaines, combien de fois avez-vous été incapable d'arrêter de vous inquiéter ou de contrôler vos inquiétudes ?",PHQ),
+   s("q48","Au cours des 2 dernières semaines, combien de fois avez-vous éprouvé peu d'intérêt ou de plaisir à faire les choses ?",PHQ),
+   s("q49","Au cours des 2 dernières semaines, combien de fois avez-vous éprouvé un sentiment de tristesse, de déprime ou de désespoir ?",PHQ),
    s("q50","Avez-vous déjà eu des idées noires/suicidaires ou fait une tentative de suicide ?",IDEES),
-   onn("q51","Avez-vous déjà été victime de violences, harcèlement, discrimination… ?"),
+   onn("q51","Avez-vous déjà été victime de violences physiques, sexuelles ou psychiques (coups, mutilations, menaces, chantage, humiliations…), harcèlements, discrimination, soumission chimique etc… ?"),
+ ]},
+ {sec:"Précisions complémentaires concernant votre santé",items:[
+   m("q52","Souhaitez-vous aborder un ou plusieurs sujets en priorité, avec le professionnel de santé au cours de votre Bilan Prévention ?",["Mieux dormir","Améliorer mon alimentation et bouger plus","Réduire ou arrêter ma consommation de tabac","Réduire ou arrêter ma consommation d'alcool","Améliorer mon bien-être mental, réduire mon stress ou mon anxiété","Mieux connaitre / comprendre / prévenir les effets du vieillissement","Mieux m'informer sur les dépistages concernant ma tranche d'âge"]),
+   {id:"q52bis",q:"Souhaitez-vous aborder un ou plusieurs sujets en priorité, avec le professionnel de santé au cours de votre Bilan Prévention ? (complément libre)",t:"text"},
  ]},
 ];
 
@@ -840,21 +869,23 @@ function renderQuestionnaire(){
   const nav=document.createElement("div");nav.className="secnav";
   Q.forEach((sec,i)=>{const btn=document.createElement("button");btn.textContent=(i+1)+". "+shortSec(sec.sec);btn.className=i===curSec?"cur":"";btn.onclick=()=>{document.getElementById("sec_"+i).scrollIntoView({behavior:"smooth",block:"start"});};nav.appendChild(btn);});
   host.appendChild(nav);
+  const prog=document.createElement("div");prog.className="qprog";prog.id="qprog";prog.innerHTML='<div class="qprog-b"><div class="qprog-f"></div></div><div class="qprog-t"></div>';host.appendChild(prog);
 
   Q.forEach((sec,i)=>{
     const card=document.createElement("div");card.className="card";card.id="sec_"+i;
-    const answered=sec.items.filter(it=>hasAns(it.id)).length;
-    card.innerHTML='<div class="card-h"><span class="sicon">'+secIcon(sec.sec)+'</span><h3>'+esc(sec.sec)+'</h3><span class="meta">'+answered+"/"+sec.items.length+'</span></div><div class="card-b"></div>';
+    const rasB=sec.items.some(it=>it.yn)?'<button type="button" class="rasbtn" data-sec="'+i+'" title="Marquer les questions Oui/Non encore vides comme « Non » (aucun symptôme). N\'affecte pas le dépistage santé mentale ni les dépistages.">RAS</button>':'';
+    card.innerHTML='<div class="card-h"><span class="sicon">'+secIcon(sec.sec)+'</span><h3>'+esc(sec.sec)+'</h3>'+rasB+'<span class="meta">0/0</span></div><div class="card-b"></div>';
     const body=card.querySelector(".card-b");
     sec.items.forEach(it=>body.appendChild(renderQ(it)));
     host.appendChild(card);
   });
+  $$("#qHost .rasbtn").forEach(btn=>btn.onclick=()=>rasFill(+btn.dataset.sec));
   // observe to highlight section
   const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const idx=+e.target.id.split("_")[1];$$(".secnav button").forEach((b,i)=>b.classList.toggle("cur",i===idx));}});},{rootMargin:"-70px 0px -70% 0px"});
   Q.forEach((_,i)=>obs.observe(document.getElementById("sec_"+i)));
-  updateStepper();
+  applySkip();updateStepper();
 }
-function shortSec(s){return s.replace("Activité physique, sédentarité & alimentation","Mode de vie").replace("Vaccins, dépistages & santé sexuelle","Dépistages").replace("Conduites addictives (alcool, tabac, autres)","Addictions").replace("Santé & bien-être mental, violences","Mental").replace("Situation personnelle & antécédents","Profil").replace("État de santé actuel","Santé");}
+function shortSec(s){const m={"Situation personnelle, environnement social et familial":"Profil","Vos antécédents personnels et familiaux":"Antécédents","Votre état de santé actuel":"Santé","Activité physique, sédentarité et alimentation":"Mode de vie","Santé-environnement et prévention des chutes":"Cadre de vie","Vaccins, dépistages et santé sexuelle":"Dépistages","Conduites addictives, consommation de boissons alcoolisées, tabac et autres substances":"Addictions","Santé et bien-être mental, violences":"Mental","Précisions complémentaires concernant votre santé":"Priorités"};return m[s]||s;}
 function secIcon(s){
   const i={};
   return '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
@@ -862,7 +893,7 @@ function secIcon(s){
 function hasAns(id){const v=state.answers[id];return Array.isArray(v)?v.length>0:(v!=null&&v!=="");}
 
 function renderQ(it){
-  const wrap=document.createElement("div");wrap.className="q";
+  const wrap=document.createElement("div");wrap.className="q";wrap.dataset.qid=it.id;
   let html='<span class="q-lbl"><span class="qid">'+it.id.toUpperCase().replace("Q","Q")+'</span> '+esc(it.q)+'</span>';
   if(it.note)html+='<span class="q-note">'+esc(it.note)+'</span>';
   wrap.innerHTML=html;
@@ -897,7 +928,7 @@ function renderQ(it){
       }else{
         state.answers[it.id]=(state.answers[it.id]===o)?"":o;
       }
-      saveData();paintOpts(opts,it);markSection(it.id);
+      saveData();paintOpts(opts,it);applySkip();if(it.t!=="multi"&&hasAns(it.id))focusNext(wrap);
     };
     btn.onclick=sel;
     opts.appendChild(btn);
@@ -914,14 +945,67 @@ function paintOpts(opts,it){
     b.classList.toggle("sel",on);
   });
 }
-function markSection(id){
-  // update the X/Y meta of the section containing id
-  const b=state.patient.bracket;const Q=QUESTIONNAIRES[b];
-  Q.forEach((sec,i)=>{
-    const card=document.getElementById("sec_"+i);if(!card)return;
-    const answered=sec.items.filter(it=>hasAns(it.id)).length;
-    const meta=card.querySelector(".meta");if(meta)meta.textContent=answered+"/"+sec.items.length;
+/* ---- saut automatique des questions non concernées ---- */
+function qVisible(it){
+  const b=state.patient.bracket, a=state.answers, sex=a.q1;
+  // questions réservées aux femmes (masquées si "Un homme")
+  const FEM={"18-25":["q28","q29","q31"],"45-50":["q19","q31"],"60-65":["q18","q34","q34bis"],"70-75":["q18","q35","q35bis"]}[b]||[];
+  if(sex==="Un homme" && FEM.includes(it.id)) return false;
+  // « Si oui, … » sur la présence d'enfant
+  if(b==="18-25" && it.id==="q5"  && a.q4!=="Oui") return false;
+  if(b==="45-50" && it.id==="q3"  && a.q2!=="Oui") return false;
+  // « Si vous avez arrêté de fumer, depuis combien de temps ? »
+  const TAB={"45-50":["q34","q35"],"60-65":["q37","q38"],"70-75":["q38","q39"]}[b];
+  if(TAB && it.id===TAB[1] && a[TAB[0]]!=="J'ai arrêté") return false;
+  return true;
+}
+function visItems(sec){return sec.items.filter(qVisible);}
+function applySkip(){
+  const b=state.patient.bracket; if(!b)return;
+  const Q=QUESTIONNAIRES[b], byId={};
+  Q.forEach(sec=>sec.items.forEach(it=>byId[it.id]=it));
+  $$("#qHost .q").forEach(w=>{
+    const it=byId[w.dataset.qid]; if(!it)return;
+    const vis=qVisible(it);
+    w.style.display=vis?"":"none";
+    if(!vis && state.answers[it.id]!=null) delete state.answers[it.id];
   });
+  Q.forEach((sec,i)=>{const card=document.getElementById("sec_"+i);if(card)card.style.display=visItems(sec).length?"":"none";});
+  saveData(); markSection();
+}
+function repaintOpts(){
+  const b=state.patient.bracket; if(!b)return; const Q=QUESTIONNAIRES[b], byId={};
+  Q.forEach(sec=>sec.items.forEach(it=>byId[it.id]=it));
+  $$("#qHost .q").forEach(w=>{const it=byId[w.dataset.qid];const o=w.querySelector(".opts");if(it&&o)paintOpts(o,it);});
+}
+function rasFill(i){
+  const b=state.patient.bracket; if(!b)return; const sec=QUESTIONNAIRES[b][i]; if(!sec)return;
+  let n=0;
+  // uniquement les questions Oui/Non (it.yn) visibles et non répondues -> "Non"
+  sec.items.forEach(it=>{ if(it.yn && qVisible(it) && !hasAns(it.id)){ state.answers[it.id]="Non"; n++; } });
+  saveData(); applySkip(); repaintOpts();
+  toast(n?(n+" réponse"+(n>1?"s":"")+" marquée"+(n>1?"s":"")+" « Non »"):"Rien à pré-remplir dans cette section","ok");
+}
+function focusNext(wrap){
+  const all=$$("#qHost .q").filter(w=>w.style.display!=="none");
+  const i=all.indexOf(wrap);
+  if(i>=0 && i<all.length-1) all[i+1].scrollIntoView({behavior:"smooth",block:"center"});
+}
+function markSection(){
+  const b=state.patient.bracket; if(!b)return; const Q=QUESTIONNAIRES[b];
+  let tot=0, ans=0;
+  Q.forEach((sec,i)=>{
+    const vis=visItems(sec), a=vis.filter(it=>hasAns(it.id)).length;
+    tot+=vis.length; ans+=a;
+    const card=document.getElementById("sec_"+i); if(!card)return;
+    const meta=card.querySelector(".meta"); if(meta)meta.textContent=a+"/"+vis.length;
+  });
+  const pr=document.getElementById("qprog");
+  if(pr){
+    const rem=tot-ans;
+    pr.querySelector(".qprog-t").textContent=ans+" / "+tot+" répondu"+(ans>1?"s":"")+(rem>0?" · "+rem+" restante"+(rem>1?"s":""):" · terminé ✓");
+    pr.querySelector(".qprog-f").style.width=(tot?Math.round(ans/tot*100):0)+"%";
+  }
   updateStepper();
 }
 function refreshImc(){
@@ -938,6 +1022,8 @@ function refreshImc(){
    ============================================================ */
 function a(id){return state.answers[id];}
 function aHas(id,val){const v=state.answers[id];return Array.isArray(v)?v.includes(val):v===val;}
+function aStarts(id,p){const v=state.answers[id];return Array.isArray(v)?v.some(x=>String(x).indexOf(p)===0):String(v==null?"":v).indexOf(p)===0;}
+function aInc(id,sub){const v=state.answers[id];return Array.isArray(v)?v.some(x=>String(x).includes(sub)):String(v==null?"":v).includes(sub);}
 function phqScore(ids){return ids.reduce((s,id)=>{const idx=PHQ.indexOf(state.answers[id]);return s+(idx>0?idx:0);},0);}
 
 function buildFlags(){
@@ -947,13 +1033,13 @@ function buildFlags(){
   const idmap={
     "18-25":{alcool:"q34",binge:"q35",tabac:"q36",subst:"q37",vac:"q26",hpv:"q27",col:"q28",ist:"q32",idees:"q45",viol:"q46",gad:["q41","q42"],phq:["q43","q44"],som_dur:"q40",assis:"q24",ess:null,tousse:null,aud:null,view:"q19",dent:"q20",ap:"q21"},
     "45-50":{alcool:"q33",tabac:"q34",subst:"q36",vac:"q29",depCS:"q30",frottis:"q31",idees:"q44",viol:"q45",gad:["q40","q41"],phq:["q42","q43"],som_dur:"q39",assis:"q27",ess:"q17",tousse:"q15",aud:"q22",view:"q21",dent:"q20",ap:"q24"},
-    "60-65":{alcool:"q36",tabac:"q37",subst:"q39",vac:"q32",col:"q33",mammo:"q34",frottis:"q34b",idees:"q49",viol:"q50",gad:["q45","q46"],phq:["q47","q48"],som_dur:"q44",assis:"q30",ess:"q16",tousse:"q14",aud:"q21",view:"q20",dent:"q19",ap:"q27",oubli:"q25"},
-    "70-75":{alcool:"q37",tabac:"q38",subst:"q40",vac:"q33",col:"q34",mammo:"q35",frottis:"q35b",idees:"q50",viol:"q51",gad:["q46","q47"],phq:["q48","q49"],som_dur:"q45",assis:"q29",ess:"q16",tousse:"q14",aud:"q21",view:"q20",dent:"q19",ap:"q26",chutes:"q32",gestes:"q25"},
+    "60-65":{alcool:"q36",tabac:"q37",subst:"q39",vac:"q32",col:"q33",mammo:"q34",frottis:"q34bis",idees:"q49",viol:"q50",gad:["q45","q46"],phq:["q47","q48"],som_dur:"q44",assis:"q30",ess:"q16",tousse:"q14",aud:"q21",view:"q20",dent:"q19",ap:"q27",oubli:"q25"},
+    "70-75":{alcool:"q37",tabac:"q38",subst:"q40",vac:"q33",col:"q34",mammo:"q35",frottis:"q35bis",idees:"q50",viol:"q51",gad:["q46","q47"],phq:["q48","q49"],som_dur:"q45",assis:"q29",ess:"q16",tousse:"q14",aud:"q21",view:"q20",dent:"q19",ap:"q26",chutes:"q32",gestes:"q25"},
   }[b];
   if(!idmap)return f;
 
   // SUICIDE — alerte prioritaire
-  if(aHas(idmap.idees,"Oui, des idées noires/suicidaires")||aHas(idmap.idees,"Oui, une ou des tentative(s) de suicide")){
+  if(aStarts(idmap.idees,"Oui")){
     push("alert","Idées suicidaires / antécédent de tentative","Orientation médicale <strong>sans délai</strong> (médecin traitant / urgences). Ressource nationale : <strong>3114</strong> (numéro national de prévention du suicide, 24h/24). Thématique <strong>bien-être mental</strong> à prioriser.");
   }
   // Violences
@@ -962,7 +1048,7 @@ function buildFlags(){
   if(idmap.gad){const g=phqScore(idmap.gad);if(g>=3)push("warn","Dépistage anxiété (GAD-2) positif","Score "+g+"/6 ≥ 3 — évaluation approfondie / orientation. Thématique <strong>bien-être mental</strong>.");}
   if(idmap.phq){const p=phqScore(idmap.phq);if(p>=3)push("warn","Dépistage dépression (PHQ-2) positif","Score "+p+"/6 ≥ 3 — évaluation approfondie / orientation médecin traitant.");}
   // Alcool
-  if(aHas(idmap.alcool,"Plus de 2 verres standards par jour")||aHas(idmap.alcool,"Plus de 10 verres standards par semaine"))
+  if(aInc(idmap.alcool,"plus de 2 verres")||aInc(idmap.alcool,"plus de 10 verres"))
     push("warn","Consommation d'alcool à risque","Au-delà des repères (≤ 2 verres/j, ≤ 10/sem, avec jours sans). Intervention brève (RPIB), Alcool Info Service. Thématique <strong>addictions</strong>.");
   if(idmap.binge&&aHas(idmap.binge,"Oui")) push("warn","Alcoolisations ponctuelles importantes (binge)","Repérage et information sur les risques.");
   // Tabac
