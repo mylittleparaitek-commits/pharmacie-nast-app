@@ -826,7 +826,7 @@ let state={
   dmp:[],              // transmission methods
   ui:{express:true, essential:true},   // libellés courts + format ~5 min par défaut
 };
-let cfg={ph:"",finess:"",user:"",hook:"",drive:"",from:""};
+let cfg={ph:"Pharmacie Nast",finess:"",user:"",hook:"https://n8n.srv1086994.hstgr.cloud/webhook/bilan-prevention",drive:"",from:""};
 let curStep=1, curSec=0;
 
 /* ============================================================
@@ -835,7 +835,7 @@ let curStep=1, curSec=0;
 function saveData(){store.set(DATA_KEY,JSON.stringify(state));}
 function loadData(){const v=store.get(DATA_KEY);if(v){try{state=Object.assign(state,JSON.parse(v));}catch(e){}}}
 function saveCfg(){store.set(CFG_KEY,JSON.stringify(cfg));}
-function loadCfg(){const v=store.get(CFG_KEY);if(v){try{cfg=Object.assign(cfg,JSON.parse(v));}catch(e){}}}
+function loadCfg(){const v=store.get(CFG_KEY);if(v){try{cfg=Object.assign(cfg,JSON.parse(v));}catch(e){}}if(!cfg.ph)cfg.ph="Pharmacie Nast";if(!cfg.hook)cfg.hook="https://n8n.srv1086994.hstgr.cloud/webhook/bilan-prevention";}
 
 /* ============================================================
    Utilities
@@ -1175,7 +1175,7 @@ function fullName(){return ((state.patient.prenom||"")+" "+(state.patient.nom||"
 function brLabel(b){return{"18-25":"18 – 25 ans","45-50":"45 – 50 ans","60-65":"60 – 65 ans","70-75":"70 – 75 ans"}[b]||"—";}
 function answeredSummary(){
   const b=state.patient.bracket;if(!b)return[];const Q=QUESTIONNAIRES[b];const out=[];
-  Q.forEach(sec=>{const rows=[];sec.items.forEach(it=>{if(hasAns(it.id)){let v=state.answers[it.id];if(Array.isArray(v))v=v.join(", ");rows.push({q:it.q,v});}});if(rows.length)out.push({sec:sec.sec,rows});});
+  Q.forEach(sec=>{const rows=[];sec.items.forEach(it=>{if(hasAns(it.id)&&qVisible(it)){let v=state.answers[it.id];if(Array.isArray(v))v=v.join(", ");rows.push({q:it.q,v});}});if(rows.length)out.push({sec:sec.sec,rows});});
   return out;
 }
 function renderStep4(){
@@ -1226,7 +1226,7 @@ function buildPayload(){
     pharmacie:{nom:cfg.ph,finess:cfg.finess,effecteur:cfg.user,emailExpediteur:cfg.from,driveFolder:cfg.drive},
     patient:{nom:state.patient.nom,prenom:state.patient.prenom,dateNaissance:state.patient.dob,age:ageFromDob(state.patient.dob),trancheAge:b,email:state.patient.mail,nir:state.patient.nir,imc:v?+v.toFixed(1):null},
     reponses:answeredSummary(),
-    reponsesBrutes:state.answers,
+    reponsesBrutes:(()=>{const Q=QUESTIONNAIRES[b]||[];const o={};Q.forEach(sec=>sec.items.forEach(it=>{if(hasAns(it.id)&&qVisible(it))o[it.id]=state.answers[it.id];}));return o;})(),
     reperage:buildFlags().map(f=>({niveau:f.kind,titre:f.title})),
     priorites:state.priorities.map(id=>{const t=THEMES.find(x=>x.id===id);return{theme:t.l,...(state.ppp[id]||{})};}),
     acteEnSus:state.acte,
