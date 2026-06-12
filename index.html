@@ -3326,9 +3326,9 @@
                 const lcdpCount = lcdpData.length;
                 const today = new Date().toLocaleDateString('fr-FR');
                 const lcdpTodayCA = (lcdpAllData || []).filter(c => {
-                    const d = new Date(c.date);
+                    const d = parseLcdpDate(c.date);
                     return !isNaN(d) && d.toLocaleDateString('fr-FR') === today && !LCDP_STATUTS_EXCLUS.includes(c.statut);
-                }).reduce((s, c) => s + (parseFloat(c.total) || 0), 0);
+                }).reduce((s, c) => s + parseLcdpTotal(c.total), 0);
                 document.getElementById('kpiLcdpCmds').textContent = lcdpCount || '0';
                 document.getElementById('kpiLcdpCA').textContent = lcdpTodayCA > 0 ? Math.round(lcdpTodayCA) + '€' : '—';
 
@@ -4703,6 +4703,18 @@
         const LCDP_STATUTS_A_TRAITER = ['WAITING_FOR_SELLER_ACCEPTANCE','WAITING_FOR_BUYER_ACCEPTANCE','SELLER_ACCEPTANCE_DELAY','SENDING_DELAY'];
         const LCDP_STATUTS_EXCLUS = ['CANCELED','INVALIDATED'];
 
+        // Parse robuste des dates LCDP : gère "dd/mm/yyyy hh:mm" (format FR de la sheet) ET ISO
+        function parseLcdpDate(s) {
+            if (!s) return new Date(NaN);
+            const m = String(s).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+            if (m) return new Date(+m[3], +m[2]-1, +m[1], +(m[4]||0), +(m[5]||0), +(m[6]||0));
+            return new Date(s); // ISO ou autre format natif
+        }
+        // Parse robuste des montants : gère virgule décimale, espaces, symbole €
+        function parseLcdpTotal(t) {
+            return parseFloat(String(t||'').replace(/\s/g,'').replace(',', '.').replace(/[^0-9.\-]/g, '')) || 0;
+        }
+
         let lcdpData = [];
         let lcdpAllData = []; // toutes les commandes (pour stats)
         let currentLcdp = null;
@@ -4881,7 +4893,7 @@
                     });
                 }
             }
-            return Object.values(map).sort((a, b) => new Date(b.date) - new Date(a.date));
+            return Object.values(map).sort((a, b) => parseLcdpDate(b.date) - parseLcdpDate(a.date));
         }
 
         async function loadLCDP() {
@@ -7034,7 +7046,7 @@
                 const todayStr = now.toLocaleDateString('fr-FR');
                 const filtered = lcdpAllData.filter(c => {
                     if (LCDP_STATUTS_EXCLUS.includes(c.statut)) return false;
-                    const cd = new Date(c.date);
+                    const cd = parseLcdpDate(c.date);
                     if (isNaN(cd)) return false;
                     if (key === 'jour') return cd.toLocaleDateString('fr-FR') === todayStr;
                     if (key === 'hier') { const hier = new Date(now); hier.setDate(hier.getDate()-1); return cd.toLocaleDateString('fr-FR') === hier.toLocaleDateString('fr-FR'); }
@@ -7043,7 +7055,7 @@
                     if (key === 'j7') { const d7 = new Date(now); d7.setDate(d7.getDate()-7); return cd >= d7; }
                     return true;
                 });
-                return { commandes: filtered.length, ca: filtered.reduce((s, c) => s + (parseFloat(c.total)||0), 0) };
+                return { commandes: filtered.length, ca: filtered.reduce((s, c) => s + parseLcdpTotal(c.total), 0) };
             })();
             const platData = [
                 { nom:'NAST.COM',  cmds:plats.nast?.commandes||0,      ca:plats.nast?.ca||0,      color:'#1976D2' },
